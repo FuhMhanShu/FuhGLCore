@@ -39,6 +39,8 @@ public:
     int height() const { return height_; }
     /// @brief Default G-buffer material for items with material == nullptr.
     Material& defaultMaterial() { return defaultMaterial_; }
+    /// @brief Light UBO (debug/introspection).
+    const UniformBuffer& lightsUbo() const { return lightsUbo_; }
 
     /// @brief Sky colors used for background pixels (position alpha < 0.5) in the lighting pass.
     math::Vec3 skyTop{0.25f, 0.45f, 0.9f};

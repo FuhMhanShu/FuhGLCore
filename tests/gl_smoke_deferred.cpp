@@ -49,6 +49,18 @@ int main() {
     pipeline.render(scene);
     fuhgl::gl::flush();
 
+    if (std::getenv("FUHGL_DEBUG")) {
+        // dump the first bytes of the light UBO as seen by the GPU
+        auto& f = fuhgl::gl::functions();
+        f.glBindBuffer(fuhgl::gl::GL_UNIFORM_BUFFER, pipeline.lightsUbo().id());
+        if (void* p = f.glMapBuffer(fuhgl::gl::GL_UNIFORM_BUFFER, fuhgl::gl::GL_READ_ONLY)) {
+            const float* v = static_cast<const float*>(p);
+            std::fprintf(stderr, "gl_smoke_deferred[debug]: UBO[0..3] = %f %f %f %f, UBO[64..67] = %f %f %f %f\n",
+                         v[0], v[1], v[2], v[3], v[256], v[257], v[258], v[259]);
+            f.glUnmapBuffer(fuhgl::gl::GL_UNIFORM_BUFFER);
+        }
+    }
+
     pipeline.output().bind();
     unsigned char center[4] = {0, 0, 0, 0}, corner[4] = {0, 0, 0, 0};
     fuhgl::gl::readPixels(32, 32, 1, 1, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, center);
