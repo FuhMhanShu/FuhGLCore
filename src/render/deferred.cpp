@@ -135,6 +135,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         std::fprintf(stderr, "DeferredPipeline: G-buffer incomplete (0x%x)\n", gbuffer_.status());
         return false;
     }
+    std::fprintf(stderr, "DeferredPipeline: G-buffer ok\n");
 
     // resolve target (only for MSAA)
     if (msaa_ > 0) {
@@ -147,7 +148,10 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         resolve_.attachTexture2D(0, texResolveAlbedo_);
         resolve_.attachTexture2D(1, texResolveNormal_);
         resolve_.attachTexture2D(2, texResolvePosition_);
-        if (!resolve_.isComplete()) return false;
+        if (!resolve_.isComplete()) {
+            std::fprintf(stderr, "DeferredPipeline: resolve FBO incomplete (0x%x)\n", resolve_.status());
+            return false;
+        }
     }
 
     // lighting output
@@ -156,30 +160,43 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
     output_.setSize(width, height);
     output_.bind();
     output_.attachTexture2D(0, texOutput_);
-    if (!output_.isComplete()) return false;
+    if (!output_.isComplete()) {
+        std::fprintf(stderr, "DeferredPipeline: output FBO incomplete (0x%x)\n", output_.status());
+        return false;
+    }
     Framebuffer::unbind();
+    std::fprintf(stderr, "DeferredPipeline: output FBO ok\n");
 
     // default G-buffer material
-    if (!defaultMaterial_.create()) return false;
+    if (!defaultMaterial_.create()) { std::fprintf(stderr, "DeferredPipeline: default material create failed\n"); return false; }
     {
         Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
-        if (!vs.compile(kGBufferVert) || !fs.compile(kGBufferFrag)) return false;
+        if (!vs.compile(kGBufferVert)) { std::fprintf(stderr, "DeferredPipeline: gbuf VS: %s\n", vs.infoLog().c_str()); return false; }
+        if (!fs.compile(kGBufferFrag)) { std::fprintf(stderr, "DeferredPipeline: gbuf FS: %s\n", fs.infoLog().c_str()); return false; }
         defaultMaterial_.program().attach(vs);
         defaultMaterial_.program().attach(fs);
-        if (!defaultMaterial_.program().link()) return false;
+        if (!defaultMaterial_.program().link()) {
+            std::fprintf(stderr, "DeferredPipeline: gbuf link: %s\n", defaultMaterial_.program().infoLog().c_str());
+            return false;
+        }
     }
+    std::fprintf(stderr, "DeferredPipeline: gbuffer material ok\n");
 
     // lighting material (fullscreen triangle)
     if (!lightingMaterial_.create()) return false;
     {
         Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
-        if (!vs.compile(kLightVert)) return false;
+        if (!vs.compile(kLightVert)) { std::fprintf(stderr, "DeferredPipeline: light VS: %s\n", vs.infoLog().c_str()); return false; }
         const std::string fragSrc = std::string(kLightFragHead) + kLightingUniforms + kLightingLoop + kLightFragTail;
-        if (!fs.compile(fragSrc.c_str())) return false;
+        if (!fs.compile(fragSrc.c_str())) { std::fprintf(stderr, "DeferredPipeline: light FS: %s\n", fs.infoLog().c_str()); return false; }
         lightingMaterial_.program().attach(vs);
         lightingMaterial_.program().attach(fs);
-        if (!lightingMaterial_.program().link()) return false;
+        if (!lightingMaterial_.program().link()) {
+            std::fprintf(stderr, "DeferredPipeline: light link: %s\n", lightingMaterial_.program().infoLog().c_str());
+            return false;
+        }
     }
+    std::fprintf(stderr, "DeferredPipeline: lighting material ok\n");
     lightingMaterial_.setTexture(0, texAlbedo_);
     lightingMaterial_.setTexture(1, texNormal_);
     lightingMaterial_.setTexture(2, texPosition_);
