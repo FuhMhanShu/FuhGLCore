@@ -1,91 +1,87 @@
 # FuhGLCore
 
-Another lightweight OpenGL wrapper — with **zero third-party dependencies**.
+A lightweight OpenGL wrapper for C++17 with **zero third-party dependencies** —
+only the C++ standard library and platform system APIs. No GLAD/GLEW, no GLFW/SDL,
+no Khronos headers, no vcpkg.
 
-Modern C++17, static library, PIMPL idiom, English-documented, performance oriented.
+![first triangle](docs/images/tutorial-first-triangle.png)
+![isometric skybox](docs/images/tutorial-isometric-skybox.png)
 
-## Features
+*(Screenshots rendered headless in CI — see [tutorial 12](docs/tutorials/12-headless-rendering-and-screenshots.md))*
 
-- **Runtime GL loader** (`fuhgl::gl::init()`): loads OpenGL core functions 1.0–4.6
-  by name at runtime — no GLAD/GLEW, no Khronos headers, no link dependency
-  (Linux: `dlopen("libGL.so.1")`, Windows: `opengl32.dll`, macOS: OpenGL framework).
-- **RAII wrappers** (PIMPL, movable, non-copyable): `Shader`, `Program`, `Buffer`,
-  `VertexArray`, `Texture`, `Framebuffer`, `Renderbuffer` + thin state helpers.
-- **Native window + GL context** (`fuhgl::Window`): Win32/WGL, X11/GLX, macOS Cocoa —
-  no GLFW/SDL needed. Creates a 3.3 core-profile context (configurable) and calls
-  `gl::init()` for you.
-- **Math module** (`fuhgl::math`, header-only): `Vec2/3/4`, `Mat3/Mat4` column-major
-  (directly compatible with `glUniformMatrix*fv`), transforms (`perspective`, `ortho`,
-  `lookAt`, `translate/rotate/scale`).
-- **Camera controllers** (`fuhgl`): `FirstPersonCamera`, `FreeCamera` (6-DOF),
-  `IsometricCamera` — wired to `Window` events via `attach(window)`; plus
-  `math::Frustum` (culling) and `math::rayFromScreen` (picking).
-- **Extended GL coverage**: 3D/array/cube/cubemap/multisample textures, sampler
-  objects, `UniformBuffer`, timer queries + fence syncs, compute dispatch,
-  indirect draws, MSAA resolve (`Framebuffer::blitTo`), optional GL 4.5 DSA
-  table (`gl::dsa()`), and dependency-free `#include "..."` in GLSL
-  (`Shader::compileWithIncludes`).
-- **Skybox** (`fuhgl::Skybox`): cubemap skybox with the `xyww` far-plane depth
-  trick — 6 images or a procedural gradient.
-- **Linux window backends**: X11/GLX (default) or EGL (`-DFUHGL_LINUX_BACKEND=EGL`)
-  with Wayland/xdg-shell windows and a **surfaceless headless mode**
-  (`FUHGL_BACKEND=surfaceless`) used by the CI GL smoke test.
+## What you get
 
-Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in
-the API — failures return `bool`/info-log strings; debug builds assert and forward
-GL debug output to a user callback.
+- **Runtime GL loader** — `fuhgl::gl::init()` loads core functions (GL 1.0–4.6) by name at
+  runtime; `gl::procAddress(name)` for extensions/DSA; optional GL 4.5 DSA table (`gl::dsa()`).
+- **RAII wrappers** (PIMPL, movable, non-copyable) — `Shader`, `Program`, `Buffer`,
+  `VertexArray`, `Texture` (2D/3D/array/cube/multisample), `Sampler`, `Framebuffer`,
+  `Renderbuffer`, `UniformBuffer`, `Query`, `Fence`.
+- **Native window + GL context** — `fuhgl::Window`: Win32/WGL, X11/GLX, macOS/Cocoa,
+  and on Linux an EGL backend (Wayland or surfaceless/headless). No windowing library needed.
+- **Math** — `fuhgl::math`: `Vec2/3/4`, `Mat3/Mat4` (column-major, ready for
+  `glUniformMatrix*fv`), `perspective/ortho/lookAt/...`, `Frustum`, picking rays.
+- **Cameras** — `FirstPersonCamera`, `FreeCamera` (6-DOF), `IsometricCamera`, wired to
+  window events via `attach(window)`.
+- **Skybox** — cubemap skybox with the far-plane depth trick, from 6 images or procedural.
+- **Extras** — compute shaders, timer queries/fences, indirect draws, MSAA resolve,
+  dependency-free GLSL `#include "..."`.
 
-## Build
+Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
+API — failures return `bool`/info-log strings; debug builds assert and forward GL debug
+output to a callback.
 
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-cmake --install build --prefix <prefix>   # optional: provides find_package(FuhGLCore)
-```
-
-Options: `-DFUHGL_BUILD_EXAMPLES=ON` (default), `-DFUHGL_BUILD_TESTS=ON` (default).
-
-Requires only a C++17 compiler and CMake ≥ 3.20 — no OpenGL dev packages needed
-at build time (functions are loaded at runtime).
-
-## Usage
+## Quick start
 
 ```cpp
 #include <fuhgl/fuhgl.hpp>
 
 int main() {
     fuhgl::Window window;
-    if (!window.create("Triangle", 800, 600)) return 1;   // creates 3.3 core context + gl::init()
+    if (!window.create("Hello", 800, 600)) return 1;  // native window + 3.3 core context + gl::init()
 
     fuhgl::Shader vs(fuhgl::Shader::Type::Vertex), fs(fuhgl::Shader::Type::Fragment);
     vs.compile(vertexSrc); fs.compile(fragmentSrc);
-    fuhgl::Program prog; prog.attach(vs); prog.attach(fs); prog.link();
+    fuhgl::Program prog; prog.create(); prog.attach(vs); prog.attach(fs); prog.link();
 
     fuhgl::FirstPersonCamera cam; cam.attach(window);
-
     while (!window.shouldClose()) {
         window.pollEvents();
-        cam.update(1.0f / 60.0f);
+        cam.update(1.f / 60.f);
         fuhgl::gl::clearColor(0.1f, 0.1f, 0.12f, 1.f);
         fuhgl::gl::clear(fuhgl::gl::ClearBit::Color | fuhgl::gl::ClearBit::Depth);
         prog.use();
-        fuhgl::gl::setUniform(prog.uniformLocation("uViewProj"), cam.projection(800.f/600.f) * cam.view());
+        prog.setUniform("uViewProj", cam.viewProj(800.f / 600.f));
         fuhgl::gl::drawArrays(fuhgl::gl::Primitive::Triangles, 0, 3);
         window.swapBuffers();
     }
 }
 ```
 
-See `examples/triangle` for a complete program.
+Full walkthrough: [tutorial 01 — window and first triangle](docs/tutorials/01-window-and-first-triangle.md).
 
-## Tests
+## Build
 
 ```sh
-cmake -S . -B build && cmake --build build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+cmake --install build --prefix <prefix>   # provides find_package(FuhGLCore)
 ctest --test-dir build --output-on-failure
 ```
 
-Math, camera and loader-table tests run headless (no GL context required).
+Options: `-DFUHGL_BUILD_EXAMPLES=ON` (default), `-DFUHGL_BUILD_TESTS=ON` (default),
+`-DFUHGL_LINUX_BACKEND=X11|EGL` (default X11; EGL adds Wayland + surfaceless headless).
+
+Only a C++17 compiler and CMake ≥ 3.20 are required — GL functions are loaded at runtime,
+so no OpenGL dev packages are needed at build time.
+
+## Documentation
+
+- [User guide](docs/USER_GUIDE.md) — concepts and features (the descriptive part)
+- [Tutorials](docs/tutorials/README.md) — one small tutorial per feature, with screenshots
+- [Development](docs/DEVELOPMENT.md) — architecture, conventions, build, tests, CI (the technical part)
+- [Requirements](docs/REQUIREMENTS.md) — the agreed functional/non-functional requirements
+- API reference — Doxygen HTML is built in CI and uploaded as the `doxygen-html` artifact
+  (locally: `cd docs && doxygen Doxyfile`)
 
 ## License
 
