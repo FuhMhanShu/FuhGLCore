@@ -2,8 +2,10 @@
 #include "lighting_glsl.hpp"
 
 #include "fuhgl/gl/state.hpp"
+#include "fuhgl/gl/error.hpp"
 
 #include <cstdio>
+#include <cstdlib>
 
 namespace fuhgl::render {
 namespace {
@@ -292,6 +294,12 @@ void DeferredPipeline::render(const SceneView& scene) {
     lp.setUniform(lp.uniformLocation("uLightCount"), n);
     lp.setUniform("uSkyTop", skyTop);
     lp.setUniform("uSkyBottom", skyBottom);
+    if (std::getenv("FUHGL_DEBUG")) {
+        const gl::GLint loc = lp.uniformLocation("uLightCount");
+        const gl::GLuint blockIdx = f.glGetUniformBlockIndex ? f.glGetUniformBlockIndex(lp.id(), "LightBlock") : 999u;
+        std::fprintf(stderr, "DeferredPipeline[debug]: uLightCount loc=%d blockIdx=%u err=0x%x ubo=%u\n",
+                     loc, blockIdx, gl::lastError(), lightsUbo_.id());
+    }
     fullscreenVao_.bind();
     gl::drawArrays(gl::Primitive::Triangles, 0, 3);
 
