@@ -187,6 +187,66 @@ inline constexpr GLenum GL_DEBUG_SEVERITY_MEDIUM = 0x9147;
 inline constexpr GLenum GL_DEBUG_SEVERITY_LOW = 0x9148;
 inline constexpr GLenum GL_DEBUG_SEVERITY_NOTIFICATION = 0x826B;
 
+// --- compute (GL 4.3) -----------------------------------------------------------
+inline constexpr GLenum GL_COMPUTE_SHADER = 0x91B9;
+inline constexpr GLenum GL_DISPATCH_INDIRECT_BUFFER = 0x90EE;
+inline constexpr GLenum GL_DRAW_INDIRECT_BUFFER = 0x8F3F;
+inline constexpr GLbitfield GL_SHADER_STORAGE_BARRIER_BIT = 0x00002000;
+inline constexpr GLbitfield GL_ALL_BARRIER_BITS = 0xFFFFFFFF;
+
+// --- queries / sync --------------------------------------------------------------
+inline constexpr GLenum GL_TIME_ELAPSED = 0x88BF;
+inline constexpr GLenum GL_TIMESTAMP = 0x8E28;
+inline constexpr GLenum GL_QUERY_RESULT = 0x8866;
+inline constexpr GLenum GL_QUERY_RESULT_AVAILABLE = 0x8867;
+inline constexpr GLenum GL_SYNC_GPU_COMMANDS_COMPLETE = 0x9117;
+inline constexpr GLenum GL_ALREADY_SIGNALED = 0x911A;
+inline constexpr GLenum GL_TIMEOUT_EXPIRED = 0x911B;
+inline constexpr GLenum GL_CONDITION_SATISFIED = 0x911C;
+inline constexpr GLenum GL_WAIT_FAILED = 0x911D;
+inline constexpr GLbitfield GL_SYNC_FLUSH_COMMANDS_BIT = 0x00000001;
+inline constexpr GLuint64 GL_TIMEOUT_IGNORED = 0xFFFFFFFFFFFFFFFFull;
+
+// --- more texture targets / formats ----------------------------------------------
+inline constexpr GLenum GL_TEXTURE_3D = 0x806F;
+inline constexpr GLenum GL_TEXTURE_2D_ARRAY = 0x8C1A;
+inline constexpr GLenum GL_TEXTURE_CUBE_MAP = 0x8513;
+inline constexpr GLenum GL_TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
+inline constexpr GLenum GL_TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
+inline constexpr GLenum GL_TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
+inline constexpr GLenum GL_TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
+inline constexpr GLenum GL_TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
+inline constexpr GLenum GL_TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
+inline constexpr GLenum GL_TEXTURE_CUBE_MAP_ARRAY = 0x9009;
+inline constexpr GLenum GL_TEXTURE_2D_MULTISAMPLE = 0x9100;
+inline constexpr GLenum GL_TEXTURE_2D_MULTISAMPLE_ARRAY = 0x9102;
+inline constexpr GLenum GL_PROXY_TEXTURE_CUBE_MAP = 0x851B;
+inline constexpr GLenum GL_SAMPLER_2D = 0x8B5E;
+inline constexpr GLenum GL_SAMPLER_3D = 0x8B5F;
+inline constexpr GLenum GL_SAMPLER_CUBE = 0x8B60;
+inline constexpr GLenum GL_SAMPLER_2D_ARRAY = 0x8DC1;
+inline constexpr GLenum GL_SAMPLER_2D_MULTISAMPLE = 0x9108;
+inline constexpr GLenum GL_SAMPLER_CUBE_MAP_ARRAY = 0x900C;
+inline constexpr GLenum GL_RGBA32F = 0x8814;
+inline constexpr GLenum GL_RGB32F = 0x8815;
+inline constexpr GLenum GL_RGBA16F = 0x881A;
+inline constexpr GLenum GL_DEPTH_COMPONENT32F = 0x8CAC;
+inline constexpr GLenum GL_DEPTH32F_STENCIL8 = 0x8CAD;
+inline constexpr GLenum GL_FLOAT_32_UNSIGNED_INT_24_8_REV = 0x8DAD;
+inline constexpr GLenum GL_TEXTURE_BASE_LEVEL = 0x813C;
+inline constexpr GLenum GL_TEXTURE_MAX_LEVEL = 0x813D;
+inline constexpr GLenum GL_GENERATE_MIPMAP = 0x8191;
+inline constexpr GLenum GL_TEXTURE_COMPARE_MODE = 0x884C;
+inline constexpr GLenum GL_TEXTURE_COMPARE_FUNC = 0x884D;
+inline constexpr GLenum GL_COMPARE_REF_TO_TEXTURE = 0x884E;
+inline constexpr GLenum GL_CLAMP_TO_BORDER = 0x812D;
+inline constexpr GLenum GL_BORDER_COLOR = 0x1004;
+inline constexpr GLenum GL_MAX_SAMPLES = 0x8D57;
+inline constexpr GLenum GL_FRAMEBUFFER_SRGB = 0x8DB9;
+inline constexpr GLenum GL_COLOR = 0x1800;
+inline constexpr GLenum GL_DEPTH = 0x1801;
+inline constexpr GLenum GL_COLOR_ATTACHMENT1 = 0x8CE1;
+
 /// @brief Signature of the GL debug message callback (GLDEBUGPROC).
 using GLDEBUGPROC = void (*)(GLenum source, GLenum type, GLuint id, GLenum severity,
                              GLsizei length, const GLchar* message, const void* userParam);

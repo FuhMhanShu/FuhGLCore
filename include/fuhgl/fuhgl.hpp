@@ -18,3 +18,6 @@
 #include "gl/texture.hpp"
 #include "gl/renderbuffer.hpp"
 #include "gl/framebuffer.hpp"
+#include "gl/sampler.hpp"
+#include "gl/sync.hpp"
+#include "gl/ubo.hpp"

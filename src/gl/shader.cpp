@@ -1,7 +1,46 @@
 #include "fuhgl/gl/shader.hpp"
 #include "fuhgl/gl/loader.hpp"
 
+#include <sstream>
+
 namespace fuhgl {
+
+namespace {
+std::string trimLeft(std::string s) {
+    const auto pos = s.find_first_not_of(" \t\r");
+    return pos == std::string::npos ? std::string{} : s.substr(pos);
+}
+} // namespace
+
+std::string Shader::resolveIncludes(const std::string& source, const IncludeResolver& resolver, int depth) {
+    if (depth > 16 || !resolver) return source;
+    std::istringstream in(source);
+    std::ostringstream out;
+    std::string line;
+    bool firstLine = true;
+    while (std::getline(in, line)) {
+        const std::string t = trimLeft(line);
+        if (t.rfind("#include", 0) == 0) {
+            const auto q1 = t.find('"');
+            const auto q2 = q1 == std::string::npos ? std::string::npos : t.find('"', q1 + 1);
+            if (q1 != std::string::npos && q2 != std::string::npos) {
+                const std::string path = t.substr(q1 + 1, q2 - q1 - 1);
+                std::string content = resolver(path);
+                out << resolveIncludes(content, resolver, depth + 1) << '\n';
+                continue;
+            }
+        }
+        out << line << '\n';
+        firstLine = false;
+    }
+    (void)firstLine;
+    return out.str();
+}
+
+bool Shader::compileWithIncludes(const char* source, const IncludeResolver& resolver) {
+    return compile(resolveIncludes(source ? source : "", resolver).c_str());
+}
+
 
 struct Shader::Impl {
     gl::GLuint id = 0;

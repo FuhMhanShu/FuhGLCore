@@ -124,7 +124,72 @@ struct Functions {
     void (*glDrawElementsInstanced)(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei instancecount);
     // debug output (GL 4.3 / KHR_debug)
     void (*glDebugMessageCallback)(GLDEBUGPROC callback, const void* userParam);
+    // pixels / clears
+    void (*glReadPixels)(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void* data);
+    void (*glReadBuffer)(GLenum src);
+    void (*glClearBufferfv)(GLenum buffer, GLint drawbuffer, const GLfloat* value);
+    void (*glClearBufferiv)(GLenum buffer, GLint drawbuffer, const GLint* value);
+    // compute (GL 4.3)
+    void (*glDispatchCompute)(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
+    void (*glMemoryBarrier)(GLbitfield barriers);
+    // queries (GL 3.3)
+    void (*glGenQueries)(GLsizei n, GLuint* ids);
+    void (*glDeleteQueries)(GLsizei n, const GLuint* ids);
+    void (*glBeginQuery)(GLenum target, GLuint id);
+    void (*glEndQuery)(GLenum target);
+    void (*glGetQueryObjectui64v)(GLuint id, GLenum pname, GLuint64* params);
+    void (*glQueryCounter)(GLuint id, GLenum target);
+    // sync objects (GL 3.2)
+    GLsync (*glFenceSync)(GLenum condition, GLuint flags);
+    void (*glDeleteSync)(GLsync sync);
+    GLenum (*glClientWaitSync)(GLsync sync, GLbitfield flags, GLuint64 timeout);
+    // indirect draws (GL 4.0)
+    void (*glDrawArraysIndirect)(GLenum mode, const void* indirect);
+    void (*glDrawElementsIndirect)(GLenum mode, GLenum type, const void* indirect);
+    // samplers (GL 3.3)
+    void (*glGenSamplers)(GLsizei n, GLuint* samplers);
+    void (*glDeleteSamplers)(GLsizei n, const GLuint* samplers);
+    void (*glBindSampler)(GLuint unit, GLuint sampler);
+    void (*glSamplerParameteri)(GLuint sampler, GLenum pname, GLint param);
+    void (*glSamplerParameterf)(GLuint sampler, GLenum pname, GLfloat param);
+    // immutable / multisample storage (GL 4.2 / 3.3)
+    void (*glTexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+    void (*glTexStorage3D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+    void (*glTexStorage2DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
+    void (*glRenderbufferStorageMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 };
+
+/// @brief Direct State Access entry points (GL 4.5). Filled by init() via procAddress;
+/// every member is nullptr when the driver/context does not support DSA.
+struct DsaFunctions {
+    void (*glCreateBuffers)(GLsizei n, GLuint* buffers);
+    void (*glNamedBufferData)(GLuint buffer, GLsizeiptr size, const void* data, GLenum usage);
+    void (*glNamedBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
+    void (*glCreateTextures)(GLenum target, GLsizei n, GLuint* textures);
+    void (*glTextureStorage2D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+    void (*glTextureStorage3D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+    void (*glTextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
+    void (*glCreateSamplers)(GLsizei n, GLuint* samplers);
+    void (*glSamplerParameteri)(GLuint sampler, GLenum pname, GLint param);
+    void (*glBindSampler)(GLuint unit, GLuint sampler);
+    void (*glBindTextureUnit)(GLuint unit, GLuint texture);
+    void (*glCreateVertexArrays)(GLsizei n, GLuint* arrays);
+    void (*glEnableVertexArrayAttrib)(GLuint vaobj, GLuint index);
+    void (*glVertexArrayAttribFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
+    void (*glVertexArrayVertexBuffer)(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+    void (*glVertexArrayElementBuffer)(GLuint vaobj, GLuint buffer);
+    void (*glCreateFramebuffers)(GLsizei n, GLuint* framebuffers);
+    void (*glNamedFramebufferTexture)(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
+    GLenum (*glCheckNamedFramebufferStatus)(GLuint framebuffer, GLenum target);
+    void (*glCreateRenderbuffers)(GLsizei n, GLuint* renderbuffers);
+    void (*glNamedRenderbufferStorage)(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
+    void (*glBlitNamedFramebuffer)(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+};
+
+/// @brief DSA entry points; all null if unavailable (use hasDsa() first).
+const DsaFunctions& dsa();
+/// @brief True when the current context is GL >= 4.5 and DSA pointers were found.
+bool hasDsa();
 
 /// @brief Load all functions in the curated table. Requires a *current* OpenGL context.
 /// @return true if the table was filled (individual entries may still be null on old drivers).

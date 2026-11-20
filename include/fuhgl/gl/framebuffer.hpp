@@ -46,6 +46,11 @@ public:
     gl::GLenum status() const;
     bool isComplete() const { return status() == gl::GL_FRAMEBUFFER_COMPLETE; }
 
+    /// @brief Blits (copies/resolves) a region of this framebuffer into dst — used to
+    /// resolve multisampled renderbuffers/textures.
+    void blitTo(Framebuffer& dst, gl::GLint srcW, gl::GLint srcH, gl::GLint dstW, gl::GLint dstH,
+                gl::GLbitfield mask, bool linearFilter = false) const;
+
     gl::GLuint id() const;
     explicit operator bool() const { return id() != 0; }
 

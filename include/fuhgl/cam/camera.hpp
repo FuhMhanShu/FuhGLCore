@@ -3,8 +3,7 @@
 /// @file camera.hpp
 /// @brief Common camera interface and input plumbing (Window event attachment).
 
-#include "../math/func.hpp"
-#include "../math/mat.hpp"
+#include "../math.hpp"
 #include "../window.hpp"
 
 #include <array>
@@ -24,6 +23,8 @@ public:
     virtual math::Mat4 view() const = 0;
     /// @brief Projection matrix for the given viewport aspect (width / height).
     virtual math::Mat4 projection(float aspect) const = 0;
+    /// @brief Combined view-projection matrix (handy for frustum extraction / UBO upload).
+    math::Mat4 viewProj(float aspect) const { return projection(aspect) * view(); }
     /// @brief Advance the camera by dt seconds using currently pressed keys.
     virtual void update(float dt) = 0;
 

@@ -5,6 +5,7 @@
 
 #include "types.hpp"
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -36,6 +37,14 @@ public:
     bool compile(const char* source);
     /// @brief Compiles multiple source strings concatenated by the GL.
     bool compile(const char* const* sources, gl::GLsizei count, const gl::GLint* lengths = nullptr);
+
+    /// @brief Resolves `#include "path"` lines in a GLSL source via the given resolver.
+    /// @param resolver maps an include path to file contents (may return empty on failure).
+    /// @param depth internal recursion guard; the result keeps `#version` as the first line.
+    using IncludeResolver = std::function<std::string(const std::string& path)>;
+    static std::string resolveIncludes(const std::string& source, const IncludeResolver& resolver, int depth = 0);
+    /// @brief resolveIncludes() + compile() in one call.
+    bool compileWithIncludes(const char* source, const IncludeResolver& resolver);
 
     bool isCompiled() const;
     /// @brief Info log of the last compile (empty if none).

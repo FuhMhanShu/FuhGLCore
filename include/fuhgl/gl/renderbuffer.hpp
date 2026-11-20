@@ -25,6 +25,8 @@ public:
     static void unbind();
     /// @brief Allocates the storage, e.g. storage(GL_DEPTH24_STENCIL8, w, h).
     void storage(gl::GLenum internalFormat, gl::GLsizei width, gl::GLsizei height) const;
+    /// @brief Allocates multisampled storage (GL 3.3+; no-op if unsupported).
+    void storageMultisample(gl::GLsizei samples, gl::GLenum internalFormat, gl::GLsizei width, gl::GLsizei height) const;
 
     gl::GLuint id() const;
     explicit operator bool() const { return id() != 0; }

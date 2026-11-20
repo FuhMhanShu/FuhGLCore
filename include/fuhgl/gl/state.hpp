@@ -39,6 +39,7 @@ enum class Cap : GLenum {
     StencilTest = GL_STENCIL_TEST,
     DebugOutput = GL_DEBUG_OUTPUT,
     DebugOutputSynchronous = GL_DEBUG_OUTPUT_SYNCHRONOUS,
+    FramebufferSrgb = GL_FRAMEBUFFER_SRGB,
 };
 
 /// @brief Blend factors.
@@ -101,5 +102,32 @@ inline void drawElementsInstanced(Primitive mode, GLsizei count, GLenum indexTyp
 
 inline void finish() { functions().glFinish(); }
 inline void flush() { functions().glFlush(); }
+
+// --- pixels / clears -----------------------------------------------------------
+inline void readPixels(GLint x, GLint y, GLsizei w, GLsizei h, GLenum format, GLenum type, void* data) {
+    functions().glReadPixels(x, y, w, h, format, type, data);
+}
+inline void readBuffer(GLenum src) { functions().glReadBuffer(src); }
+inline void clearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat* value) {
+    functions().glClearBufferfv(buffer, drawbuffer, value);
+}
+inline void clearBufferiv(GLenum buffer, GLint drawbuffer, const GLint* value) {
+    functions().glClearBufferiv(buffer, drawbuffer, value);
+}
+
+// --- compute (GL 4.3) ------------------------------------------------------------
+inline void dispatchCompute(GLuint x, GLuint y, GLuint z) { functions().glDispatchCompute(x, y, z); }
+inline void memoryBarrier(GLbitfield barriers) { functions().glMemoryBarrier(barriers); }
+
+// --- indirect draws (GL 4.0) ------------------------------------------------------
+inline void drawArraysIndirect(Primitive mode, const void* indirect) {
+    functions().glDrawArraysIndirect(static_cast<GLenum>(mode), indirect);
+}
+inline void drawElementsIndirect(Primitive mode, GLenum indexType, const void* indirect) {
+    functions().glDrawElementsIndirect(static_cast<GLenum>(mode), indexType, indirect);
+}
+
+// --- samplers (GL 3.3) -------------------------------------------------------------
+inline void bindSampler(GLuint unit, GLuint sampler) { functions().glBindSampler(unit, sampler); }
 
 } // namespace fuhgl::gl

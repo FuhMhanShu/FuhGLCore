@@ -19,6 +19,8 @@ add_library(fuhglcore STATIC
     src/gl/renderbuffer.cpp
     src/gl/framebuffer.cpp
     src/gl/state.cpp
+    src/gl/sampler.cpp
+    src/gl/sync.cpp
 )
 add_library(FuhGLCore::fuhglcore ALIAS fuhglcore)
 

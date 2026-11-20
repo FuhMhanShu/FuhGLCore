@@ -115,11 +115,44 @@ const Entry kEntries[] = {
     FUHGL_ENTRY(glDrawArrays), FUHGL_ENTRY(glDrawElements), FUHGL_ENTRY(glDrawArraysInstanced),
     FUHGL_ENTRY(glDrawElementsInstanced),
     FUHGL_ENTRY(glDebugMessageCallback),
+    FUHGL_ENTRY(glReadPixels), FUHGL_ENTRY(glReadBuffer), FUHGL_ENTRY(glClearBufferfv), FUHGL_ENTRY(glClearBufferiv),
+    FUHGL_ENTRY(glDispatchCompute), FUHGL_ENTRY(glMemoryBarrier),
+    FUHGL_ENTRY(glGenQueries), FUHGL_ENTRY(glDeleteQueries), FUHGL_ENTRY(glBeginQuery), FUHGL_ENTRY(glEndQuery),
+    FUHGL_ENTRY(glGetQueryObjectui64v), FUHGL_ENTRY(glQueryCounter),
+    FUHGL_ENTRY(glFenceSync), FUHGL_ENTRY(glDeleteSync), FUHGL_ENTRY(glClientWaitSync),
+    FUHGL_ENTRY(glDrawArraysIndirect), FUHGL_ENTRY(glDrawElementsIndirect),
+    FUHGL_ENTRY(glGenSamplers), FUHGL_ENTRY(glDeleteSamplers), FUHGL_ENTRY(glBindSampler),
+    FUHGL_ENTRY(glSamplerParameteri), FUHGL_ENTRY(glSamplerParameterf),
+    FUHGL_ENTRY(glTexStorage2D), FUHGL_ENTRY(glTexStorage3D), FUHGL_ENTRY(glTexStorage2DMultisample),
+    FUHGL_ENTRY(glRenderbufferStorageMultisample),
 };
 
-#undef FUHGL_ENTRY
+// DSA (GL 4.5) — optional, resolved by name in init().
+struct DsaEntry {
+    const char* name;
+    void (*set)(DsaFunctions&, void*);
+};
+#define FUHGL_DSA(fn) { #fn, [](DsaFunctions& d, void* p) { d.fn = reinterpret_cast<decltype(d.fn)>(p); } }
+const DsaEntry kDsaEntries[] = {
+    FUHGL_DSA(glCreateBuffers), FUHGL_DSA(glNamedBufferData), FUHGL_DSA(glNamedBufferSubData),
+    FUHGL_DSA(glCreateTextures), FUHGL_DSA(glTextureStorage2D), FUHGL_DSA(glTextureStorage3D),
+    FUHGL_DSA(glTextureSubImage2D), FUHGL_DSA(glCreateSamplers), FUHGL_DSA(glSamplerParameteri),
+    FUHGL_DSA(glBindSampler), FUHGL_DSA(glBindTextureUnit), FUHGL_DSA(glCreateVertexArrays),
+    FUHGL_DSA(glEnableVertexArrayAttrib), FUHGL_DSA(glVertexArrayAttribFormat),
+    FUHGL_DSA(glVertexArrayVertexBuffer), FUHGL_DSA(glVertexArrayElementBuffer),
+    FUHGL_DSA(glCreateFramebuffers), FUHGL_DSA(glNamedFramebufferTexture), FUHGL_DSA(glCheckNamedFramebufferStatus),
+    FUHGL_DSA(glCreateRenderbuffers), FUHGL_DSA(glNamedRenderbufferStorage), FUHGL_DSA(glBlitNamedFramebuffer),
+};
+#undef FUHGL_DSA
+
+DsaFunctions g_dsa{};
+bool g_hasDsa = false;
 
 } // namespace
+
+const DsaFunctions& dsa() { return g_dsa; }
+
+bool hasDsa() { return g_hasDsa; }
 
 bool init() {
     if (g_initialized) return true;
@@ -127,6 +160,9 @@ bool init() {
     if (!g_lib) return false;
     for (const Entry& e : kEntries)
         e.set(g_functions, lookupProc(e.name));
+    for (const DsaEntry& e : kDsaEntries)
+        e.set(g_dsa, lookupProc(e.name));
+    g_hasDsa = version().atLeast(4, 5) && g_dsa.glCreateBuffers != nullptr;
     g_initialized = true;
     return true;
 }

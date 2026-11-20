@@ -29,6 +29,10 @@ void Renderbuffer::unbind() { gl::functions().glBindRenderbuffer(gl::GL_RENDERBU
 void Renderbuffer::storage(gl::GLenum internalFormat, gl::GLsizei width, gl::GLsizei height) const {
     gl::functions().glRenderbufferStorage(gl::GL_RENDERBUFFER, internalFormat, width, height);
 }
+void Renderbuffer::storageMultisample(gl::GLsizei samples, gl::GLenum internalFormat, gl::GLsizei width, gl::GLsizei height) const {
+    if (gl::functions().glRenderbufferStorageMultisample)
+        gl::functions().glRenderbufferStorageMultisample(gl::GL_RENDERBUFFER, samples, internalFormat, width, height);
+}
 
 gl::GLuint Renderbuffer::id() const { return impl_->id; }
 
