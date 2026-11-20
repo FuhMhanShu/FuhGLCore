@@ -297,8 +297,12 @@ void DeferredPipeline::render(const SceneView& scene) {
     if (std::getenv("FUHGL_DEBUG")) {
         const gl::GLint loc = lp.uniformLocation("uLightCount");
         const gl::GLuint blockIdx = f.glGetUniformBlockIndex ? f.glGetUniformBlockIndex(lp.id(), "LightBlock") : 999u;
-        std::fprintf(stderr, "DeferredPipeline[debug]: uLightCount loc=%d blockIdx=%u err=0x%x ubo=%u\n",
-                     loc, blockIdx, gl::lastError(), lightsUbo_.id());
+        gl::GLint locVal = -1;
+        using GetIvFn = void (*)(gl::GLuint, gl::GLint, gl::GLint*);
+        if (auto p = reinterpret_cast<GetIvFn>(gl::procAddress("glGetUniformiv")))
+            p(lp.id(), loc, &locVal);
+        std::fprintf(stderr, "DeferredPipeline[debug]: uLightCount loc=%d value=%d blockIdx=%u err=0x%x ubo=%u\n",
+                     loc, locVal, blockIdx, gl::lastError(), lightsUbo_.id());
     }
     fullscreenVao_.bind();
     gl::drawArrays(gl::Primitive::Triangles, 0, 3);

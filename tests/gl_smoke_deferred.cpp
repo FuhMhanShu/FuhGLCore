@@ -49,6 +49,33 @@ int main() {
     pipeline.render(scene);
     fuhgl::gl::flush();
 
+    // cross-check with the forward pipeline in the same scene
+    fuhgl::render::ForwardPipeline fwd;
+    if (fwd.create()) {
+        fuhgl::Framebuffer fwdTarget;
+        fuhgl::Texture fwdTex(fuhgl::Texture::Target::Tex2D);
+        fuhgl::Renderbuffer fwdDepth;
+        fwdTarget.create();
+        fwdTarget.setSize(64, 64);
+        fwdTex.bind();
+        fwdTex.texStorage2D(1, fuhgl::gl::GL_RGBA8, 64, 64);
+        fwdDepth.create();
+        fwdDepth.bind();
+        fwdDepth.storage(fuhgl::gl::GL_DEPTH_COMPONENT24, 64, 64);
+        fwdTarget.bind();
+        fwdTarget.attachTexture2D(0, fwdTex);
+        fwdTarget.attachRenderbuffer(fuhgl::Framebuffer::Attachment::Depth, fwdDepth);
+        fwd.setTarget(&fwdTarget);
+        fwd.render(scene);
+        fuhgl::gl::flush();
+        fwdTarget.bind();
+        unsigned char fcenter[4] = {0, 0, 0, 0};
+        fuhgl::gl::readPixels(32, 32, 1, 1, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, fcenter);
+        std::fprintf(stderr, "gl_smoke_deferred[debug]: forward center=(%d,%d,%d,%d)\n",
+                     fcenter[0], fcenter[1], fcenter[2], fcenter[3]);
+        fuhgl::Framebuffer::unbind();
+    }
+
     if (std::getenv("FUHGL_DEBUG")) {
         // dump the first bytes of the light UBO as seen by the GPU
         auto& f = fuhgl::gl::functions();
