@@ -38,6 +38,23 @@ Key mapVKey(WPARAM vk) {
     return Key::Unknown;
 }
 
+struct Window::Impl {
+    HWND hwnd = nullptr;
+    HDC hdc = nullptr;
+    HGLRC context = nullptr;
+    int width = 0, height = 0;
+    bool open = false;
+    bool closeRequested = false;
+    std::chrono::steady_clock::time_point startTime;
+
+    ResizeCallback onResize;
+    KeyCallback onKey;
+    MouseButtonCallback onMouseButton;
+    CursorPosCallback onCursorPos;
+    ScrollCallback onScroll;
+    CloseCallback onClose;
+};
+
 LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     auto* impl = reinterpret_cast<Window::Impl*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
     if (!impl) return DefWindowProcW(hwnd, msg, wParam, lParam);
@@ -94,30 +111,13 @@ void registerClass(HINSTANCE inst) {
     wc.style = CS_OWNDC;
     wc.lpfnWndProc = wndProc;
     wc.hInstance = inst;
-    wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    wc.hCursor = LoadCursorW(nullptr, MAKEINTRESOURCEW(32512)); // IDC_ARROW
     wc.lpszClassName = kClassName;
     RegisterClassExW(&wc);
     done = true;
 }
 
 } // namespace
-
-struct Window::Impl {
-    HWND hwnd = nullptr;
-    HDC hdc = nullptr;
-    HGLRC context = nullptr;
-    int width = 0, height = 0;
-    bool open = false;
-    bool closeRequested = false;
-    std::chrono::steady_clock::time_point startTime;
-
-    ResizeCallback onResize;
-    KeyCallback onKey;
-    MouseButtonCallback onMouseButton;
-    CursorPosCallback onCursorPos;
-    ScrollCallback onScroll;
-    CloseCallback onClose;
-};
 
 Window::Window() : impl_(std::make_unique<Impl>()) {}
 Window::~Window() { destroy(); }
