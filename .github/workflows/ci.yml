@@ -31,6 +31,7 @@ jobs:
           cmake -S . -B build-egl -DFUHGL_LINUX_BACKEND=EGL -DCMAKE_BUILD_TYPE=Release
           cmake --build build-egl --config Release -j
           cd build-egl && FUHGL_BACKEND=surfaceless ctest -C Release -R "gl_smoke|fuhgl_tests" --output-on-failure
+          FUHGL_BACKEND=surfaceless ctest -C Release -R "gl_smoke" -V 2>&1 | grep -E "gl_smoke:" || true
 
       - name: Smoke-run example under Xvfb (Linux only)
         if: runner.os == 'Linux'
