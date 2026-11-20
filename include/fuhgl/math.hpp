@@ -6,3 +6,4 @@
 #include "math/vec.hpp"
 #include "math/mat.hpp"
 #include "math/func.hpp"
+#include "math/frustum.hpp"

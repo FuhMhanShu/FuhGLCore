@@ -5,3 +5,5 @@
 void runMathTests();
 void runCameraTests();
 void runLoaderTests();
+void runFrustumTests();
+void runShaderIncludeTests();

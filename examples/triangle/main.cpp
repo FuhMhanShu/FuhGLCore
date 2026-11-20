@@ -4,6 +4,7 @@
 // Keys 1/2/3 switch camera: FirstPerson / Free / Isometric. Escape quits.
 
 #include <fuhgl/fuhgl.hpp>
+#include <fuhgl/skybox.hpp>
 
 #include <cstdio>
 
@@ -87,6 +88,10 @@ int main() {
         cam->onKey(key, action);
     });
 
+    fuhgl::Skybox skybox;
+    skybox.create();
+    skybox.makeGradient({0.25f, 0.45f, 0.9f}, {0.75f, 0.8f, 0.85f}); // procedural sky, no image files
+
     fuhgl::gl::enable(fuhgl::gl::Cap::DepthTest);
     fuhgl::gl::clearColor(0.1f, 0.1f, 0.12f, 1.f);
 
@@ -108,6 +113,8 @@ int main() {
                              static_cast<float>(window.framebufferHeight());
         fuhgl::gl::viewport(0, 0, window.framebufferWidth(), window.framebufferHeight());
         fuhgl::gl::clear(fuhgl::gl::ClearBit::Color | fuhgl::gl::ClearBit::Depth);
+
+        skybox.draw(*cam, aspect);
 
         program.use();
         const float t = static_cast<float>(now);

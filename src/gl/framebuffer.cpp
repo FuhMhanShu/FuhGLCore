@@ -44,6 +44,17 @@ gl::GLenum Framebuffer::status() const {
     return gl::functions().glCheckFramebufferStatus(gl::GL_FRAMEBUFFER);
 }
 
+void Framebuffer::blitTo(Framebuffer& dst, gl::GLint srcW, gl::GLint srcH, gl::GLint dstW, gl::GLint dstH,
+                         gl::GLbitfield mask, bool linearFilter) const {
+    const auto& f = gl::functions();
+    f.glBindFramebuffer(gl::GL_READ_FRAMEBUFFER, impl_->id);
+    f.glBindFramebuffer(gl::GL_DRAW_FRAMEBUFFER, dst.impl_->id);
+    f.glBlitFramebuffer(0, 0, srcW, srcH, 0, 0, dstW, dstH, mask,
+                        linearFilter ? gl::GL_LINEAR : gl::GL_NEAREST);
+    f.glBindFramebuffer(gl::GL_READ_FRAMEBUFFER, 0);
+    f.glBindFramebuffer(gl::GL_DRAW_FRAMEBUFFER, 0);
+}
+
 gl::GLuint Framebuffer::id() const { return impl_->id; }
 
 } // namespace fuhgl
