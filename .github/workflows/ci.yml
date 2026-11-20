@@ -24,6 +24,14 @@ jobs:
       - name: Test (headless unit tests; no GL context required)
         run: ctest --test-dir build -C Release --output-on-failure
 
+      - name: EGL backend build + headless GL smoke test (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update && sudo apt-get install -y libegl1 libegl-mesa0 libgl1-mesa-dri
+          cmake -S . -B build-egl -DFUHGL_LINUX_BACKEND=EGL -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-egl --config Release -j
+          cd build-egl && FUHGL_BACKEND=surfaceless ctest -C Release -R "gl_smoke|fuhgl_tests" --output-on-failure
+
       - name: Smoke-run example under Xvfb (Linux only)
         if: runner.os == 'Linux'
         run: |

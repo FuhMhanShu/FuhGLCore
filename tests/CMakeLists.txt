@@ -8,3 +8,9 @@ add_executable(fuhgl_tests
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
+
+# Headless GL smoke test: renders a triangle into an FBO via a surfaceless context
+# and verifies the pixel. Skips (passes) when no GL implementation is available.
+add_executable(fuhgl_gl_smoke gl_smoke.cpp)
+target_link_libraries(fuhgl_gl_smoke PRIVATE fuhglcore)
+add_test(NAME gl_smoke COMMAND fuhgl_gl_smoke)

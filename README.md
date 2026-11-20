@@ -18,7 +18,18 @@ Modern C++17, static library, PIMPL idiom, English-documented, performance orien
   (directly compatible with `glUniformMatrix*fv`), transforms (`perspective`, `ortho`,
   `lookAt`, `translate/rotate/scale`).
 - **Camera controllers** (`fuhgl`): `FirstPersonCamera`, `FreeCamera` (6-DOF),
-  `IsometricCamera` — wired to `Window` events via `attach(window)`.
+  `IsometricCamera` — wired to `Window` events via `attach(window)`; plus
+  `math::Frustum` (culling) and `math::rayFromScreen` (picking).
+- **Extended GL coverage**: 3D/array/cube/cubemap/multisample textures, sampler
+  objects, `UniformBuffer`, timer queries + fence syncs, compute dispatch,
+  indirect draws, MSAA resolve (`Framebuffer::blitTo`), optional GL 4.5 DSA
+  table (`gl::dsa()`), and dependency-free `#include "..."` in GLSL
+  (`Shader::compileWithIncludes`).
+- **Skybox** (`fuhgl::Skybox`): cubemap skybox with the `xyww` far-plane depth
+  trick — 6 images or a procedural gradient.
+- **Linux window backends**: X11/GLX (default) or EGL (`-DFUHGL_LINUX_BACKEND=EGL`)
+  with Wayland/xdg-shell windows and a **surfaceless headless mode**
+  (`FUHGL_BACKEND=surfaceless`) used by the CI GL smoke test.
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in
 the API — failures return `bool`/info-log strings; debug builds assert and forward
