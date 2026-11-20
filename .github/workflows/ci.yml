@@ -41,3 +41,40 @@ jobs:
           timeout 10 xvfb-run -a ./build/examples/triangle || rc=$?
           # 124 = ran until timeout (window stayed open, good), 0 = clean exit, 1 = clean headless-failure message
           if [ $rc -ne 0 ] && [ $rc -ne 124 ] && [ $rc -ne 1 ]; then exit 1; fi
+
+  docs:
+    # Doxygen HTML + tutorial screenshots as CI artifacts.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tooling (doxygen, mesa for headless GL)
+        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz libegl1 libegl-mesa0 libgl1-mesa-dri
+
+      - name: Build with EGL backend (for headless rendering)
+        run: |
+          cmake -S . -B build-egl -DFUHGL_LINUX_BACKEND=EGL -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-egl --config Release -j
+
+      - name: Generate Doxygen documentation
+        run: cd docs && doxygen Doxyfile
+
+      - name: Render tutorial screenshots (surfaceless EGL, no display needed)
+        run: |
+          mkdir -p docs/images
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/screenshot --out docs/images/tutorial-first-triangle.png --camera fp --width 800 --height 600
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/screenshot --out docs/images/tutorial-isometric-skybox.png --camera iso --width 800 --height 600
+
+      - name: Upload Doxygen HTML artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-html
+          path: docs/doxygen/html
+          retention-days: 30
+
+      - name: Upload screenshots artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tutorial-screenshots
+          path: docs/images
+          retention-days: 30

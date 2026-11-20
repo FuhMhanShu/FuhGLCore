@@ -8,13 +8,15 @@ namespace fuhgl {
 namespace {
 
 constexpr const char* kSkyVertSrc = R"GLSL(#version 330 core
-layout(location = 0) in vec3 aPos;
-uniform mat4 uViewProj;
+uniform mat4 uInvViewProj; // inverse of proj * view (translation stripped)
 out vec3 vDir;
 void main() {
-    vDir = aPos;
-    vec4 p = uViewProj * vec4(aPos, 1.0);
-    gl_Position = p.xyww; // depth = w/w = 1.0 (far plane)
+    // fullscreen triangle from gl_VertexID (no VBO needed)
+    vec2 pos = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)) * 2.0 - 1.0;
+    gl_Position = vec4(pos, 0.999999, 1.0); // just inside the far plane
+    vec4 farP = uInvViewProj * vec4(pos, 1.0, 1.0);
+    vec4 nearP = uInvViewProj * vec4(pos, -1.0, 1.0);
+    vDir = normalize(farP.xyz / farP.w - nearP.xyz / nearP.w);
 }
 )GLSL";
 
@@ -25,15 +27,8 @@ out vec4 FragColor;
 void main() { FragColor = texture(uSky, vDir); }
 )GLSL";
 
-// Unit cube, 36 vertices (positions only, corners at +/-1).
-const float kCube[] = {
-    -1,-1,-1,  1,-1,-1,  1, 1,-1,  -1,-1,-1,  1, 1,-1, -1, 1,-1, // -Z
-    -1,-1, 1,  1,-1, 1,  1, 1, 1,  -1,-1, 1,  1, 1, 1, -1, 1, 1, // +Z
-    -1,-1,-1, -1,-1, 1, -1, 1, 1,  -1,-1,-1, -1, 1, 1, -1, 1,-1, // -X
-     1,-1,-1,  1,-1, 1,  1, 1, 1,   1,-1,-1,  1, 1, 1,  1, 1,-1, // +X
-    -1,-1,-1,  1,-1,-1,  1,-1, 1,  -1,-1,-1,  1,-1, 1, -1,-1, 1, // -Y
-    -1, 1,-1,  1, 1,-1,  1, 1, 1,  -1, 1,-1,  1, 1, 1, -1, 1, 1, // +Y
-};
+// Skybox geometry is a fullscreen triangle generated from gl_VertexID in the shader;
+// the VAO only needs to exist (core profile requires one bound).
 
 } // namespace
 
@@ -41,7 +36,6 @@ struct Skybox::Impl {
     Shader vs{Shader::Type::Vertex};
     Shader fs{Shader::Type::Fragment};
     Program program;
-    Buffer vbo{Buffer::Target::Array};
     VertexArray vao;
     bool ready = false;
 };
@@ -60,11 +54,8 @@ bool Skybox::create() {
     impl_->program.attach(impl_->fs);
     if (!impl_->program.link()) return false;
 
-    impl_->vbo.bind();
-    impl_->vbo.setData(sizeof(kCube), kCube, Buffer::Usage::StaticDraw);
     impl_->vao.create();
-    impl_->vao.bind();
-    impl_->vao.setAttrib(0, 3, gl::GL_FLOAT, false, 3 * sizeof(float), 0);
+    impl_->vao.bind(); // empty VAO: geometry comes from gl_VertexID
 
     impl_->ready = true;
     return true;
@@ -124,14 +115,15 @@ void Skybox::draw(const Camera& camera, float aspect) const {
     impl_->program.use();
     math::Mat4 view = camera.view();
     view(3, 0) = 0.f; view(3, 1) = 0.f; view(3, 2) = 0.f; // strip translation: skybox is infinitely far
-    impl_->program.setUniform("uViewProj", camera.projection(aspect) * view);
+    const math::Mat4 vp = camera.projection(aspect) * view;
+    impl_->program.setUniform("uInvViewProj", vp.inverse());
 
     gl::activeTexture(gl::GL_TEXTURE0);
     f.glBindTexture(gl::GL_TEXTURE_CUBE_MAP, texture_.id());
     impl_->program.setUniform(impl_->program.uniformLocation("uSky"), 0);
 
     impl_->vao.bind();
-    gl::drawArrays(gl::Primitive::Triangles, 0, 36);
+    gl::drawArrays(gl::Primitive::Triangles, 0, 3); // fullscreen triangle
 
     f.glDepthMask(gl::GL_TRUE);
     f.glDepthFunc(gl::GL_LESS);
