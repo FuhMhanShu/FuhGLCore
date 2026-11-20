@@ -15,6 +15,26 @@
 #include <string>
 
 namespace fuhgl {
+
+// PIMPL definition at namespace scope (the forward declaration is public in
+// window.hpp); must precede wndProc, which dereferences it.
+struct Window::Impl {
+    HWND hwnd = nullptr;
+    HDC hdc = nullptr;
+    HGLRC context = nullptr;
+    int width = 0, height = 0;
+    bool open = false;
+    bool closeRequested = false;
+    std::chrono::steady_clock::time_point startTime;
+
+    ResizeCallback onResize;
+    KeyCallback onKey;
+    MouseButtonCallback onMouseButton;
+    CursorPosCallback onCursorPos;
+    ScrollCallback onScroll;
+    CloseCallback onClose;
+};
+
 namespace {
 
 constexpr const wchar_t* kClassName = L"FuhGLCoreWindow";
@@ -37,23 +57,6 @@ Key mapVKey(WPARAM vk) {
     if (vk >= '0' && vk <= '9') return static_cast<Key>(static_cast<int>(Key::Digit0) + (vk - '0'));
     return Key::Unknown;
 }
-
-struct Window::Impl {
-    HWND hwnd = nullptr;
-    HDC hdc = nullptr;
-    HGLRC context = nullptr;
-    int width = 0, height = 0;
-    bool open = false;
-    bool closeRequested = false;
-    std::chrono::steady_clock::time_point startTime;
-
-    ResizeCallback onResize;
-    KeyCallback onKey;
-    MouseButtonCallback onMouseButton;
-    CursorPosCallback onCursorPos;
-    ScrollCallback onScroll;
-    CloseCallback onClose;
-};
 
 LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     auto* impl = reinterpret_cast<Window::Impl*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
