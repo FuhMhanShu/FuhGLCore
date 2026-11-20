@@ -37,6 +37,10 @@ int main() {
         return 0; // skip, not a failure
     }
     std::fprintf(stderr, "gl_smoke: GL %d.%d\n", fuhgl::gl::version().major, fuhgl::gl::version().minor);
+    if (!fuhgl::gl::version().atLeast(3, 3)) {
+        std::fprintf(stderr, "gl_smoke: context is below GL 3.3 (legacy fallback) — skipping\n");
+        return 0; // skip, not a failure
+    }
 
     fuhgl::Shader vs(fuhgl::Shader::Type::Vertex), fs(fuhgl::Shader::Type::Fragment);
     if (!vs.compile(kVs) || !fs.compile(kFs)) {
