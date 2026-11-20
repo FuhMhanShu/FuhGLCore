@@ -76,6 +76,7 @@ struct Functions {
     void (*glUniformMatrix3fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
     void (*glUniformMatrix4fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
     void (*glUniformBlockBinding)(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding);
+    GLuint (*glGetUniformBlockIndex)(GLuint program, const GLchar* uniformBlockName);
     // buffers
     void (*glGenBuffers)(GLsizei n, GLuint* buffers);
     void (*glBindBuffer)(GLenum target, GLuint buffer);

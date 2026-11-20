@@ -11,7 +11,9 @@ constexpr const char* kLightingUniforms = R"GLSL(
 uniform vec3 uCamPos;
 uniform vec3 uAmbient;
 uniform int uLightCount;
-layout(std140, binding = 0) uniform LightBlock {
+// NOTE: no `binding = 0` here — that layout qualifier needs GLSL 420. The block is
+// bound to binding point 0 from C++ via glUniformBlockBinding after linking.
+layout(std140) uniform LightBlock {
     vec4 lightPosIntensity[64]; // xyz = position, w = intensity
     vec4 lightColor[64];        // rgb = color
 };

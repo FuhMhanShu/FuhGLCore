@@ -57,6 +57,9 @@ public:
     void setUniform(const char* name, float v) const { setUniform(uniformLocation(name), v); }
     void setUniform(const char* name, int v) const { setUniform(uniformLocation(name), v); }
 
+    /// @brief Binds a uniform block (by name) to an indexed binding point (e.g. 0).
+    void bindUniformBlock(const char* blockName, gl::GLuint binding) const;
+
     gl::GLuint id() const;
     explicit operator bool() const { return id() != 0; }
 

@@ -179,6 +179,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
             std::fprintf(stderr, "DeferredPipeline: gbuf link: %s\n", defaultMaterial_.program().infoLog().c_str());
             return false;
         }
+        defaultMaterial_.program().bindUniformBlock("LightBlock", 0); // not used by gbuf pass, harmless
     }
     std::fprintf(stderr, "DeferredPipeline: gbuffer material ok\n");
 
@@ -195,6 +196,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
             std::fprintf(stderr, "DeferredPipeline: light link: %s\n", lightingMaterial_.program().infoLog().c_str());
             return false;
         }
+        lightingMaterial_.program().bindUniformBlock("LightBlock", 0);
     }
     std::fprintf(stderr, "DeferredPipeline: lighting material ok\n");
     lightingMaterial_.setTexture(0, texAlbedo_);

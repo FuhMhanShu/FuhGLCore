@@ -57,6 +57,7 @@ bool ForwardPipeline::create() {
     defaultMaterial_.program().attach(vs);
     defaultMaterial_.program().attach(fs);
     if (!defaultMaterial_.program().link()) return false;
+    defaultMaterial_.program().bindUniformBlock("LightBlock", 0);
     if (!lightsUbo_.create()) return false;
     lightsUbo_.bindBase(0);
     return true;

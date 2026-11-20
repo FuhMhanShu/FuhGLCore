@@ -98,6 +98,7 @@ const Entry kEntries[] = {
     FUHGL_ENTRY(glBindAttribLocation), FUHGL_ENTRY(glUniform1i), FUHGL_ENTRY(glUniform1f),
     FUHGL_ENTRY(glUniform2f), FUHGL_ENTRY(glUniform3f), FUHGL_ENTRY(glUniform4f), FUHGL_ENTRY(glUniform1iv),
     FUHGL_ENTRY(glUniformMatrix3fv), FUHGL_ENTRY(glUniformMatrix4fv), FUHGL_ENTRY(glUniformBlockBinding),
+    FUHGL_ENTRY(glGetUniformBlockIndex),
     FUHGL_ENTRY(glGenBuffers), FUHGL_ENTRY(glBindBuffer), FUHGL_ENTRY(glBufferData), FUHGL_ENTRY(glBufferSubData),
     FUHGL_ENTRY(glDeleteBuffers), FUHGL_ENTRY(glMapBuffer), FUHGL_ENTRY(glUnmapBuffer),
     FUHGL_ENTRY(glBindBufferBase), FUHGL_ENTRY(glBindBufferRange),
