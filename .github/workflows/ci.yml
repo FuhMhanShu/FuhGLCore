@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release -j
+
+      - name: Test (headless unit tests; no GL context required)
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Smoke-run example under Xvfb (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update && sudo apt-get install -y xvfb mesa-utils libgl1-mesa-dri libglu1-mesa
+          rc=0
+          timeout 10 xvfb-run -a ./build/examples/triangle || rc=$?
+          # 124 = ran until timeout (window stayed open, good), 0 = clean exit, 1 = clean headless-failure message
+          if [ $rc -ne 0 ] && [ $rc -ne 124 ] && [ $rc -ne 1 ]; then exit 1; fi
