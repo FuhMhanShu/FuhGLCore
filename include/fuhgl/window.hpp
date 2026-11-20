@@ -44,6 +44,10 @@ struct WindowHints {
 /// @brief Native window + OpenGL context (PIMPL, movable, non-copyable).
 class Window {
 public:
+    /// @brief PIMPL — defined per platform in src/platform/*.cpp (public so the
+    /// platform backends and their window-procedure callbacks can name it).
+    struct Impl;
+
     using ResizeCallback = std::function<void(int width, int height)>;
     using KeyCallback = std::function<void(Key key, Action action)>;
     using MouseButtonCallback = std::function<void(MouseButton button, Action action)>;
@@ -91,7 +95,6 @@ public:
     void setCloseCallback(CloseCallback cb);
 
 private:
-    struct Impl;
     std::unique_ptr<Impl> impl_;
 };
 

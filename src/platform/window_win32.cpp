@@ -9,6 +9,7 @@
     #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include <windowsx.h> // GET_X_LPARAM / GET_Y_LPARAM / GET_WHEEL_DELTA_WPARAM
 
 #include <chrono>
 #include <string>

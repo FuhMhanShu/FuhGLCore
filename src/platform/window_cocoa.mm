@@ -75,7 +75,8 @@ bool Window::create(std::string_view title, int width, int height, const WindowH
         [app finishLaunching];
 
         NSOpenGLPixelFormatAttribute attrs[] = {
-            NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
+            NSOpenGLPFAOpenGLProfile, hints.glMajor >= 4 ? NSOpenGLProfileVersion4_1Core
+                                                          : NSOpenGLProfileVersion3_2Core,
             NSOpenGLPFADoubleBuffer,
             NSOpenGLPFAColorSize, 24,
             NSOpenGLPFADepthSize, 24,
@@ -88,7 +89,6 @@ bool Window::create(std::string_view title, int width, int height, const WindowH
         NSOpenGLPixelFormat* format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
         if (!format) return false;
         impl_->context = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
-        [format release];
         if (!impl_->context) return false;
 
         NSRect frame = NSMakeRect(0, 0, width, height);
@@ -100,21 +100,21 @@ bool Window::create(std::string_view title, int width, int height, const WindowH
         if (!impl_->window) return false;
         [impl_->window setTitle:[NSString stringWithUTF8String:t.c_str()]];
         [impl_->window setAcceptsMouseMovedEvents:YES];
-        [impl_->context setView:impl_->window.contentView];
+        NSOpenGLView* glView = [[NSOpenGLView alloc] initWithFrame:frame pixelFormat:format];
+        [impl_->window setContentView:glView];
+        [impl_->context setView:glView];
         [impl_->context makeCurrentContext];
 
         GLint swap = hints.vsync ? 1 : 0;
         [impl_->context setValues:&swap forParameter:NSOpenGLCPSwapInterval];
 
-        __weak Window::Impl* weakImpl = impl_.get();
+        // Raw pointer capture is safe: destroy() removes the observer before the window dies.
+        Window::Impl* implPtr = impl_.get();
         impl_->closeObserver = [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowWillCloseNotification object:impl_->window queue:nil
             usingBlock:^(NSNotification*) {
-                Window::Impl* i = weakImpl;
-                if (i) {
-                    i->closeRequested = true;
-                    if (i->onClose) i->onClose();
-                }
+                implPtr->closeRequested = true;
+                if (implPtr->onClose) implPtr->onClose();
             }];
 
         [impl_->window makeKeyAndOrderFront:nil];
@@ -144,12 +144,10 @@ void Window::destroy() {
     @autoreleasepool {
         if (impl_->context) {
             [NSOpenGLContext clearCurrentContext];
-            [impl_->context release];
-            impl_->context = nil;
+            impl_->context = nil; // ARC releases
         }
         if (impl_->window) {
-            [impl_->window release];
-            impl_->window = nil;
+            impl_->window = nil; // ARC releases
         }
     }
     impl_->open = false;

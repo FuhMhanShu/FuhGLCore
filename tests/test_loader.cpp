@@ -39,7 +39,7 @@ void runLoaderTests() {
     }
     CHECK(names.size() == functionNameCount()); // no duplicates
 
-    // without a GL context, init() may fail (headless) but must not crash;
-    // procAddress must return nullptr for nonsense names.
-    CHECK(procAddress("glThisFunctionDoesNotExist12345") == nullptr);
+    // procAddress contract: nullptr in -> nullptr out. (We must NOT assert nullptr
+    // for unknown names: Mesa's glXGetProcAddress returns no-op stubs for those.)
+    CHECK(procAddress(nullptr) == nullptr);
 }
