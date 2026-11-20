@@ -23,7 +23,13 @@ void main() { FragColor = vec4(1.0, 0.0, 0.0, 1.0); } // solid red
 
 int main() {
     // Force the headless path when running under the EGL backend.
-    if (!std::getenv("FUHGL_BACKEND")) setenv("FUHGL_BACKEND", "surfaceless", 0);
+    if (!std::getenv("FUHGL_BACKEND")) {
+#ifdef _WIN32
+        _putenv_s("FUHGL_BACKEND", "surfaceless");
+#else
+        setenv("FUHGL_BACKEND", "surfaceless", 0);
+#endif
+    }
 
     fuhgl::Window window;
     if (!window.create("gl_smoke", 64, 64)) {
