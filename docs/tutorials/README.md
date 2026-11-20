@@ -18,6 +18,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 10 | Timer queries and fence syncs | [10-queries-and-sync.md](10-queries-and-sync.md) |
 | 11 | GL 4.5 DSA fast path | [11-dsa.md](11-dsa.md) |
 | 12 | Headless rendering and screenshots (EGL surfaceless) | [12-headless-rendering-and-screenshots.md](12-headless-rendering-and-screenshots.md) |
+| 13 | Render pipelines: forward & deferred | [13-render-pipelines.md](13-render-pipelines.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../DEVELOPMENT.md#build-options)).

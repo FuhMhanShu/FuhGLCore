@@ -41,6 +41,8 @@ public:
     static void unbind(Target target = Target::Framebuffer);
 
     void attachTexture2D(Attachment attachment, const Texture& texture, gl::GLint level = 0) const;
+    /// @brief Attaches to GL_COLOR_ATTACHMENT0 + index (for MRT, e.g. deferred G-buffer).
+    void attachTexture2D(unsigned int colorIndex, const Texture& texture, gl::GLint level = 0) const;
     void attachRenderbuffer(Attachment attachment, const Renderbuffer& rb) const;
     /// @brief GL_FRAMEBUFFER_COMPLETE if complete, otherwise the specific status.
     gl::GLenum status() const;
@@ -50,6 +52,14 @@ public:
     /// resolve multisampled renderbuffers/textures.
     void blitTo(Framebuffer& dst, gl::GLint srcW, gl::GLint srcH, gl::GLint dstW, gl::GLint dstH,
                 gl::GLbitfield mask, bool linearFilter = false) const;
+    /// @brief Blits src into the default framebuffer (the screen/window).
+    static void blitToDefault(const Framebuffer& src, gl::GLint dstW, gl::GLint dstH,
+                              gl::GLbitfield mask = gl::GL_COLOR_BUFFER_BIT, bool linearFilter = false);
+
+    /// @brief Records the target size (used by blitToDefault; pipelines set it on create/resize).
+    void setSize(int w, int h);
+    int width() const;
+    int height() const;
 
     gl::GLuint id() const;
     explicit operator bool() const { return id() != 0; }

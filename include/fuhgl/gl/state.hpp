@@ -130,4 +130,7 @@ inline void drawElementsIndirect(Primitive mode, GLenum indexType, const void* i
 // --- samplers (GL 3.3) -------------------------------------------------------------
 inline void bindSampler(GLuint unit, GLuint sampler) { functions().glBindSampler(unit, sampler); }
 
+/// @brief Selects the draw buffers of the bound DRAW_FRAMEBUFFER (MRT, e.g. deferred).
+inline void drawBuffers(GLsizei n, const GLenum* bufs) { functions().glDrawBuffers(n, bufs); }
+
 } // namespace fuhgl::gl

@@ -48,8 +48,14 @@ public:
     void setUniform(gl::GLint location, const math::Mat3& v) const;
     void setUniform(gl::GLint location, const math::Mat4& v) const;
     void setUniform(gl::GLint location, gl::GLsizei count, const int* values) const;
-    /// @brief Convenience: looks up the name and sets a Mat4.
+    /// @brief Convenience overloads: look up the name and set the value.
     void setUniform(const char* name, const math::Mat4& v) const { setUniform(uniformLocation(name), v); }
+    void setUniform(const char* name, const math::Mat3& v) const { setUniform(uniformLocation(name), v); }
+    void setUniform(const char* name, const math::Vec4& v) const { setUniform(uniformLocation(name), v); }
+    void setUniform(const char* name, const math::Vec3& v) const { setUniform(uniformLocation(name), v); }
+    void setUniform(const char* name, const math::Vec2& v) const { setUniform(uniformLocation(name), v); }
+    void setUniform(const char* name, float v) const { setUniform(uniformLocation(name), v); }
+    void setUniform(const char* name, int v) const { setUniform(uniformLocation(name), v); }
 
     gl::GLuint id() const;
     explicit operator bool() const { return id() != 0; }

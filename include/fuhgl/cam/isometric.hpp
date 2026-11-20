@@ -29,7 +29,7 @@ public:
         const float cp = std::cos(pitch);
         return {std::sin(yaw) * cp, std::sin(pitch), std::cos(yaw) * cp};
     }
-    math::Vec3 eye() const { return target + eyeDir() * distance; }
+    math::Vec3 eye() const override { return target + eyeDir() * distance; }
     math::Vec3 forward() const { return -eyeDir(); }
     math::Vec3 right() const { return math::normalize(math::cross(forward(), {0.f, 1.f, 0.f})); }
     math::Vec3 up() const { return math::normalize(math::cross(right(), forward())); }
@@ -40,6 +40,7 @@ public:
         const float halfW = halfH * aspect;
         return math::ortho(-halfW, halfW, -halfH, halfH, nearPlane, farPlane);
     }
+
 
     void onMouseButton(MouseButton button, Action action) override {
         rightDragging_ = button == MouseButton::Right && action != Action::Release;

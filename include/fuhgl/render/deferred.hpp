@@ -1,0 +1,69 @@
+#pragma once
+
+/// @file deferred.hpp
+/// @brief Deferred renderer: G-buffer pass (albedo/normal/position via MRT) +
+/// fullscreen lighting pass. Optional MSAA on the G-buffer with resolve.
+
+#include "pipeline.hpp"
+
+#include "../gl/framebuffer.hpp"
+#include "../gl/renderbuffer.hpp"
+#include "../gl/texture.hpp"
+#include "../gl/ubo.hpp"
+
+#include <memory>
+
+namespace fuhgl::render {
+
+/// @brief Deferred pipeline. Always renders into its own output framebuffer;
+/// blit it to the screen with output() + Framebuffer::blitTo, or read it headless.
+class DeferredPipeline : public RenderPipeline {
+public:
+    DeferredPipeline();
+    ~DeferredPipeline() override;
+
+    DeferredPipeline(const DeferredPipeline&) = delete;
+    DeferredPipeline& operator=(const DeferredPipeline&) = delete;
+    DeferredPipeline(DeferredPipeline&&) noexcept;
+    DeferredPipeline& operator=(DeferredPipeline&&) noexcept;
+
+    /// @brief Creates G-buffer (albedo RGBA8, normal RGBA8, position RGBA16F + depth)
+    /// and the lighting output target. msaaSamples > 0 enables MSAA G-buffer + resolve.
+    bool create(int width, int height, int msaaSamples = 0);
+    void resize(int width, int height);
+
+    void render(const SceneView& scene) override;
+
+    Framebuffer& output() { return output_; }
+    int width() const { return width_; }
+    int height() const { return height_; }
+    /// @brief Default G-buffer material for items with material == nullptr.
+    Material& defaultMaterial() { return defaultMaterial_; }
+
+    /// @brief Sky colors used for background pixels (position alpha < 0.5) in the lighting pass.
+    math::Vec3 skyTop{0.25f, 0.45f, 0.9f};
+    math::Vec3 skyBottom{0.85f, 0.88f, 0.95f};
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+    int width_ = 0, height_ = 0, msaa_ = 0;
+    Framebuffer gbuffer_;
+    Framebuffer output_;
+    Framebuffer resolve_; // only when msaa_ > 0
+    Texture texAlbedo_{Texture::Target::Tex2D};
+    Texture texNormal_{Texture::Target::Tex2D};
+    Texture texPosition_{Texture::Target::Tex2D};
+    Texture texResolveAlbedo_{Texture::Target::Tex2D};
+    Texture texResolveNormal_{Texture::Target::Tex2D};
+    Texture texResolvePosition_{Texture::Target::Tex2D};
+    Texture texOutput_{Texture::Target::Tex2D};
+    Renderbuffer depth_{};
+    Renderbuffer depthMsaa_{};
+    Material defaultMaterial_; // G-buffer program
+    Material lightingMaterial_; // fullscreen lighting program
+    VertexArray fullscreenVao_;
+    UniformBuffer lightsUbo_;
+};
+
+} // namespace fuhgl::render

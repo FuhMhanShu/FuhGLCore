@@ -168,6 +168,7 @@ inline constexpr GLenum GL_VERSION = 0x1F02;
 inline constexpr GLenum GL_SHADING_LANGUAGE_VERSION = 0x8B8C;
 inline constexpr GLenum GL_EXTENSIONS = 0x1F03;
 inline constexpr GLenum GL_MAX_TEXTURE_SIZE = 0x0D33;
+inline constexpr GLenum GL_VIEWPORT = 0x0BA2;
 inline constexpr GLenum GL_NUM_EXTENSIONS = 0x821D;
 
 // --- debug (GL 4.3 / KHR_debug) -------------------------------------------------
@@ -247,6 +248,9 @@ inline constexpr GLenum GL_FRAMEBUFFER_SRGB = 0x8DB9;
 inline constexpr GLenum GL_COLOR = 0x1800;
 inline constexpr GLenum GL_DEPTH = 0x1801;
 inline constexpr GLenum GL_COLOR_ATTACHMENT1 = 0x8CE1;
+inline constexpr GLenum GL_COLOR_ATTACHMENT2 = 0x8CE2;
+inline constexpr GLenum GL_COLOR_ATTACHMENT3 = 0x8CE3;
+inline constexpr GLenum GL_RGB16F = 0x881B;
 
 /// @brief Signature of the GL debug message callback (GLDEBUGPROC).
 using GLDEBUGPROC = void (*)(GLenum source, GLenum type, GLuint id, GLenum severity,
