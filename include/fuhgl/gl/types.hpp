@@ -104,6 +104,7 @@ inline constexpr GLenum GL_LINK_STATUS = 0x8B82;
 inline constexpr GLenum GL_INFO_LOG_LENGTH = 0x8B84;
 inline constexpr GLenum GL_ACTIVE_UNIFORMS = 0x8B86;
 inline constexpr GLenum GL_CURRENT_PROGRAM = 0x8B8D;
+inline constexpr GLuint GL_INVALID_INDEX = 0xFFFFFFFFu;
 
 // --- buffers ------------------------------------------------------------------
 inline constexpr GLenum GL_ARRAY_BUFFER = 0x8892;
