@@ -27,6 +27,9 @@ scene.lights.push_back({{3,3,4}, {1.f,0.9f,0.7f}, 25.f});                       
 whole "scene"; no scene graph. Lights go to the shaders through a std140 UBO (binding 0,
 max 64).
 
+> **State:** `render()` sets the GL state it needs — depth test (`LESS`) and back-face
+> culling with CCW front faces — so meshes must use CCW winding (`shapes::box/quad` do).
+
 ## Deferred
 
 ```cpp
