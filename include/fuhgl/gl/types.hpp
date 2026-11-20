@@ -126,6 +126,7 @@ inline constexpr GLenum GL_TEXTURE_MIN_FILTER = 0x2801;
 inline constexpr GLenum GL_TEXTURE_MAG_FILTER = 0x2800;
 inline constexpr GLenum GL_TEXTURE_WRAP_S = 0x2802;
 inline constexpr GLenum GL_TEXTURE_WRAP_T = 0x2803;
+inline constexpr GLenum GL_TEXTURE_WRAP_R = 0x8072;
 inline constexpr GLenum GL_NEAREST = 0x2600;
 inline constexpr GLenum GL_LINEAR = 0x2601;
 inline constexpr GLenum GL_NEAREST_MIPMAP_NEAREST = 0x2700;

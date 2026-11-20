@@ -21,3 +21,4 @@
 #include "gl/sampler.hpp"
 #include "gl/sync.hpp"
 #include "gl/ubo.hpp"
+#include "skybox.hpp"

@@ -21,6 +21,7 @@ add_library(fuhglcore STATIC
     src/gl/state.cpp
     src/gl/sampler.cpp
     src/gl/sync.cpp
+    src/skybox.cpp
 )
 add_library(FuhGLCore::fuhglcore ALIAS fuhglcore)
 
