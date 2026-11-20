@@ -201,6 +201,7 @@ using eglDestroySurface_fn = EGLBoolean (*)(EGLDisplay, EGLSurface);
 using eglDestroyContext_fn = EGLBoolean (*)(EGLDisplay, EGLContext);
 using eglTerminate_fn = EGLBoolean (*)(EGLDisplay);
 using eglGetError_fn = EGLint (*)(void);
+using eglGetProcAddress_fn = void* (*)(const char*);
 
 struct EglApi {
     void* lib = nullptr;
@@ -218,6 +219,7 @@ struct EglApi {
     eglDestroyContext_fn eglDestroyContext = nullptr;
     eglTerminate_fn eglTerminate = nullptr;
     eglGetError_fn eglGetError = nullptr;
+    eglGetProcAddress_fn eglGetProcAddress = nullptr;
     bool loaded = false;
 };
 
@@ -247,13 +249,18 @@ bool loadEgl(EglApi& e) {
     e.lib = dlopen("libEGL.so.1", RTLD_LAZY | RTLD_GLOBAL);
     if (!e.lib) e.lib = dlopen("libEGL.so", RTLD_LAZY | RTLD_GLOBAL);
     if (!e.lib) return false;
-    loadSym(e.lib, "eglGetPlatformDisplayEXT", e.eglGetPlatformDisplayEXT);
+    // eglGetPlatformDisplayEXT / eglCreatePlatformWindowSurfaceEXT are extension
+    // entry points: they are NOT exported symbols, only reachable via eglGetProcAddress.
+    loadSym(e.lib, "eglGetProcAddress", e.eglGetProcAddress);
+    if (e.eglGetProcAddress) {
+        e.eglGetPlatformDisplayEXT = reinterpret_cast<eglGetPlatformDisplayEXT_fn>(e.eglGetProcAddress("eglGetPlatformDisplayEXT"));
+        e.eglCreatePlatformWindowSurfaceEXT = reinterpret_cast<eglCreatePlatformWindowSurfaceEXT_fn>(e.eglGetProcAddress("eglCreatePlatformWindowSurfaceEXT"));
+    }
     loadSym(e.lib, "eglGetDisplay", e.eglGetDisplay);
     loadSym(e.lib, "eglInitialize", e.eglInitialize);
     loadSym(e.lib, "eglBindAPI", e.eglBindAPI);
     loadSym(e.lib, "eglChooseConfig", e.eglChooseConfig);
     loadSym(e.lib, "eglCreateContext", e.eglCreateContext);
-    loadSym(e.lib, "eglCreatePlatformWindowSurfaceEXT", e.eglCreatePlatformWindowSurfaceEXT);
     loadSym(e.lib, "eglMakeCurrent", e.eglMakeCurrent);
     loadSym(e.lib, "eglSwapBuffers", e.eglSwapBuffers);
     loadSym(e.lib, "eglSwapInterval", e.eglSwapInterval);
