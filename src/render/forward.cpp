@@ -74,6 +74,14 @@ void ForwardPipeline::blitToScreen() {
 void ForwardPipeline::render(const SceneView& scene) {
     if (!scene.camera) return;
 
+    // The pipeline owns the GL state it needs: depth test + CCW back-face culling.
+    gl::enable(gl::Cap::DepthTest);
+    gl::depthFunc(gl::CompareFunc::Less);
+    gl::depthMask(true);
+    gl::enable(gl::Cap::CullFace);
+    gl::cullFace(gl::Face::Back);
+    gl::frontFace(true);
+
     // upload lights
     LightBlock block{};
     const int n = scene.lights.size() > kMaxLights ? kMaxLights : static_cast<int>(scene.lights.size());

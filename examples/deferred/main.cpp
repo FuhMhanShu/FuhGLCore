@@ -97,13 +97,6 @@ int main(int argc, char** argv) {
     fuhgl::Framebuffer forwardTarget;
     if (args.forward) {
         if (!forward.create()) { std::fprintf(stderr, "forward pipeline failed\n"); return 1; }
-        if (headless) {
-            forwardTarget.create();
-            forwardTarget.setSize(args.width, args.height);
-            forwardTarget.bind();
-            // attach a color texture
-            // (reuse deferred's output texture is not possible; create one)
-        }
     } else {
         if (!deferred.create(args.width, args.height, args.msaa)) {
             std::fprintf(stderr, "deferred pipeline failed\n");
@@ -111,7 +104,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    // offscreen target for headless screenshot (forward) 
+    // offscreen target for headless screenshot (forward)
     fuhgl::Texture shotTex(fuhgl::Texture::Target::Tex2D);
     fuhgl::Renderbuffer shotDepth;
     if (headless && args.forward) {
@@ -120,6 +113,8 @@ int main(int argc, char** argv) {
         shotDepth.create();
         shotDepth.bind();
         shotDepth.storage(fuhgl::gl::GL_DEPTH_COMPONENT24, args.width, args.height);
+        forwardTarget.create();
+        forwardTarget.setSize(args.width, args.height);
         forwardTarget.bind();
         forwardTarget.attachTexture2D(0, shotTex);
         forwardTarget.attachRenderbuffer(fuhgl::Framebuffer::Attachment::Depth, shotDepth);

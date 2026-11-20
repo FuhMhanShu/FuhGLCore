@@ -19,6 +19,8 @@ class RenderPipeline {
 public:
     virtual ~RenderPipeline() = default;
     /// @brief Renders the scene (into the pipeline's target or the currently bound FB).
+    /// Sets the GL state it needs: depth test (LESS) + back-face culling, so meshes
+    /// must use the default CCW front-face winding (as shapes::box/quad do).
     virtual void render(const SceneView& scene) = 0;
 };
 

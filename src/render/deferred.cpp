@@ -2,10 +2,8 @@
 #include "lighting_glsl.hpp"
 
 #include "fuhgl/gl/state.hpp"
-#include "fuhgl/gl/error.hpp"
 
 #include <cstdio>
-#include <cstdlib>
 
 namespace fuhgl::render {
 namespace {
@@ -137,7 +135,6 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         std::fprintf(stderr, "DeferredPipeline: G-buffer incomplete (0x%x)\n", gbuffer_.status());
         return false;
     }
-    std::fprintf(stderr, "DeferredPipeline: G-buffer ok\n");
 
     // resolve target (only for MSAA)
     if (msaa_ > 0) {
@@ -167,7 +164,6 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         return false;
     }
     Framebuffer::unbind();
-    std::fprintf(stderr, "DeferredPipeline: output FBO ok\n");
 
     // default G-buffer material
     if (!defaultMaterial_.create()) { std::fprintf(stderr, "DeferredPipeline: default material create failed\n"); return false; }
@@ -183,15 +179,12 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         }
         defaultMaterial_.program().bindUniformBlock("LightBlock", 0); // not used by gbuf pass, harmless
     }
-    std::fprintf(stderr, "DeferredPipeline: gbuffer material ok\n");
-
     // lighting material (fullscreen triangle)
     if (!lightingMaterial_.create()) return false;
     {
         Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
         if (!vs.compile(kLightVert)) { std::fprintf(stderr, "DeferredPipeline: light VS: %s\n", vs.infoLog().c_str()); return false; }
         const std::string fragSrc = std::string(kLightFragHead) + kLightingUniforms + kLightingLoop + kLightFragTail;
-        if (std::getenv("FUHGL_DEBUG")) std::fprintf(stderr, "DeferredPipeline[debug]: light FS source:\n%s\n", fragSrc.c_str());
         if (!fs.compile(fragSrc.c_str())) { std::fprintf(stderr, "DeferredPipeline: light FS: %s\n", fs.infoLog().c_str()); return false; }
         lightingMaterial_.program().attach(vs);
         lightingMaterial_.program().attach(fs);
@@ -201,7 +194,6 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         }
         lightingMaterial_.program().bindUniformBlock("LightBlock", 0);
     }
-    std::fprintf(stderr, "DeferredPipeline: lighting material ok\n");
     lightingMaterial_.setTexture(0, texAlbedo_);
     lightingMaterial_.setTexture(1, texNormal_);
     lightingMaterial_.setTexture(2, texPosition_);
@@ -223,6 +215,14 @@ void DeferredPipeline::resize(int width, int height) {
 void DeferredPipeline::render(const SceneView& scene) {
     if (!scene.camera || width_ <= 0) return;
     auto& f = gl::functions();
+
+    // The pipeline owns the GL state it needs: depth test + CCW back-face culling.
+    gl::enable(gl::Cap::DepthTest);
+    gl::depthFunc(gl::CompareFunc::Less);
+    gl::depthMask(true);
+    gl::enable(gl::Cap::CullFace);
+    gl::cullFace(gl::Face::Back);
+    gl::frontFace(true);
 
     // upload lights
     LightBlock block{};
@@ -295,16 +295,6 @@ void DeferredPipeline::render(const SceneView& scene) {
     lp.setUniform(lp.uniformLocation("uLightCount"), n);
     lp.setUniform("uSkyTop", skyTop);
     lp.setUniform("uSkyBottom", skyBottom);
-    if (std::getenv("FUHGL_DEBUG")) {
-        const gl::GLint loc = lp.uniformLocation("uLightCount");
-        const gl::GLuint blockIdx = f.glGetUniformBlockIndex ? f.glGetUniformBlockIndex(lp.id(), "LightBlock") : 999u;
-        gl::GLint locVal = -1;
-        using GetIvFn = void (*)(gl::GLuint, gl::GLint, gl::GLint*);
-        if (auto p = reinterpret_cast<GetIvFn>(gl::procAddress("glGetUniformiv")))
-            p(lp.id(), loc, &locVal);
-        std::fprintf(stderr, "DeferredPipeline[debug]: uLightCount loc=%d value=%d blockIdx=%u err=0x%x ubo=%u\n",
-                     loc, locVal, blockIdx, gl::lastError(), lightsUbo_.id());
-    }
     fullscreenVao_.bind();
     gl::drawArrays(gl::Primitive::Triangles, 0, 3);
 
