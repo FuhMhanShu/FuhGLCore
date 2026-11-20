@@ -191,6 +191,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
         if (!vs.compile(kLightVert)) { std::fprintf(stderr, "DeferredPipeline: light VS: %s\n", vs.infoLog().c_str()); return false; }
         const std::string fragSrc = std::string(kLightFragHead) + kLightingUniforms + kLightingLoop + kLightFragTail;
+        if (std::getenv("FUHGL_DEBUG")) std::fprintf(stderr, "DeferredPipeline[debug]: light FS source:\n%s\n", fragSrc.c_str());
         if (!fs.compile(fragSrc.c_str())) { std::fprintf(stderr, "DeferredPipeline: light FS: %s\n", fs.infoLog().c_str()); return false; }
         lightingMaterial_.program().attach(vs);
         lightingMaterial_.program().attach(fs);
