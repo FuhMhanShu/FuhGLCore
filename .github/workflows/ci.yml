@@ -22,7 +22,7 @@ jobs:
         run: cmake --build build --config Release -j
 
       - name: Test (headless unit tests; no GL context required)
-        run: ctest --test-dir build --output-on-failure
+        run: ctest --test-dir build -C Release --output-on-failure
 
       - name: Smoke-run example under Xvfb (Linux only)
         if: runner.os == 'Linux'
