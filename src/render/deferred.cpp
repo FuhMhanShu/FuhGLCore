@@ -244,11 +244,7 @@ void DeferredPipeline::render(const SceneView& scene) {
 
     // upload lights
     LightBlock block{};
-    const int n = scene.lights.size() > kMaxLights ? kMaxLights : static_cast<int>(scene.lights.size());
-    for (int i = 0; i < n; ++i) {
-        block.posIntensity[i] = math::Vec4(scene.lights[i].position, scene.lights[i].intensity);
-        block.color[i] = math::Vec4(scene.lights[i].color, 1.f);
-    }
+    const int n = packLightBlock(scene.lights, block);
     lightsUbo_.upload(block);
     lightsUbo_.bindBase(0);
 

@@ -1,7 +1,8 @@
 #pragma once
 
 // Shared GLSL for the built-in lighting model (forward + deferred pipelines).
-// Light data comes from a std140 UBO at binding 0; C++ mirror is render::LightBlock.
+// Light data comes from a std140 UBO at binding 0; C++ mirror is render::LightBlock
+// (include/fuhgl/render/light.hpp). Shadow sampling (F15) is mixed in via kShadowGlsl.
 
 namespace fuhgl::render {
 
@@ -16,17 +17,40 @@ uniform int uLightCount;
 layout(std140) uniform LightBlock {
     vec4 lightPosIntensity[64]; // xyz = position, w = intensity
     vec4 lightColor[64];        // rgb = color
+    vec4 lightDirType[64];      // xyz = direction, w = type (0 point, 1 directional, 2 spot)
+    vec4 lightParams0[64];      // atten const/linear/quadratic, range
+    vec4 lightParams1[64];      // cos(coneInner), cos(coneOuter)
 };
 )GLSL";
 
 constexpr const char* kLightingLoop = R"GLSL(
+// Returns direction TO the light (L) and its attenuation for light i.
+void lightVector(int i, vec3 worldPos, out vec3 L, out float atten) {
+    int t = int(lightDirType[i].w + 0.5);
+    if (t == 1) { // directional
+        L = normalize(-lightDirType[i].xyz);
+        atten = lightPosIntensity[i].w;
+    } else {
+        vec3 toL = lightPosIntensity[i].xyz - worldPos;
+        float d = length(toL);
+        L = toL / max(d, 1e-5);
+        vec4 pa = lightParams0[i];
+        atten = lightPosIntensity[i].w / max(pa.x + pa.y * d + pa.z * d * d, 1e-5);
+        if (pa.w > 0.0) atten *= clamp(1.0 - pow(clamp(d / pa.w, 0.0, 1.0), 4.0), 0.0, 1.0);
+        if (t == 2) { // spot cone
+            vec4 pc = lightParams1[i];
+            float c = dot(-L, normalize(lightDirType[i].xyz));
+            atten *= smoothstep(pc.y, pc.x, c); // pc.y = cos(outer) < pc.x = cos(inner)
+        }
+    }
+}
+
 vec3 shade(vec3 albedo, vec3 N, vec3 worldPos, vec3 V) {
     vec3 acc = albedo * uAmbient;
     for (int i = 0; i < uLightCount && i < 64; ++i) {
-        vec3 L = lightPosIntensity[i].xyz - worldPos;
-        float d = length(L);
-        L /= max(d, 1e-5);
-        float atten = lightPosIntensity[i].w / (1.0 + 0.35 * d + 0.12 * d * d);
+        vec3 L;
+        float atten;
+        lightVector(i, worldPos, L, atten);
         float diff = max(dot(N, L), 0.0);
         vec3 H = normalize(L + V);
         float spec = pow(max(dot(N, H), 0.0), 32.0) * 0.4;
@@ -35,11 +59,5 @@ vec3 shade(vec3 albedo, vec3 N, vec3 worldPos, vec3 V) {
     return acc;
 }
 )GLSL";
-
-// C++ mirror of the std140 LightBlock (vec4 arrays, 16-byte stride).
-struct LightBlock {
-    math::Vec4 posIntensity[kGlslMaxLights];
-    math::Vec4 color[kGlslMaxLights];
-};
 
 } // namespace fuhgl::render

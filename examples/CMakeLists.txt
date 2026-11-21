@@ -15,3 +15,6 @@ target_link_libraries(stream PRIVATE fuhglcore)
 
 add_executable(solids solids/main.cpp)
 target_link_libraries(solids PRIVATE fuhglcore)
+
+add_executable(lights lights/main.cpp)
+target_link_libraries(lights PRIVATE fuhglcore)

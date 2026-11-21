@@ -46,6 +46,9 @@ no Khronos headers, no vcpkg.
   multi-draw/instanced-base draws, debug labels & groups (`gl/debug.hpp`), queries/sync
   helpers, internal-format queries, `glCopyImageSubData`/`glClearTexImage` —
   see [tutorial 19](docs/tutorials/19-state-batching-and-debug.md).
+- **Lights** — `render::Light` with directional/point/spot types, analytic attenuation,
+  range cutoff and spot cones, uploaded as a `LightBlock` UBO to the pipelines —
+  see [tutorial 20](docs/tutorials/20-lights.md).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug

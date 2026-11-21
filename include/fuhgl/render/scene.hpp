@@ -7,6 +7,7 @@
 #include "../cam.hpp"
 #include "../gl/types.hpp"
 #include "../math.hpp"
+#include "light.hpp"
 
 #include <vector>
 
@@ -14,13 +15,6 @@ namespace fuhgl::render {
 
 class Mesh;
 class Material;
-
-/// @brief Point light for the built-in lighting model.
-struct Light {
-    math::Vec3 position{0.f};
-    math::Vec3 color{1.f};
-    float intensity = 10.f;
-};
 
 /// @brief One drawable object: mesh + material + model matrix.
 struct DrawItem {
@@ -50,8 +44,5 @@ struct VertexAttrib {
     gl::GLsizei stride;
     gl::GLintptr offset;
 };
-
-/// @brief Maximum number of point lights in the built-in lighting UBO.
-inline constexpr int kMaxLights = 64;
 
 } // namespace fuhgl::render
