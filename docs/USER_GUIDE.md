@@ -47,6 +47,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Default forward renderer | `render::ForwardRenderer` (lights + auto shadows + fog) | [22](tutorials/22-forward-renderer.md) |
 | Default deferred renderer + post FX | `render::DeferredRenderer` (SSAO, HDR, bloom, god rays, parallax/bump, ACES) | [23](tutorials/23-deferred-renderer-postfx.md) |
 | Text & FPS overlay (bitmap font HUD) | `render::TextRenderer`, `render::FpsCounter` | [24](tutorials/24-text-and-fps-overlay.md) |
+| Wireframe (solids + bounding boxes) | `render::Wireframe` (`addSolid`/`addBoundingBox`/`addMesh`) | [25](tutorials/25-wireframe-solids-and-bounding-boxes.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

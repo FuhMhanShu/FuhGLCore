@@ -11,6 +11,7 @@ add_executable(fuhgl_tests
     test_mesh.cpp
     test_shadow.cpp
     test_text.cpp
+    test_wireframe.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
@@ -80,3 +81,10 @@ add_test(NAME gl_smoke_dsa COMMAND fuhgl_gl_smoke_dsa)
 add_executable(fuhgl_gl_smoke_text gl_smoke_text.cpp)
 target_link_libraries(fuhgl_gl_smoke_text PRIVATE fuhglcore)
 add_test(NAME gl_smoke_text COMMAND fuhgl_gl_smoke_text)
+
+# Headless test for F20 Wireframe: draws a white AABB + a green mesh wireframe into
+# an FBO and verifies via readback that line pixels of both colors were written.
+# Skips cleanly without GL >= 3.3.
+add_executable(fuhgl_gl_smoke_wireframe gl_smoke_wireframe.cpp)
+target_link_libraries(fuhgl_gl_smoke_wireframe PRIVATE fuhglcore)
+add_test(NAME gl_smoke_wireframe COMMAND fuhgl_gl_smoke_wireframe)

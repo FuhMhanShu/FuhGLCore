@@ -4,12 +4,14 @@
 // (matte / textured with a procedural voronoi / emissive).
 //
 // Modes: default = full scene (windowed, WASD+mouse, Esc quits); --csg union|difference|
-// intersection|bounds renders a CSG close-up instead. With --screenshot one deterministic
-// frame is rendered headless (surfaceless EGL) into an FBO and written as PNG — the CI
-// docs job uses this for the tutorial screenshots (scene + the four CSG shots).
+// intersection|bounds renders a CSG close-up instead; --wireframe overlays every solid
+// as a triangle-edge wireframe plus its AABB as a box wireframe (render::Wireframe).
+// With --screenshot one deterministic frame is rendered headless (surfaceless EGL) into
+// an FBO and written as PNG — the CI docs job uses this for the tutorial screenshots
+// (scene + the four CSG shots + the wireframe shot).
 //
 // Usage: solids [--screenshot out.png] [--csg scene|union|difference|intersection|bounds]
-//               [--width W] [--height H]
+//               [--wireframe] [--width W] [--height H]
 
 #include <fuhgl/fuhgl.hpp>
 #include <fuhgl/render.hpp>
@@ -27,6 +29,7 @@ namespace {
 struct Args {
     std::string screenshot;
     std::string csg = "scene";
+    bool wireframe = false;
     int width = 800, height = 600;
 };
 
@@ -35,6 +38,7 @@ Args parseArgs(int argc, char** argv) {
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--screenshot") == 0 && i + 1 < argc) a.screenshot = argv[++i];
         else if (std::strcmp(argv[i], "--csg") == 0 && i + 1 < argc) a.csg = argv[++i];
+        else if (std::strcmp(argv[i], "--wireframe") == 0) a.wireframe = true;
         else if (std::strcmp(argv[i], "--width") == 0 && i + 1 < argc) a.width = std::atoi(argv[++i]);
         else if (std::strcmp(argv[i], "--height") == 0 && i + 1 < argc) a.height = std::atoi(argv[++i]);
     }
@@ -161,8 +165,35 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    Wireframe wire;
+    if (args.wireframe && !wire.create()) {
+        std::fprintf(stderr, "solids: wireframe create failed\n");
+        return 1;
+    }
+    auto queueWireframe = [&]() {
+        wire.clear();
+        if (args.csg == "scene") {
+            wire.addSolid(*part, 24, fuhgl::math::translate({-1.7f, -0.2f, 0.f}), {0.95f, 0.95f, 1.f});
+            wire.addSolid(*ring, 20, fuhgl::math::translate({0.f, 0.35f, -0.4f}), {0.4f, 0.95f, 0.5f});
+            wire.addSolid(*pedestal, 20, fuhgl::math::translate({1.7f, -0.7f, 0.f}), {1.f, 0.75f, 0.35f});
+            wire.addBoundingBox(*part, fuhgl::math::translate({-1.7f, -0.2f, 0.f}), {1.f, 0.9f, 0.2f});
+            wire.addBoundingBox(*ring, fuhgl::math::translate({0.f, 0.35f, -0.4f}), {0.3f, 0.8f, 1.f});
+            wire.addBoundingBox(*pedestal, fuhgl::math::translate({1.7f, -0.7f, 0.f}), {1.f, 0.4f, 0.6f});
+        } else {
+            const Solid* s = args.csg == "union" ? uni.get()
+                             : args.csg == "intersection" ? inter.get() : part.get();
+            wire.addSolid(*s, 24, fuhgl::math::Mat4{}, {0.95f, 0.95f, 1.f});
+            wire.addBoundingBox(*s, fuhgl::math::Mat4{}, {1.f, 0.9f, 0.2f});
+        }
+    };
+
     if (headless) {
         pipeline.render(scene);
+        if (args.wireframe) {
+            queueWireframe();
+            pipeline.output().bind();
+            wire.render(cam, args.width, args.height);
+        }
         fuhgl::gl::flush();
         pipeline.output().bind();
         std::vector<unsigned char> px(static_cast<size_t>(args.width) * args.height * 4);
@@ -205,7 +236,14 @@ int main(int argc, char** argv) {
         if (scene.width != pipeline.width() || scene.height != pipeline.height())
             pipeline.resize(scene.width, scene.height);
         pipeline.render(scene);
-        fuhgl::Framebuffer::blitToDefault(pipeline.output(), scene.width, scene.height);
+        if (args.wireframe) {
+            queueWireframe();
+            pipeline.output().bind();
+            wire.render(cam, scene.width, scene.height);
+            fuhgl::Framebuffer::blitToDefault(pipeline.output(), scene.width, scene.height);
+        } else {
+            fuhgl::Framebuffer::blitToDefault(pipeline.output(), scene.width, scene.height);
+        }
         window.swapBuffers();
     }
     return 0;
