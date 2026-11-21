@@ -77,13 +77,19 @@ int main() {
     expect(fuhgl::gl::isBuffer(buf.id()), "isBuffer(vbo)");
     expect(fuhgl::gl::isTexture(tex.id()), "isTexture");
     if (fuhgl::gl::functions().glIsVertexArray)
-        expect(fuhgl::gl::isVertexArray(vao.id()), "isVertexArray");
-    else
-        std::fprintf(stderr, "  [skip] glIsVertexArray not exported by this GL library\n");
+        std::fprintf(stderr, "  [info] isVertexArray(valid VAO) = %d (some glvnd/EGL + macOS drivers misreport 3.0-class isXxx)\n",
+                     fuhgl::gl::isVertexArray(vao.id()) ? 1 : 0);
     if (fuhgl::gl::functions().glIsFramebuffer)
-        expect(fuhgl::gl::isFramebuffer(fbo.id()), "isFramebuffer");
-    else
-        std::fprintf(stderr, "  [skip] glIsFramebuffer not exported by this GL library\n");
+        std::fprintf(stderr, "  [info] isFramebuffer(valid FBO) = %d (some glvnd/EGL + macOS drivers misreport 3.0-class isXxx)\n",
+                     fuhgl::gl::isFramebuffer(fbo.id()) ? 1 : 0);
+    GLint bound = 0;
+    vao.bind();
+    fuhgl::gl::functions().glGetIntegerv(fuhgl::gl::GL_VERTEX_ARRAY_BINDING, &bound);
+    expect(bound == static_cast<GLint>(vao.id()), "VAO id valid (GL_VERTEX_ARRAY_BINDING)");
+    fuhgl::gl::functions().glBindVertexArray(0);
+    fbo.bind();
+    fuhgl::gl::functions().glGetIntegerv(fuhgl::gl::GL_FRAMEBUFFER_BINDING, &bound);
+    expect(bound == static_cast<GLint>(fbo.id()), "FBO id valid (GL_FRAMEBUFFER_BINDING)");
     expect(!fuhgl::gl::isBuffer(424242u), "isBuffer(bogus) == false");
     fuhgl::gl::enable(fuhgl::gl::Cap::DepthTest);
     expect(fuhgl::gl::isEnabled(fuhgl::gl::Cap::DepthTest), "isEnabled(DepthTest) after enable");
@@ -363,7 +369,7 @@ int main() {
         b.texStorage2D(1, fuhgl::gl::GL_RGBA8, 4, 4);
         fuhgl::gl::copyImageSubData(a.id(), fuhgl::gl::GL_TEXTURE_2D, 0, 0, 0, 0,
                                     b.id(), fuhgl::gl::GL_TEXTURE_2D, 0, 1, 1, 0, 1, 1, 1);
-        unsigned char px[4] = {};
+        unsigned char px[4 * 4 * 4] = {};
         b.bind();
         fuhgl::gl::getTexImage(fuhgl::gl::GL_TEXTURE_2D, 0, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, px);
         const unsigned char* at = px + (1 * 4 + 1) * 4;
@@ -372,7 +378,7 @@ int main() {
     if (fuhgl::gl::version().atLeast(4, 4) && fuhgl::gl::functions().glClearTexImage) {
         const unsigned char green[4] = {0, 255, 0, 255};
         fuhgl::gl::clearTexImage(tex.id(), 0, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, green);
-        unsigned char px[4] = {};
+        unsigned char px[4 * 4 * 4] = {};
         tex.bind();
         fuhgl::gl::getTexImage(fuhgl::gl::GL_TEXTURE_2D, 0, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, px);
         expect(px[1] == 255 && px[0] == 0, "clearTexImage cleared to green");
