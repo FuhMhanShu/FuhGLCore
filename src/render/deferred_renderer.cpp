@@ -522,7 +522,6 @@ void DeferredRenderer::render(const SceneView& scene) {
         const math::Vec2 hpt = math::halton(frameIndex_);
         s.jitter = {(hpt.x - 0.5f) * 2.f / static_cast<float>(width_),
                     (hpt.y - 0.5f) * 2.f / static_cast<float>(height_)};
-        ++frameIndex_;
     } else {
         s.jitter = {0.f, 0.f};
         frameIndex_ = 0;
@@ -536,6 +535,9 @@ void DeferredRenderer::render(const SceneView& scene) {
     pipeline_.aoTexture = ssaoEnabled ? post_.texture("ssao") : nullptr;
     pipeline_.aoStrength = ssaoStrength;
     post_.execute();
+    // advance after the post chain so the TAA pass sees frameIndex_ == 0 on the first
+    // frame and resolves with uAlpha = 1 (clean history reset)
+    if (taaEnabled) ++frameIndex_;
     curScene_ = nullptr;
 }
 

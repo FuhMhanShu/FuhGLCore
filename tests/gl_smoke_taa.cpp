@@ -1,11 +1,13 @@
 // Headless smoke test for F32 TAA in DeferredRenderer: with taaEnabled the G-buffer is
-// rendered with Halton subpixel jitter and accumulated over frames; the accumulated
-// image must converge toward the unjittered (taa off) image.
+// rendered with Halton subpixel jitter and accumulated over frames. Measured in HDR float
+// on the post-graph resources ("ssr" = raw jittered frame, "taa" = accumulated), because
+// the subpixel jitter is quantized away in the 8-bit LDR output.
 // Skips cleanly without GL >= 3.3.
 
 #include <fuhgl/fuhgl.hpp>
 #include <fuhgl/render.hpp>
 
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
@@ -21,6 +23,11 @@ void expect(bool cond, const char* what) {
 double meanAbsDiff(const std::vector<float>& a, const std::vector<float>& b) {
     double s = 0.0;
     for (size_t i = 0; i < a.size(); i += 4) s += std::abs(static_cast<double>(a[i]) - static_cast<double>(b[i]));
+    return s / (a.size() / 4);
+}
+double meanAbs(const std::vector<float>& a) {
+    double s = 0.0;
+    for (size_t i = 0; i < a.size(); i += 4) s += std::abs(static_cast<double>(a[i]));
     return s / (a.size() / 4);
 }
 
@@ -51,12 +58,18 @@ int main() {
     }
     r.ssaoEnabled = false;
     r.godRaysEnabled = false;
+    r.ssrEnabled = false;
 
-    fuhgl::render::Mesh boxMesh;
-    fuhgl::render::shapes::box(boxMesh, {1.f, 1.f, 1.f}, {0.8f, 0.7f, 0.6f});
+    // high-frequency albedo on a large floor so the subpixel jitter changes many pixels
+    fuhgl::Texture noiseTex = fuhgl::render::procedural::makeTexture(fuhgl::render::procedural::noise(128, 128, 7u, 4));
+    fuhgl::render::Material floorMat = fuhgl::render::materials::pbrTextured(noiseTex, {1.f, 1.f, 1.f}, 0.f, 0.9f);
+    fuhgl::render::Mesh floorMesh, boxMesh;
+    fuhgl::render::shapes::box(floorMesh, {6.f, 0.25f, 6.f}, {1.f, 1.f, 1.f});
+    fuhgl::render::shapes::box(boxMesh, {0.8f, 0.8f, 0.8f}, {0.8f, 0.7f, 0.6f});
+
     fuhgl::FirstPersonCamera cam;
-    cam.position = {0.f, 1.f, 5.f};
-    cam.pitch = -0.15f;
+    cam.position = {0.f, 1.2f, 3.2f};
+    cam.pitch = -0.5f;
 
     fuhgl::render::SceneView scene;
     scene.camera = &cam;
@@ -64,38 +77,64 @@ int main() {
     scene.height = H;
     scene.aspect = 1.f;
     scene.clearColor = {0.05f, 0.06f, 0.09f};
-    scene.ambient = {0.08f, 0.08f, 0.09f};
-    scene.items.push_back({&boxMesh, nullptr, fuhgl::math::Mat4{}});
+    scene.ambient = {0.15f, 0.15f, 0.17f};
+    scene.items.push_back({&floorMesh, &floorMat, fuhgl::math::translate({0.f, -0.25f, 0.f})});
+    scene.items.push_back({&boxMesh, nullptr, fuhgl::math::translate({0.f, 0.4f, -0.5f})});
     scene.lights.push_back(fuhgl::render::Light::directional({0.4f, -1.f, 0.3f}, {1.f, 0.95f, 0.85f}, 1.2f));
 
-    // read the HDR (float) "taa" resource of the post graph — subpixel jitter is only
-    // visible in float precision, not in the quantized LDR output
+    // read an HDR (float) resource of the post graph
     fuhgl::Framebuffer hdrFbo;
     hdrFbo.create();
     hdrFbo.setSize(W, H);
-    auto renderImg = [&]() {
-        r.render(scene);
-        fuhgl::gl::flush();
-        const fuhgl::Texture* taaTex = r.postGraph().texture("taa");
+    auto readHdr = [&](const char* res) {
+        const fuhgl::Texture* t = r.postGraph().texture(res);
         std::vector<float> px(static_cast<size_t>(W) * H * 4, 0.f);
-        hdrFbo.bind();
-        hdrFbo.attachTexture2D(0, *taaTex);
-        fuhgl::gl::readPixels(0, 0, W, H, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_FLOAT, px.data());
+        if (t) {
+            hdrFbo.bind();
+            hdrFbo.attachTexture2D(0, *t);
+            fuhgl::gl::readPixels(0, 0, W, H, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_FLOAT, px.data());
+        }
         return px;
     };
+    auto renderFrame = [&]() {
+        r.render(scene);
+        fuhgl::gl::flush();
+    };
 
+    // TAA off: two frames must be identical (no jitter) and the readback non-zero
     r.taaEnabled = false;
-    const auto imgOff = renderImg();
-    r.taaEnabled = true;
-    const auto imgFirst = renderImg(); // frame 0: alpha = 1, pure jittered frame
-    for (int i = 0; i < 9; ++i) renderImg();
-    const auto imgAcc = renderImg(); // after 10 jittered frames
+    renderFrame();
+    const auto rawOffA = readHdr("ssr");
+    renderFrame();
+    const auto rawOffB = readHdr("ssr");
+    const double lumOff = meanAbs(rawOffA);
+    const double dOff = meanAbsDiff(rawOffA, rawOffB);
+    std::fprintf(stderr, "gl_smoke_taa: lumOff=%.4f dOff=%.6f\n", lumOff, dOff);
+    expect(lumOff > 0.005, "HDR readback is non-zero (scene visible)");
+    expect(dOff < 0.001, "TAA off: consecutive frames are identical (no jitter)");
 
-    const double dFirst = meanAbsDiff(imgFirst, imgOff);
-    const double dAcc = meanAbsDiff(imgAcc, imgOff);
-    std::fprintf(stderr, "gl_smoke_taa: meanAbsDiff(first jittered vs off)=%.2f, accumulated vs off=%.2f\n", dFirst, dAcc);
-    expect(dFirst > 0.002, "subpixel jitter changes the raw HDR frame");
-    expect(dAcc < dFirst * 0.8, "TAA accumulation converges toward the unjittered image");
+    // TAA on: raw jittered frames differ, the first accumulated frame equals the raw
+    // frame (uAlpha = 1), and the accumulation stabilizes over frames
+    r.taaEnabled = true;
+    renderFrame();
+    const auto raw0 = readHdr("ssr");
+    const auto acc0 = readHdr("taa");
+    renderFrame();
+    const auto raw1 = readHdr("ssr");
+    std::vector<float> accPrev, accLast;
+    for (int i = 0; i < 9; ++i) {
+        renderFrame();
+        accPrev = accLast;
+        accLast = readHdr("taa");
+    }
+
+    const double dRaw = meanAbsDiff(raw0, raw1);
+    const double dFirst = meanAbsDiff(acc0, raw0);
+    const double dAcc = meanAbsDiff(accPrev, accLast);
+    std::fprintf(stderr, "gl_smoke_taa: dRaw=%.4f dFirst=%.6f dAcc=%.6f\n", dRaw, dFirst, dAcc);
+    expect(dRaw > 0.002, "subpixel jitter changes the raw HDR frame");
+    expect(dFirst < 0.001, "first TAA frame resolves with alpha=1 (equals the raw frame)");
+    expect(dAcc < dRaw * 0.5, "TAA accumulation stabilizes across frames");
     expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
 
     if (g_failures) {
