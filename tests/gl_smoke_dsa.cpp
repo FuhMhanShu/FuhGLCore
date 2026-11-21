@@ -279,17 +279,17 @@ int main() {
         const GLint iv[4] = {42, 0, 0, 0};
         d.glClearNamedFramebufferiv(fboI, GL_COLOR, 0, iv);
         expectClean("glClearNamedFramebufferiv call");
-        GLuint pxI = 0;
-        d.glGetTextureImage(texI, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, 4 * 4 * 4, &pxI);
-        expect(pxI == 42, "glClearNamedFramebufferiv (verified via glGetTextureImage)");
+        std::vector<GLuint> pxI(4 * 4, 0); // glGetTextureImage reads the whole level
+        d.glGetTextureImage(texI, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, 4 * 4 * 4, pxI.data());
+        expect(pxI[0] == 42, "glClearNamedFramebufferiv (verified via glGetTextureImage)");
         // uiv clear on RGBA32UI attachment
         d.glNamedFramebufferTexture(fboUI, GL_COLOR_ATTACHMENT0, texUI, 0);
         d.glNamedFramebufferDrawBuffer(fboUI, GL_COLOR_ATTACHMENT0);
         const GLuint uiv[4] = {7, 0, 0, 0};
         d.glClearNamedFramebufferuiv(fboUI, GL_COLOR, 0, uiv);
         expectClean("glClearNamedFramebufferuiv call");
-        GLuint pxU[4] = {};
-        d.glGetTextureImage(texUI, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 4 * 4 * 16, pxU);
+        std::vector<GLuint> pxU(4 * 4 * 4, 0); // whole level: 4*4 RGBA32UI = 256 bytes
+        d.glGetTextureImage(texUI, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 4 * 4 * 16, pxU.data());
         expect(pxU[0] == 7, "glClearNamedFramebufferuiv (verified via glGetTextureImage)");
         // fi clear on depth/stencil renderbuffer attachment
         d.glCreateRenderbuffers(1, &rb);
