@@ -40,6 +40,8 @@ no Khronos headers, no vcpkg.
   textures in code (checker/noise/voronoi/…), `render::materials` provides
   matte/textured/emissive presets, and `render::Solid` + CSG operators
   (`makeCube(...) - makeSphere(...)`) mesh analytic bodies via marching tetrahedra —
+  with selectable UV mapping modes (`render::SolidUv`: planar XZ/XY/YZ, spherical,
+  cylindrical) so textured materials work on any solid —
   see [tutorials 17](docs/tutorials/17-procedural-textures-and-materials.md) and
   [18](docs/tutorials/18-solids-and-csg.md).
 - **Full GL state & batching** — blending/stencil, polygon mode, viewport/scissor arrays,

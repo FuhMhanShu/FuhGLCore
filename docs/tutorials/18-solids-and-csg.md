@@ -70,7 +70,8 @@ All rendered headless in CI by `examples/solids --screenshot ... --csg <mode>`:
 **marching tetrahedra** (each voxel split into 6 tets; 1/3-inside cases → 1 triangle,
 2-inside → quad = 2 triangles; winding is fixed against the field gradient, vertex
 normals are accumulated face normals). Vertices are shared across cells via an
-edge map. UVs are planar (XZ). Fully CPU-side and unit-testable without a GL context.
+edge map. UVs default to planar (XZ) — see the next section for the mapping modes.
+Fully CPU-side and unit-testable without a GL context.
 
 Higher `resolution` = smoother surface, more triangles (48³ for hero parts is a good
 default; the example prints vertex/index counts).
@@ -94,6 +95,41 @@ if (fuhgl::render::intersects(fr, *part))   // AABB vs frustum (positive-vertex 
 
 All three are solids themselves, so they can be meshed (`buildMesh`), transformed
 (`translated`) and combined with CSG operators.
+
+## Textured solids: UV mapping modes (F23)
+
+Meshed vertices always carry UVs (MeshData layout: pos/normal/color/**uv**), and
+`buildMeshData`/`buildMesh` take an optional `render::SolidUv` mode so a procedural
+texture (`render::procedural::checker/voronoi/bricks/...` + `render::materials::textured`)
+lands on the surface in the way you want:
+
+```cpp
+// one body per UV mode — all rendered with the same checker texture:
+render::Mesh a = render::makeSphere(0.8f)->buildMesh(32, {1,1,1}, render::SolidUv::PlanarXZ);     // top-down
+render::Mesh b = render::makeSphere(0.8f)->buildMesh(32, {1,1,1}, render::SolidUv::PlanarXY);     // front
+render::Mesh c = render::makeSphere(0.8f)->buildMesh(32, {1,1,1}, render::SolidUv::PlanarYZ);     // side
+render::Mesh d = render::makeSphere(0.8f)->buildMesh(32, {1,1,1}, render::SolidUv::Spherical);    // equirectangular
+render::Mesh e = render::makeCylinder(0.5f, 1.6f)->buildMesh(32, {1,1,1}, render::SolidUv::Cylindrical); // around Y
+render::Mesh f = render::makeTorus(0.55f, 0.25f)->buildMesh(40, {1,1,1}, render::SolidUv::Cylindrical);
+
+fuhgl::Texture tex = render::procedural::makeTexture(render::procedural::checker(64, 64, 8, c1, c2));
+render::Material mat = render::materials::textured(tex);   // binds the albedo texture on unit 3
+scene.items.push_back({&d, &mat, fuhgl::math::Mat4{}});
+```
+
+- `PlanarXZ` (default, previous behavior), `PlanarXY`, `PlanarYZ` — the AABB projected
+  onto a plane, normalized to [0,1] (degenerate axes map to 0).
+- `Spherical` — equirectangular around the AABB center (good for spheres / organic CSG).
+- `Cylindrical` — angle around the Y axis + height (good for cylinders, cones, tori).
+
+The pure helper `render::solidUvPoint(mode, p, aabbMin, aabbMax)` computes the UV of a
+single point and is unit-tested directly (`tests/test_solids.cpp` checks corner/center
+values, pole/seam behavior and that every meshed UV stays in [0,1] for all five modes).
+
+Left to right: PlanarXZ, PlanarXY, PlanarYZ, Spherical (spheres) + Cylindrical (cylinder
+with bricks, torus with voronoi) — all one checker/brick/voronoi texture each:
+
+![textured solids with different UV modes](../images/tutorial-solids-textured.png)
 
 ## Example
 

@@ -22,6 +22,19 @@
 
 namespace fuhgl::render {
 
+/// @brief UV mapping mode used when meshing a solid (F23: textured solids).
+enum class SolidUv {
+    PlanarXZ,    ///< u from x, v from z (top-down; default, matches old behavior)
+    PlanarXY,    ///< u from x, v from y (front view)
+    PlanarYZ,    ///< u from y, v from z (side view)
+    Spherical,   ///< equirectangular around the AABB center (good for spheres/organic CSG)
+    Cylindrical, ///< around the Y axis (good for cylinders/cones/torus)
+};
+
+/// @brief UV coordinates of a surface point p inside the AABB [mn, mx] for the given mode.
+/// Pure function (unit-testable); result is in [0,1] for the planar modes.
+math::Vec2 solidUvPoint(SolidUv mode, const math::Vec3& p, const math::Vec3& mn, const math::Vec3& mx);
+
 /// @brief Abstract solid body: analytic inside() test + axis-aligned bounding box.
 class Solid {
 public:
@@ -35,12 +48,15 @@ public:
     /// @brief Extracts a triangle mesh via marching tetrahedra (pure CPU, unit-testable).
     /// @param resolution voxels per longest AABB edge
     /// @param color per-vertex color written into the mesh
+    /// @param uv UV mapping written into the mesh (enables textured materials, F23)
     MeshData buildMeshData(int resolution = 32,
-                           const math::Vec3& color = {0.75f, 0.75f, 0.78f}) const;
+                           const math::Vec3& color = {0.75f, 0.75f, 0.78f},
+                           SolidUv uv = SolidUv::PlanarXZ) const;
 
     /// @brief Builds MeshData and uploads it into a render::Mesh (needs a GL context).
     Mesh buildMesh(int resolution = 32,
-                   const math::Vec3& color = {0.75f, 0.75f, 0.78f}) const;
+                   const math::Vec3& color = {0.75f, 0.75f, 0.78f},
+                   SolidUv uv = SolidUv::PlanarXZ) const;
 };
 
 using SolidPtr = std::shared_ptr<Solid>;
