@@ -51,6 +51,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Program pipelines / transform feedback (P3) | `gl::ProgramPipeline`, `gl::TransformFeedback`, `Program::setTransformFeedbackVaryings` | [26](tutorials/26-program-pipelines-transform-feedback-binaries.md) |
 | Program reflection (uniforms/attributes/UBOs) | `Program::activeUniforms()`, `activeAttributes()`, `uniformBlocks()` | [27](tutorials/27-program-reflection.md) |
 | Instancing (one draw call per mesh, many copies) | `Mesh::setInstanceData(models, n)`, `updateInstanceData()`, `instanceCount()` | [28](tutorials/28-instancing.md) |
+| Showcase scene (README hero images) | `examples/showcase` — DeferredRenderer landscape, day/sunset | [29](tutorials/29-showcase-scene.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

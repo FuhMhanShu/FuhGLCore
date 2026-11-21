@@ -81,6 +81,8 @@ jobs:
           FUHGL_BACKEND=surfaceless ./build-egl/examples/postfx --screenshot docs/images/tutorial-deferred-fx-nofx.png --no-fx --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/text --screenshot docs/images/tutorial-text.png --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/solids --screenshot docs/images/tutorial-wireframe.png --wireframe --width 800 --height 600
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-day.png --mode day --width 960 --height 540
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-sunset.png --mode sunset --width 960 --height 540
           FUHGL_BACKEND=surfaceless ./build-egl/examples/solids --screenshot docs/images/tutorial-solids-textured.png --textured --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/instancing --screenshot docs/images/tutorial-instancing.png --width 800 --height 600
 

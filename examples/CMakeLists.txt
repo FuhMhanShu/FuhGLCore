@@ -33,3 +33,6 @@ target_link_libraries(text PRIVATE fuhglcore)
 
 add_executable(instancing instancing/main.cpp)
 target_link_libraries(instancing PRIVATE fuhglcore)
+
+add_executable(showcase showcase/main.cpp)
+target_link_libraries(showcase PRIVATE fuhglcore)

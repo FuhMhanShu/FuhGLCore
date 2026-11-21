@@ -34,6 +34,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 26 | Program pipelines, transform feedback, shader binaries, subroutines, GL 4.6 (P3) | [26-program-pipelines-transform-feedback-binaries.md](26-program-pipelines-transform-feedback-binaries.md) |
 | 27 | Program reflection (active uniforms, attributes, uniform blocks, resources) | [27-program-reflection.md](27-program-reflection.md) |
 | 28 | Instancing: per-instance model matrices, one draw call per mesh | [28-instancing.md](28-instancing.md) |
+| 29 | Showcase scene: landscape with DeferredRenderer full FX (README hero images) | [29-showcase-scene.md](29-showcase-scene.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../DEVELOPMENT.md#build-options)).
