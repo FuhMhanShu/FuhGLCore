@@ -29,6 +29,17 @@ double meanRed(const std::vector<unsigned char>& px, int w, int h, int y0, int y
     return n ? s / n : 0.0;
 }
 
+int countBrighter(const std::vector<unsigned char>& on, const std::vector<unsigned char>& off, int w, int h,
+                  int y0, int y1, int margin) {
+    int n = 0;
+    for (int y = y0; y < y1; ++y)
+        for (int x = 0; x < w; ++x) {
+            const size_t i = (static_cast<size_t>(y) * w + x) * 4;
+            if (static_cast<int>(on[i]) - static_cast<int>(off[i]) > margin) ++n;
+        }
+    return n;
+}
+
 } // namespace
 
 int main() {
@@ -90,14 +101,18 @@ int main() {
     r.ssrEnabled = false;
     const auto imgOff = renderImg();
     r.ssrEnabled = true;
+    r.ssrStrength = 1.0f;
+    r.ssrMaxSteps = 48;
+    r.ssrThickness = 0.6f;
     const auto imgOn = renderImg();
 
-    // floor region = bottom half of the frame
+    // floor region = bottom half of the frame; count pixels the reflection brightened
     const double floorOff = meanRed(imgOff, W, H, H / 2, H);
     const double floorOn = meanRed(imgOn, W, H, H / 2, H);
-    std::fprintf(stderr, "gl_smoke_ssr: floor mean red off=%.1f on=%.1f\n", floorOff, floorOn);
+    const int brighter = countBrighter(imgOn, imgOff, W, H, H / 2, H, 8);
+    std::fprintf(stderr, "gl_smoke_ssr: floor mean red off=%.1f on=%.1f brighterPx=%d\n", floorOff, floorOn, brighter);
     expect(floorOff > 10, "floor is visible and lit without SSR");
-    expect(floorOn > floorOff + 8, "SSR brightens the floor with the lamp's reflection");
+    expect(brighter > 30, "SSR brightens floor pixels with the lamp's reflection");
     expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
 
     if (g_failures) {

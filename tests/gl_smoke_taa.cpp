@@ -18,9 +18,9 @@ void expect(bool cond, const char* what) {
     if (!cond) ++g_failures;
 }
 
-double meanAbsDiff(const std::vector<unsigned char>& a, const std::vector<unsigned char>& b) {
+double meanAbsDiff(const std::vector<float>& a, const std::vector<float>& b) {
     double s = 0.0;
-    for (size_t i = 0; i < a.size(); i += 4) s += std::abs(static_cast<int>(a[i]) - static_cast<int>(b[i]));
+    for (size_t i = 0; i < a.size(); i += 4) s += std::abs(static_cast<double>(a[i]) - static_cast<double>(b[i]));
     return s / (a.size() / 4);
 }
 
@@ -68,12 +68,19 @@ int main() {
     scene.items.push_back({&boxMesh, nullptr, fuhgl::math::Mat4{}});
     scene.lights.push_back(fuhgl::render::Light::directional({0.4f, -1.f, 0.3f}, {1.f, 0.95f, 0.85f}, 1.2f));
 
+    // read the HDR (float) "taa" resource of the post graph — subpixel jitter is only
+    // visible in float precision, not in the quantized LDR output
+    fuhgl::Framebuffer hdrFbo;
+    hdrFbo.create();
+    hdrFbo.setSize(W, H);
     auto renderImg = [&]() {
         r.render(scene);
         fuhgl::gl::flush();
-        std::vector<unsigned char> px(static_cast<size_t>(W) * H * 4, 0);
-        r.output().bind();
-        fuhgl::gl::readPixels(0, 0, W, H, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, px.data());
+        const fuhgl::Texture* taaTex = r.postGraph().texture("taa");
+        std::vector<float> px(static_cast<size_t>(W) * H * 4, 0.f);
+        hdrFbo.bind();
+        hdrFbo.attachTexture2D(0, *taaTex);
+        fuhgl::gl::readPixels(0, 0, W, H, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_FLOAT, px.data());
         return px;
     };
 
@@ -87,7 +94,7 @@ int main() {
     const double dFirst = meanAbsDiff(imgFirst, imgOff);
     const double dAcc = meanAbsDiff(imgAcc, imgOff);
     std::fprintf(stderr, "gl_smoke_taa: meanAbsDiff(first jittered vs off)=%.2f, accumulated vs off=%.2f\n", dFirst, dAcc);
-    expect(dFirst > 0.3, "subpixel jitter changes the raw frame");
+    expect(dFirst > 0.002, "subpixel jitter changes the raw HDR frame");
     expect(dAcc < dFirst * 0.8, "TAA accumulation converges toward the unjittered image");
     expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
 
