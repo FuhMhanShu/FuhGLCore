@@ -53,6 +53,10 @@ int main() {
     fuhgl::render::Mesh torusMesh = torus->buildMesh(32, {0.3f, 0.8f, 0.4f});
     fuhgl::render::Material matteGreen = fuhgl::render::materials::matte({0.3f, 0.8f, 0.4f});
 
+    // F23: sphere meshed with spherical UVs, same textured material (UV path coverage)
+    auto ball = fuhgl::render::makeSphere(0.6f);
+    fuhgl::render::Mesh ballMesh = ball->buildMesh(32, {1.f, 1.f, 1.f}, fuhgl::render::SolidUv::Spherical);
+
     fuhgl::FirstPersonCamera cam;
     cam.position = {0.f, 1.2f, 5.f};
     cam.pitch = -0.12f;
@@ -64,11 +68,16 @@ int main() {
     scene.aspect = 1.f;
     scene.items.push_back({&bodyMesh, &checkerMat, fuhgl::math::translate({-0.9f, 0.f, 0.f})});
     scene.items.push_back({&torusMesh, &matteGreen, fuhgl::math::translate({1.1f, 0.2f, 0.f})});
+    scene.items.push_back({&ballMesh, &checkerMat, fuhgl::math::translate({0.1f, 0.95f, -0.1f})});
     scene.lights.push_back({{3.f, 3.f, 4.f}, {1.f, 0.9f, 0.7f}, 25.f});
     scene.lights.push_back({{-4.f, 2.f, -2.f}, {0.4f, 0.6f, 1.f}, 18.f});
 
     pipeline.render(scene);
     fuhgl::gl::flush();
+    if (fuhgl::gl::lastError() != fuhgl::gl::Error::NoError) {
+        std::fprintf(stderr, "gl_smoke_solids: FAIL — GL error after render\n");
+        return 1;
+    }
 
     pipeline.output().bind();
     unsigned char center[4] = {0, 0, 0, 0}, corner[4] = {0, 0, 0, 0};

@@ -23,7 +23,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 15 | Buffer streaming, GPU copies, GL 4.3 vertex binding | [15-buffer-streaming-and-copies.md](15-buffer-streaming-and-copies.md) |
 | 16 | Texture upload/readback, compressed textures, compute image I/O | [16-textures-images-and-compute-io.md](16-textures-images-and-compute-io.md) |
 | 17 | Procedural textures & predefined materials | [17-procedural-textures-and-materials.md](17-procedural-textures-and-materials.md) |
-| 18 | Solids & CSG (cube/sphere/cylinder/torus, union/difference/intersection) | [18-solids-and-csg.md](18-solids-and-csg.md) |
+| 18 | Solids & CSG (cube/sphere/cylinder/torus, union/difference/intersection) + textured solids (UV modes: planar/spherical/cylindrical) | [18-solids-and-csg.md](18-solids-and-csg.md) |
 | 19 | GL state, draw batching, debug labels & image ops | [19-state-batching-and-debug.md](19-state-batching-and-debug.md) |
 | 20 | Lights: directional, point & spot | [20-lights.md](20-lights.md) |
 | 21 | Shadow mapping (depth pass + PCF) | [21-shadows.md](21-shadows.md) |

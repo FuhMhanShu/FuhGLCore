@@ -5,13 +5,14 @@
 //
 // Modes: default = full scene (windowed, WASD+mouse, Esc quits); --csg union|difference|
 // intersection|bounds renders a CSG close-up instead; --wireframe overlays every solid
-// as a triangle-edge wireframe plus its AABB as a box wireframe (render::Wireframe).
+// as a triangle-edge wireframe plus its AABB as a box wireframe (render::Wireframe);
+// --textured shows one body per SolidUv mapping mode, all with procedural textures (F23).
 // With --screenshot one deterministic frame is rendered headless (surfaceless EGL) into
 // an FBO and written as PNG — the CI docs job uses this for the tutorial screenshots
-// (scene + the four CSG shots + the wireframe shot).
+// (scene + the four CSG shots + the wireframe shot + the textured-UV shot).
 //
 // Usage: solids [--screenshot out.png] [--csg scene|union|difference|intersection|bounds]
-//               [--wireframe] [--width W] [--height H]
+//               [--wireframe] [--textured] [--width W] [--height H]
 
 #include <fuhgl/fuhgl.hpp>
 #include <fuhgl/render.hpp>
@@ -30,6 +31,7 @@ struct Args {
     std::string screenshot;
     std::string csg = "scene";
     bool wireframe = false;
+    bool textured = false;
     int width = 800, height = 600;
 };
 
@@ -39,6 +41,7 @@ Args parseArgs(int argc, char** argv) {
         if (std::strcmp(argv[i], "--screenshot") == 0 && i + 1 < argc) a.screenshot = argv[++i];
         else if (std::strcmp(argv[i], "--csg") == 0 && i + 1 < argc) a.csg = argv[++i];
         else if (std::strcmp(argv[i], "--wireframe") == 0) a.wireframe = true;
+        else if (std::strcmp(argv[i], "--textured") == 0) a.textured = true;
         else if (std::strcmp(argv[i], "--width") == 0 && i + 1 < argc) a.width = std::atoi(argv[++i]);
         else if (std::strcmp(argv[i], "--height") == 0 && i + 1 < argc) a.height = std::atoi(argv[++i]);
     }
@@ -120,6 +123,24 @@ int main(int argc, char** argv) {
     Material sphMat = materials::matte({0.9f, 0.75f, 0.3f});
     Material octMat = materials::matte({0.4f, 0.85f, 0.9f});
 
+    // --- F23: --textured showcase: one body per SolidUv mode, procedural textures ----
+    fuhgl::Texture chkTex, brickTex;
+    Material chkMat, brickMat, vorMat;
+    Mesh sXZ, sXY, sYZ, sSp, cylM, torM;
+    if (args.textured) {
+        chkTex = procedural::makeTexture(procedural::checker(64, 64, 8, {0.95f, 0.85f, 0.2f}, {0.15f, 0.2f, 0.6f}));
+        brickTex = procedural::makeTexture(procedural::bricks(64, 64, 4, 6, {0.75f, 0.3f, 0.2f}, {0.9f, 0.9f, 0.85f}));
+        chkMat = materials::textured(chkTex, {1.f, 1.f, 1.f});
+        brickMat = materials::textured(brickTex, {1.f, 1.f, 1.f});
+        vorMat = materials::textured(voronoiTex, {1.f, 1.f, 1.f});
+        sXZ = makeSphere(0.8f)->buildMesh(32, {1.f, 1.f, 1.f}, SolidUv::PlanarXZ);
+        sXY = makeSphere(0.8f)->buildMesh(32, {1.f, 1.f, 1.f}, SolidUv::PlanarXY);
+        sYZ = makeSphere(0.8f)->buildMesh(32, {1.f, 1.f, 1.f}, SolidUv::PlanarYZ);
+        sSp = makeSphere(0.8f)->buildMesh(32, {1.f, 1.f, 1.f}, SolidUv::Spherical);
+        cylM = makeCylinder(0.5f, 1.6f)->buildMesh(32, {1.f, 1.f, 1.f}, SolidUv::Cylindrical);
+        torM = makeTorus(0.55f, 0.25f)->buildMesh(40, {1.f, 1.f, 1.f}, SolidUv::Cylindrical);
+    }
+
     // --- scene -----------------------------------------------------------------------
     fuhgl::FirstPersonCamera cam;
     SceneView scene;
@@ -130,7 +151,18 @@ int main(int argc, char** argv) {
     scene.lights.push_back({{3.f, 4.f, 5.f}, {1.f, 0.95f, 0.85f}, 30.f});
     scene.lights.push_back({{-5.f, 2.f, -3.f}, {0.45f, 0.6f, 1.f}, 20.f});
 
-    if (args.csg == "union") {
+    if (args.textured) {
+        // row of bodies, left to right: PlanarXZ | PlanarXY | PlanarYZ | Spherical | Cylindrical(cyl) | Cylindrical(torus)
+        cam.position = {0.f, 1.1f, 9.2f};
+        cam.pitch = -0.07f;
+        const float dx = 2.2f;
+        scene.items.push_back({&sXZ, &chkMat, fuhgl::math::translate({-2.5f * dx, 0.f, 0.f})});
+        scene.items.push_back({&sXY, &chkMat, fuhgl::math::translate({-1.5f * dx, 0.f, 0.f})});
+        scene.items.push_back({&sYZ, &chkMat, fuhgl::math::translate({-0.5f * dx, 0.f, 0.f})});
+        scene.items.push_back({&sSp, &chkMat, fuhgl::math::translate({0.5f * dx, 0.f, 0.f})});
+        scene.items.push_back({&cylM, &brickMat, fuhgl::math::translate({1.5f * dx, 0.f, 0.f})});
+        scene.items.push_back({&torM, &vorMat, fuhgl::math::translate({2.5f * dx, 0.f, 0.f})});
+    } else if (args.csg == "union") {
         cam.position = {0.f, 0.9f, 3.4f};
         cam.pitch = -0.10f;
         scene.items.push_back({&uniMesh, &uniMat, fuhgl::math::Mat4{}});
@@ -172,7 +204,9 @@ int main(int argc, char** argv) {
     }
     auto queueWireframe = [&]() {
         wire.clear();
-        if (args.csg == "scene") {
+        if (args.textured) {
+            // no wireframe overlay in the textured-UV showcase
+        } else if (args.csg == "scene") {
             wire.addSolid(*part, 24, fuhgl::math::translate({-1.7f, -0.2f, 0.f}), {0.95f, 0.95f, 1.f});
             wire.addSolid(*ring, 20, fuhgl::math::translate({0.f, 0.35f, -0.4f}), {0.4f, 0.95f, 0.5f});
             wire.addSolid(*pedestal, 20, fuhgl::math::translate({1.7f, -0.7f, 0.f}), {1.f, 0.75f, 0.35f});

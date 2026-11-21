@@ -178,7 +178,35 @@ Grid sampleField(const Solid& solid, int resolution) {
 
 } // namespace
 
-MeshData Solid::buildMeshData(int resolution, const math::Vec3& color) const {
+math::Vec2 solidUvPoint(SolidUv mode, const math::Vec3& p, const math::Vec3& mn, const math::Vec3& mx) {
+    const math::Vec3 ext = mx - mn;
+    const auto norm = [](float v, float e) { return e > 0.f ? v / e : 0.f; };
+    switch (mode) {
+        case SolidUv::PlanarXY:
+            return {norm(p.x - mn.x, ext.x), norm(p.y - mn.y, ext.y)};
+        case SolidUv::PlanarYZ:
+            return {norm(p.y - mn.y, ext.y), norm(p.z - mn.z, ext.z)};
+        case SolidUv::PlanarXZ:
+        default:
+            return {norm(p.x - mn.x, ext.x), norm(p.z - mn.z, ext.z)};
+        case SolidUv::Spherical: {
+            const math::Vec3 c = (mn + mx) * 0.5f;
+            math::Vec3 d = p - c;
+            const float len = math::length(d);
+            if (len > 1e-6f) d = d / len;
+            const float u = 0.5f + std::atan2(d.z, d.x) / (2.f * math::kPi);
+            const float y = d.y < -1.f ? -1.f : (d.y > 1.f ? 1.f : d.y);
+            const float v = 0.5f - std::asin(y) / math::kPi;
+            return {u, v};
+        }
+        case SolidUv::Cylindrical: {
+            const float u = 0.5f + std::atan2(p.z - (mn.z + mx.z) * 0.5f, p.x - (mn.x + mx.x) * 0.5f) / (2.f * math::kPi);
+            return {u, norm(p.y - mn.y, ext.y)};
+        }
+    }
+}
+
+MeshData Solid::buildMeshData(int resolution, const math::Vec3& color, SolidUv uvMode) const {
     MeshData out;
     if (resolution < 2) resolution = 2;
     const Grid g = sampleField(*this, resolution);
@@ -201,8 +229,8 @@ MeshData Solid::buildMeshData(int resolution, const math::Vec3& color) const {
         const int xb = gb % g.nx, yb = (gb / g.nx) % g.ny, zb = gb / (g.nx * g.ny);
         const math::Vec3 pa = g.pos(xa, ya, za), pb = g.pos(xb, yb, zb);
         const math::Vec3 p = pa + (pb - pa) * t;
-        const float uv[2] = {ext.x > 0.f ? (p.x - mn.x) / ext.x : 0.f,
-                             ext.z > 0.f ? (p.z - mn.z) / ext.z : 0.f};
+        const math::Vec2 uv2 = solidUvPoint(uvMode, p, mn, mx);
+        const float uv[2] = {uv2.x, uv2.y};
         const float vert[MeshData::kFloatsPerVertex] = {
             p.x, p.y, p.z, 0.f, 0.f, 0.f, color.x, color.y, color.z, uv[0], uv[1]};
         const unsigned int vi = static_cast<unsigned int>(out.vertexCount());
@@ -287,9 +315,9 @@ MeshData Solid::buildMeshData(int resolution, const math::Vec3& color) const {
     return out;
 }
 
-Mesh Solid::buildMesh(int resolution, const math::Vec3& color) const {
+Mesh Solid::buildMesh(int resolution, const math::Vec3& color, SolidUv uvMode) const {
     Mesh mesh;
-    mesh.setMeshData(buildMeshData(resolution, color));
+    mesh.setMeshData(buildMeshData(resolution, color, uvMode));
     return mesh;
 }
 

@@ -4,6 +4,7 @@
 #include <fuhgl/render/solid.hpp>
 #include <fuhgl/render/procedural.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -87,6 +88,69 @@ void runSolidTests() {
     const MeshData mdCsg = diff->buildMeshData(16);
     CHECK(mdCsg.indices.size() < md.indices.size() || mdCsg.indices.size() > 0);
     CHECK(mdCsg.vertexCount() > 20);
+
+    // --- F23: UV mapping modes (solidUvPoint + meshed UVs) ---
+    const math::Vec3 mn{-1.f, -2.f, -0.5f}, mx{1.f, 2.f, 0.5f};
+    // planar modes map AABB corners to (0,0)/(1,1) and the center to (0.5,0.5)
+    const math::Vec2 uv00 = solidUvPoint(SolidUv::PlanarXZ, mn, mn, mx);
+    CHECK_NEAR(uv00.x, 0.f, 1e-6f); CHECK_NEAR(uv00.y, 0.f, 1e-6f);
+    const math::Vec2 uv11 = solidUvPoint(SolidUv::PlanarXZ, mx, mn, mx);
+    CHECK_NEAR(uv11.x, 1.f, 1e-6f); CHECK_NEAR(uv11.y, 1.f, 1e-6f);
+    const math::Vec2 uvC = solidUvPoint(SolidUv::PlanarXZ, (mn + mx) * 0.5f, mn, mx);
+    CHECK_NEAR(uvC.x, 0.5f, 1e-6f); CHECK_NEAR(uvC.y, 0.5f, 1e-6f);
+    // PlanarXY uses x/y, PlanarYZ uses y/z
+    CHECK_NEAR(solidUvPoint(SolidUv::PlanarXY, mn, mn, mx).y, 0.f, 1e-6f);
+    CHECK_NEAR(solidUvPoint(SolidUv::PlanarXY, mx, mn, mx).y, 1.f, 1e-6f);
+    CHECK_NEAR(solidUvPoint(SolidUv::PlanarYZ, mn, mn, mx).x, 0.f, 1e-6f);
+    CHECK_NEAR(solidUvPoint(SolidUv::PlanarYZ, mx, mn, mx).x, 1.f, 1e-6f);
+    // degenerate AABB axis -> that coordinate is 0 (no division by zero)
+    const math::Vec2 uvD = solidUvPoint(SolidUv::PlanarXZ, {0.f, 0.5f, 0.5f},
+                                        {0.f, -1.f, -1.f}, {0.f, 1.f, 1.f});
+    CHECK_NEAR(uvD.x, 0.f, 1e-6f); CHECK_NEAR(uvD.y, 0.75f, 1e-6f);
+    // spherical (equirectangular around AABB center): +X -> (0.5,0.5), +Z -> u 0.75, top -> v 0, bottom -> v 1
+    const math::Vec2 sX = solidUvPoint(SolidUv::Spherical, {1.f, 0.f, 0.f}, {-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
+    CHECK_NEAR(sX.x, 0.5f, 1e-5f); CHECK_NEAR(sX.y, 0.5f, 1e-5f);
+    const math::Vec2 sZ = solidUvPoint(SolidUv::Spherical, {0.f, 0.f, 1.f}, {-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
+    CHECK_NEAR(sZ.x, 0.75f, 1e-5f);
+    const math::Vec2 sTop = solidUvPoint(SolidUv::Spherical, {0.f, 1.f, 0.f}, {-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
+    CHECK_NEAR(sTop.y, 0.f, 1e-5f);
+    const math::Vec2 sBot = solidUvPoint(SolidUv::Spherical, {0.f, -1.f, 0.f}, {-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
+    CHECK_NEAR(sBot.y, 1.f, 1e-5f);
+    // cylindrical: angle around the Y axis -> u, height -> v
+    const math::Vec2 cyX = solidUvPoint(SolidUv::Cylindrical, {1.f, 0.5f, 0.f}, {-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
+    CHECK_NEAR(cyX.x, 0.5f, 1e-5f); CHECK_NEAR(cyX.y, 0.75f, 1e-5f);
+    const math::Vec2 cyZ = solidUvPoint(SolidUv::Cylindrical, {0.f, -1.f, 1.f}, {-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
+    CHECK_NEAR(cyZ.x, 0.75f, 1e-5f); CHECK_NEAR(cyZ.y, 0.f, 1e-6f);
+
+    // meshed UVs stay in [0,1] and actually vary across the surface for every mode
+    for (SolidUv mode : {SolidUv::PlanarXZ, SolidUv::PlanarXY, SolidUv::PlanarYZ,
+                         SolidUv::Spherical, SolidUv::Cylindrical}) {
+        const MeshData m = sph->buildMeshData(12, {1.f, 1.f, 1.f}, mode);
+        CHECK(m.vertexCount() > 20);
+        bool inRange = true;
+        float minU = 2.f, maxU = -1.f, minV = 2.f, maxV = -1.f;
+        for (size_t v = 0; v < m.vertexCount(); ++v) {
+            const float u = m.vertices[v * MeshData::kFloatsPerVertex + 9];
+            const float w = m.vertices[v * MeshData::kFloatsPerVertex + 10];
+            inRange = inRange && u >= -1e-4f && u <= 1.f + 1e-4f && w >= -1e-4f && w <= 1.f + 1e-4f;
+            minU = std::min(minU, u); maxU = std::max(maxU, u);
+            minV = std::min(minV, w); maxV = std::max(maxV, w);
+        }
+        CHECK(inRange);
+        CHECK(maxU - minU > 0.5f);
+        CHECK(maxV - minV > 0.3f);
+    }
+    // default uv argument keeps the old PlanarXZ behavior exactly
+    const MeshData mdDef = sph->buildMeshData(8);
+    const math::Vec3 smn = sph->aabbMin(), smx = sph->aabbMax();
+    bool planarOk = true;
+    for (size_t v = 0; v < mdDef.vertexCount(); ++v) {
+        const float* p = mdDef.vertices.data() + v * MeshData::kFloatsPerVertex;
+        const float uExp = (p[0] - smn.x) / (smx.x - smn.x);
+        const float vExp = (p[2] - smn.z) / (smx.z - smn.z);
+        planarOk = planarOk && std::fabs(p[9] - uExp) < 1e-5f && std::fabs(p[10] - vExp) < 1e-5f;
+    }
+    CHECK(planarOk);
 
     // --- procedural textures ---
     const auto chk = procedural::checker(8, 8, 4, {1,0,0}, {0,0,1});
