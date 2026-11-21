@@ -559,6 +559,7 @@ inline constexpr GLenum GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = 0x8C7
 inline constexpr GLenum GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS = 0x8C80;
 inline constexpr GLenum GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS = 0x8C81;
 inline constexpr GLenum GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH = 0x8C76;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK_VARYINGS = 0x8C83;
 
 // --- P3: shader / program binaries (GL 4.1) -------------------------------------------
 inline constexpr GLenum GL_NUM_PROGRAM_BINARY_FORMATS = 0x87FE;

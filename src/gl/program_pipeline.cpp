@@ -49,9 +49,7 @@ bool ProgramPipeline::validate() const {
     const auto& f = gl::functions();
     if (!f.glValidateProgramPipeline) return false;
     f.glValidateProgramPipeline(id_);
-    gl::GLint ok = 0;
-    if (f.glGetProgramPipelineiv) f.glGetProgramPipelineiv(id_, gl::GL_VALIDATE_STATUS, &ok);
-    return ok == gl::GL_TRUE;
+    return gl::lastError() == gl::Error::NoError; // some drivers reject the VALIDATE_STATUS pname
 }
 
 std::string ProgramPipeline::infoLog() const {

@@ -166,6 +166,10 @@ int main() {
         vs.compile(kVsTf);
         prog.attach(vs);
         expect(prog.link(), "TF program linked");
+        GLint nVar = -1;
+        f.glGetProgramiv(prog.id(), GL_TRANSFORM_FEEDBACK_VARYINGS, &nVar);
+        std::fprintf(stderr, "  [info] TF varyings registered: %d\n", nVar);
+        expect(nVar == 1, "TF program has 1 varying");
 
         fuhgl::Buffer capture(fuhgl::Buffer::Target::Array);
         capture.create(fuhgl::Buffer::Target::Array);
@@ -228,7 +232,10 @@ int main() {
         prog.attach(vs);
         prog.attach(fs);
         expect(prog.link(), "binary-hint program linked");
-        std::vector<unsigned char> bin(1 << 16);
+        GLint binLen = 0;
+        f.glGetProgramiv(prog.id(), GL_PROGRAM_BINARY_LENGTH, &binLen);
+        expect(binLen > 0, "GL_PROGRAM_BINARY_LENGTH > 0");
+        std::vector<unsigned char> bin(static_cast<size_t>(binLen > 0 ? binLen : 4));
         GLsizei len = 0;
         GLenum fmt = 0;
         f.glGetProgramBinary(prog.id(), static_cast<GLsizei>(bin.size()), &len, &fmt, bin.data());
