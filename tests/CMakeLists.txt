@@ -6,6 +6,7 @@ add_executable(fuhgl_tests
     test_frustum.cpp
     test_shader_includes.cpp
     test_info.cpp
+    test_solids.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
@@ -26,3 +27,9 @@ add_test(NAME gl_smoke_deferred COMMAND fuhgl_gl_smoke_deferred)
 add_executable(fuhgl_gl_smoke_buffers gl_smoke_buffers.cpp)
 target_link_libraries(fuhgl_gl_smoke_buffers PRIVATE fuhglcore)
 add_test(NAME gl_smoke_buffers COMMAND fuhgl_gl_smoke_buffers)
+
+# Headless test for solids/CSG + preset materials (marching tetrahedra mesh,
+# procedural checker texture, DeferredPipeline render, pixel check).
+add_executable(fuhgl_gl_smoke_solids gl_smoke_solids.cpp)
+target_link_libraries(fuhgl_gl_smoke_solids PRIVATE fuhglcore)
+add_test(NAME gl_smoke_solids COMMAND fuhgl_gl_smoke_solids)

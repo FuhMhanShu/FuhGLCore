@@ -36,6 +36,19 @@ void Mesh::setIndices(const void* data, gl::GLsizei indexCount, gl::GLenum index
     indexType_ = indexType;
 }
 
+void Mesh::setMeshData(const MeshData& data, Buffer::Usage usage) {
+    create();
+    setData(data.vertices.data(), static_cast<gl::GLsizeiptr>(data.vertices.size() * sizeof(float)),
+            static_cast<gl::GLsizei>(data.vertexCount()),
+            {{0, 3, gl::GL_FLOAT, false, MeshData::kVertexBytes, 0},
+             {1, 3, gl::GL_FLOAT, false, MeshData::kVertexBytes, 3 * sizeof(float)},
+             {2, 3, gl::GL_FLOAT, false, MeshData::kVertexBytes, 6 * sizeof(float)},
+             {3, 2, gl::GL_FLOAT, false, MeshData::kVertexBytes, 9 * sizeof(float)}},
+            usage);
+    if (!data.indices.empty())
+        setIndices(data.indices.data(), static_cast<gl::GLsizei>(data.indices.size()), gl::GL_UNSIGNED_INT, usage);
+}
+
 void Mesh::draw() const {
     vao_.bind();
     if (indexCount_ > 0)
@@ -47,52 +60,41 @@ void Mesh::draw() const {
 namespace shapes {
 
 void box(Mesh& mesh, const math::Vec3& h, const math::Vec3& color) {
-    // 6 faces, 4 verts each: pos(3) normal(3) color(3). Axis vectors have one +/-1
-    // component, so component-wise multiply with h yields the right extent per axis.
-    struct V { float p[3]; float n[3]; float c[3]; };
+    // 6 faces, 4 verts each. Standard layout: pos(3) normal(3) color(3) uv(2).
+    // Axis vectors have one +/-1 component, so component-wise multiply with h
+    // yields the right extent per axis.
     const math::Vec3 n[6] = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
     const math::Vec3 u[6] = {{0,0,1},{0,0,1},{1,0,0},{1,0,0},{1,0,0},{1,0,0}};
     const math::Vec3 v[6] = {{0,1,0},{0,1,0},{0,0,1},{0,0,1},{0,1,0},{0,1,0}};
-    std::vector<V> verts;
-    std::vector<unsigned int> idx;
+    MeshData data;
+    data.vertices.reserve(24 * MeshData::kFloatsPerVertex);
     for (int f = 0; f < 6; ++f) {
-        const unsigned int base = static_cast<unsigned int>(verts.size());
+        const unsigned int base = static_cast<unsigned int>(data.vertexCount());
         for (int i = 0; i < 4; ++i) {
             const float su = (i == 1 || i == 2) ? 1.f : -1.f;
             const float sv = (i >= 2) ? 1.f : -1.f;
             const math::Vec3 p = n[f] * h + (u[f] * h) * su + (v[f] * h) * sv;
-            V vv{};
-            vv.p[0] = p.x; vv.p[1] = p.y; vv.p[2] = p.z;
-            vv.n[0] = n[f].x; vv.n[1] = n[f].y; vv.n[2] = n[f].z;
-            vv.c[0] = color.x; vv.c[1] = color.y; vv.c[2] = color.z;
-            verts.push_back(vv);
+            const float uv[2] = {su * 0.5f + 0.5f, sv * 0.5f + 0.5f};
+            const float vert[MeshData::kFloatsPerVertex] = {
+                p.x, p.y, p.z, n[f].x, n[f].y, n[f].z, color.x, color.y, color.z, uv[0], uv[1]};
+            data.vertices.insert(data.vertices.end(), vert, vert + MeshData::kFloatsPerVertex);
         }
-        idx.insert(idx.end(), {base, base + 1, base + 2, base, base + 2, base + 3});
+        data.indices.insert(data.indices.end(), {base, base + 1, base + 2, base, base + 2, base + 3});
     }
-    mesh.create();
-    mesh.setData(verts.data(), static_cast<gl::GLsizeiptr>(verts.size() * sizeof(V)),
-                 static_cast<gl::GLsizei>(verts.size()),
-                 {{0, 3, gl::GL_FLOAT, false, sizeof(V), offsetof(V, p)},
-                  {1, 3, gl::GL_FLOAT, false, sizeof(V), offsetof(V, n)},
-                  {2, 3, gl::GL_FLOAT, false, sizeof(V), offsetof(V, c)}});
-    mesh.setIndices(idx.data(), static_cast<gl::GLsizei>(idx.size()), gl::GL_UNSIGNED_INT);
+    mesh.setMeshData(data);
 }
 
 void quad(Mesh& mesh, float halfSize, const math::Vec3& color) {
-    struct V { float p[3]; float n[3]; float c[3]; };
-    const V verts[4] = {
-        {{-halfSize, -halfSize, 0}, {0, 0, 1}, {color.x, color.y, color.z}},
-        {{ halfSize, -halfSize, 0}, {0, 0, 1}, {color.x, color.y, color.z}},
-        {{ halfSize,  halfSize, 0}, {0, 0, 1}, {color.x, color.y, color.z}},
-        {{-halfSize,  halfSize, 0}, {0, 0, 1}, {color.x, color.y, color.z}},
+    MeshData data;
+    const float verts[4 * MeshData::kFloatsPerVertex] = {
+        -halfSize, -halfSize, 0,  0, 0, 1,  color.x, color.y, color.z,  0, 0,
+         halfSize, -halfSize, 0,  0, 0, 1,  color.x, color.y, color.z,  1, 0,
+         halfSize,  halfSize, 0,  0, 0, 1,  color.x, color.y, color.z,  1, 1,
+        -halfSize,  halfSize, 0,  0, 0, 1,  color.x, color.y, color.z,  0, 1,
     };
-    const unsigned int idx[6] = {0, 1, 2, 0, 2, 3};
-    mesh.create();
-    mesh.setData(verts, sizeof(verts), 4,
-                 {{0, 3, gl::GL_FLOAT, false, sizeof(V), offsetof(V, p)},
-                  {1, 3, gl::GL_FLOAT, false, sizeof(V), offsetof(V, n)},
-                  {2, 3, gl::GL_FLOAT, false, sizeof(V), offsetof(V, c)}});
-    mesh.setIndices(idx, 6, gl::GL_UNSIGNED_INT);
+    data.vertices.assign(verts, verts + 4 * MeshData::kFloatsPerVertex);
+    data.indices = {0, 1, 2, 0, 2, 3};
+    mesh.setMeshData(data);
 }
 
 } // namespace shapes

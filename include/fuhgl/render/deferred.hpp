@@ -56,8 +56,10 @@ private:
     Texture texAlbedo_{Texture::Target::Tex2D};
     Texture texNormal_{Texture::Target::Tex2D};
     Texture texPosition_{Texture::Target::Tex2D};
+    Texture texEmissive_{Texture::Target::Tex2D};
     Texture texResolveAlbedo_{Texture::Target::Tex2D};
     Texture texResolveNormal_{Texture::Target::Tex2D};
+    Texture texResolveEmissive_{Texture::Target::Tex2D};
     Texture texResolvePosition_{Texture::Target::Tex2D};
     Texture texOutput_{Texture::Target::Tex2D};
     Renderbuffer depth_{};

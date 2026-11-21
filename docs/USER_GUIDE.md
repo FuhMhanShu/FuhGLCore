@@ -39,6 +39,8 @@ library gives you safe, modern-C++ handles for GL objects:
 | Device info & capabilities | `gl::queryDeviceInfo()` | [14](tutorials/14-device-info-and-capabilities.md) |
 | Buffer streaming / copies / readback | `Buffer::mapRange()`, `gl::copyBufferSubData()` | [15](tutorials/15-buffer-streaming-and-copies.md) |
 | Texture upload/readback/compressed, compute images | `Texture::compressedImage2D()`, `gl::bindImageTexture()` | [16](tutorials/16-textures-images-and-compute-io.md) |
+| Procedural textures & predefined materials | `render::procedural::voronoi()`, `render::materials::matte/textured/emissive` | [17](tutorials/17-procedural-textures-and-materials.md) |
+| Solids & CSG (bodies + boolean ops) | `render::Solid`, `makeCube(...) - makeSphere(...)`, `buildMesh()` | [18](tutorials/18-solids-and-csg.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

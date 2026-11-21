@@ -6,5 +6,8 @@
 #include "render/scene.hpp"
 #include "render/mesh.hpp"
 #include "render/material.hpp"
+#include "render/materials.hpp"
+#include "render/procedural.hpp"
+#include "render/solid.hpp"
 #include "render/pipeline.hpp"
 #include "render/deferred.hpp"
