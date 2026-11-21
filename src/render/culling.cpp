@@ -155,10 +155,14 @@ void GpuCuller::cull(const math::Mat4& viewProj) {
     if (!ready_ || instanceCount_ <= 0) return;
     const math::Frustum f = math::Frustum::fromViewProj(viewProj);
     // reset instanceCount (cmd[1]) and the atomic counter (cmd[5])
+    auto err = [](const char* what) {
+        std::fprintf(stderr, "GpuCuller::cull: err after %s = 0x%x\n", what, static_cast<unsigned>(gl::lastError()));
+    };
     const unsigned int zero = 0u;
     cmd_.bind();
     cmd_.setSubData(4, 4, &zero);
     cmd_.setSubData(kCmdCounterOffset, 4, &zero);
+    err("reset");
 
     prog_.use();
     // vec4 array: set each element by name (glUniform1fv would only fill .x)
@@ -167,12 +171,16 @@ void GpuCuller::cull(const math::Mat4& viewProj) {
         prog_.setUniform(name.c_str(), math::Vec4(f.planes[p].n.x, f.planes[p].n.y, f.planes[p].n.z, f.planes[p].d));
     }
     prog_.setUniform("uItemCount", static_cast<unsigned int>(instanceCount_));
+    err("uniforms");
     items_.bindBase(0);
     models_.bindBase(1);
     cmd_.bindBase(2);
+    err("bindBase");
     gl::dispatchCompute(static_cast<gl::GLuint>((instanceCount_ + 63) / 64), 1, 1);
+    err("dispatch");
     gl::memoryBarrier(gl::GL_COMMAND_BARRIER_BIT | gl::GL_SHADER_STORAGE_BARRIER_BIT |
                       gl::GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+    err("barrier");
 }
 
 void GpuCuller::draw() const {
