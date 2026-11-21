@@ -26,6 +26,7 @@ inline constexpr int kTextureUnitGBufferPbr = 6; ///< metallic/roughness/ao G-bu
 inline constexpr int kTextureUnitIrradiance = 7; ///< IBL irradiance cubemap (F29)
 inline constexpr int kTextureUnitPrefilter = 8;  ///< IBL prefiltered env cubemap (F29)
 inline constexpr int kTextureUnitBrdfLut = 9;    ///< IBL BRDF LUT (F29)
+inline constexpr int kTextureUnitShadowMapArray = 10; ///< CSM depth array (F30; dummy array when off)
 
 /// @brief Program + texture bindings. bind() makes the program current and binds
 /// all textures to their units. Pipelines set the standard uniforms

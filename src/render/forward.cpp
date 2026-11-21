@@ -95,6 +95,13 @@ bool ForwardPipeline::create(int width, int height) {
     dummyShadowTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
     dummyShadowTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
     dummyShadowTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
+    // F30: 1x1x1 depth array so the sampler2DArray stays valid when CSM is off
+    dummyShadowArrayTex_.bind();
+    dummyShadowArrayTex_.texStorage3D(1, gl::GL_DEPTH_COMPONENT24, 1, 1, 1);
+    dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_NEAREST);
+    dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
+    dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
+    dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
     return true;
 }
 
@@ -134,17 +141,19 @@ void ForwardPipeline::render(const SceneView& scene) {
     // shadow map on kTextureUnitShadowMap (dummy 1x1 so the sampler stays bound);
     // F30: a CascadeShadowMap binds a GL_TEXTURE_2D_ARRAY on the same unit instead
     const bool csm = scene.cascades && scene.cascades->cascadeCount() > 0;
+    // unit kTextureUnitShadowMap: 2D depth map (or dummy); unit kTextureUnitShadowMapArray:
+    // CSM depth array (or dummy array) — both sampler types must have a matching texture bound
     gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMap);
-    if (csm)
-        gl::functions().glBindTexture(gl::GL_TEXTURE_2D_ARRAY, scene.cascades->textureId());
-    else
-        gl::functions().glBindTexture(gl::GL_TEXTURE_2D,
-                                      scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id());
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D,
+                                  scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id());
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMapArray);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D_ARRAY,
+                                  csm ? scene.cascades->textureId() : dummyShadowArrayTex_.id());
     auto setShadowUniforms = [&](Program& prog) {
         prog.setUniform("uView", scene.camera->view());
+        prog.setUniform(prog.uniformLocation("uShadowMapArray"), kTextureUnitShadowMapArray);
         if (csm) {
             prog.setUniform(prog.uniformLocation("uShadowMode"), 1);
-            prog.setUniform(prog.uniformLocation("uShadowMapArray"), kTextureUnitShadowMap);
             prog.setUniform(prog.uniformLocation("uCascadeCount"), scene.cascades->cascadeCount());
             prog.setUniform(prog.uniformLocation("uCascadeSplits"), scene.cascades->cascadeCount() + 1,
                             scene.cascades->splits().data());

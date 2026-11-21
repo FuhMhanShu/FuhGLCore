@@ -301,6 +301,13 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
     dummyShadowTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
     dummyShadowTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
     dummyShadowTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
+    // F30: 1x1x1 depth array so the sampler2DArray stays valid when CSM is off
+    dummyShadowArrayTex_.bind();
+    dummyShadowArrayTex_.texStorage3D(1, gl::GL_DEPTH_COMPONENT24, 1, 1, 1);
+    dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_NEAREST);
+    dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
+    dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
+    dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
     fullscreenVao_.create();
     fullscreenVao_.bind();
     return true;
@@ -428,16 +435,18 @@ void DeferredPipeline::renderLighting(const SceneView& scene, Framebuffer* targe
     // shadow map on unit kTextureUnitShadowMap (dummy 1x1 when disabled);
     // F30: a CascadeShadowMap binds a GL_TEXTURE_2D_ARRAY on the same unit instead
     const bool csm = scene.cascades && scene.cascades->cascadeCount() > 0;
+    // unit kTextureUnitShadowMap: 2D depth map (or dummy); unit kTextureUnitShadowMapArray:
+    // CSM depth array (or dummy array) — both sampler types must have a matching texture bound
     gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMap);
-    if (csm)
-        gl::functions().glBindTexture(gl::GL_TEXTURE_2D_ARRAY, scene.cascades->textureId());
-    else
-        gl::functions().glBindTexture(gl::GL_TEXTURE_2D,
-                                      scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id());
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D,
+                                  scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id());
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMapArray);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D_ARRAY,
+                                  csm ? scene.cascades->textureId() : dummyShadowArrayTex_.id());
     lp.setUniform("uView", scene.camera->view());
+    lp.setUniform(lp.uniformLocation("uShadowMapArray"), kTextureUnitShadowMapArray);
     if (csm) {
         lp.setUniform(lp.uniformLocation("uShadowMode"), 1);
-        lp.setUniform(lp.uniformLocation("uShadowMapArray"), kTextureUnitShadowMap);
         lp.setUniform(lp.uniformLocation("uCascadeCount"), scene.cascades->cascadeCount());
         lp.setUniform(lp.uniformLocation("uCascadeSplits"), scene.cascades->cascadeCount() + 1,
                       scene.cascades->splits().data());

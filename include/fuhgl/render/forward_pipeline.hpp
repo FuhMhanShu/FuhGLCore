@@ -52,6 +52,7 @@ private:
     Material defaultMaterial_;
     UniformBuffer lightsUbo_;
     Texture dummyShadowTex_{Texture::Target::Tex2D}; ///< 1x1 depth bound when no shadow map is set
+    Texture dummyShadowArrayTex_{Texture::Target::Tex2DArray}; ///< 1x1x1 depth array bound when CSM is off (F30)
 };
 
 } // namespace fuhgl::render
