@@ -43,7 +43,16 @@ public:
     void attachTexture2D(Attachment attachment, const Texture& texture, gl::GLint level = 0) const;
     /// @brief Attaches to GL_COLOR_ATTACHMENT0 + index (for MRT, e.g. deferred G-buffer).
     void attachTexture2D(unsigned int colorIndex, const Texture& texture, gl::GLint level = 0) const;
+    /// @brief Attaches a whole texture (all layers) — array/cube/3D textures (glFramebufferTexture).
+    void attachTexture(Attachment attachment, const Texture& texture, gl::GLint level = 0) const;
+    /// @brief Attaches one layer of an array/cube/3D texture (glFramebufferTextureLayer).
+    void attachTextureLayer(Attachment attachment, const Texture& texture, gl::GLint level, gl::GLint layer) const;
     void attachRenderbuffer(Attachment attachment, const Renderbuffer& rb) const;
+    /// @brief Invalidates attachments of this FBO (tiler GPUs skip the resolve/copy).
+    void invalidate(gl::GLsizei numAttachments, const gl::GLenum* attachments) const;
+    void invalidateSub(gl::GLsizei numAttachments, const gl::GLenum* attachments, gl::GLint x, gl::GLint y, gl::GLsizei w, gl::GLsizei h) const;
+    /// @brief Queries an attachment parameter (GL_FRAMEBUFFER_ATTACHMENT_*), 0 if unsupported.
+    gl::GLint attachmentParameteri(gl::GLenum attachment, gl::GLenum pname) const;
     /// @brief GL_FRAMEBUFFER_COMPLETE if complete, otherwise the specific status.
     gl::GLenum status() const;
     bool isComplete() const { return status() == gl::GL_FRAMEBUFFER_COMPLETE; }

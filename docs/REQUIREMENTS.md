@@ -39,6 +39,7 @@ APIs). It provides:
 | F10 | Procedural textures | `render::procedural`: CPU-side RGBA8 generators `checker/gradient/stripes/bricks/rings/noise(fBm, seeded)/voronoi`, deterministic; `makeTexture()` uploads with mipmaps; value types, no GL handles |
 | F11 | Predefined materials | `render::materials`: `matte(albedo)`, `textured(tex, tint)`, `emissive(color, strength)`, `texturedEmissive(...)` — preset `Material` (builtinShader flag: albedo/emissive/albedoTexture fields) driven by the pipelines' built-in shaders via uAlbedo/uEmissive/uUseTex/uMatTex (unit 3); deferred stores emissive in a 4th G-buffer attachment; custom-program materials unchanged |
 | F12 | Solids & CSG | `render::Solid` abstract body (`inside(p)` + AABB, polymorphic value type via `SolidPtr`); primitives `makeCube/makeSphere/makeCylinder/makeCone/makeTorus` + `translated()`; CSG operators `\|`, `&`, `-` on SolidPtr (union/intersection/difference, derived AABBs); `buildMeshData(res)` = marching tetrahedra (6 tets/voxel, gradient-fixed winding, accumulated vertex normals, shared vertices, planar UVs, standard MeshData layout pos/normal/color/uv) and `buildMesh()` = GL upload; `Mesh::setMeshData()`, shapes::box/quad moved to the same layout; **bounding volumes**: `makeBoundingBox/Sphere/Octahedron` (low-poly) + `makeBoundingVolume(s, BoundingVolume)` + `render::intersects(Frustum, Solid)`; `Frustum::intersectsAabb()` in math |
+| F13 | GL state, batching, debug & image ops (P1 remainder, see §7) | ~75 new curated loader entries + constants; `gl/state.hpp` free functions + enums (`BlendEquation`, `LogicOp`, `StencilOp`, `PolyMode`, `ProvokingVertex`, `HintTarget/Mode`, `Primitive::Patches`): blending (incl. per-index 4.0), stencil, polygonMode/offset, line/point, sample coverage/mask, depth/viewport/scissor ranges+arrays (4.1), provoking vertex, primitive restart, hints, patch params; framebuffer: `glDrawBuffer`, `glFramebufferTexture(Layer)`, `glClearBufferuiv/fi`, `glInvalidate(Sub)Framebuffer`, attachment params + `Framebuffer::{attachTexture, attachTextureLayer, invalidate, invalidateSub, attachmentParameteri}`; batching draws (range/baseVertex/instancedBase*/multiDraw(+BaseVertex/Indirect)); `gl/debug.hpp`: message control/insert/log, push/popDebugGroup, object labels (KHR_debug); getters `glIsXxx`, `glGetBooleanv/i_v/Integeri_v/64i_v`, `glGetQueryiv`, indexed queries, `glWaitSync`/`glGetSynciv`; `glGetInternalformativ(i64v)`; `glCopyImageSubData`, `glClearTexImage/SubImage` |
 
 ## 4. Non-functional requirements
 
@@ -78,35 +79,35 @@ priority. F9 (in progress) covers the buffer/texture/image-binding part of P1.
 ### P1 — high value, low effort
 - **Buffers**: `glMapBufferRange`, `glFlushMappedBufferRange`, `glCopyBufferSubData`,
   `glGetBufferSubData`, `glGetBufferParameteriv/i64v`, `glInvalidateBufferData`,
-  `glInvalidateBufferSubData` → F9
+  `glInvalidateBufferSubData` → **F9 done**
 - **Vertex attribs/binding**: `glVertexAttribIPointer`, `glVertexAttribLPointer`,
   GL 4.3 `glBindVertexBuffer(s)`, `glVertexAttribBinding/Format/IFormat/LFormat`,
-  `glVertexBindingDivisor` → F9
+  `glVertexBindingDivisor` → **F9 done**
 - **Textures**: `glTexSubImage3D`, `glCopyTexImage2D`, `glCopyTexSubImage2D/3D`,
   `glGetTexImage`, `glGetTexLevelParameteriv`, `glGetTexParameter*`,
   `glCompressedTexImage2D/3D`, `glCompressedTexSubImage2D/3D`, `glGetCompressedTexImage`,
-  `glTexBuffer(Range)` → F9
+  `glTexBuffer(Range)` → **F9 done**
 - **Compute/images**: `glBindImageTexture(s)`, `glDispatchComputeIndirect`,
-  `glShaderStorageBlockBinding`, `glGetShaderStorageBlockIndex` → F9
+  `glShaderStorageBlockBinding`, `glGetShaderStorageBlockIndex` → **F9 done**
 - **Framebuffers**: `glDrawBuffer`, `glFramebufferTexture(Layer)`, `glClearBufferfi/uiv`,
-  `glInvalidateFramebuffer/SubFramebuffer`, `glGetFramebufferAttachmentParameteriv` — TODO
+  `glInvalidateFramebuffer/SubFramebuffer`, `glGetFramebufferAttachmentParameteriv` → **F13 done**
 - **Blending/stencil**: `glBlendEquation(Separate)`, `glBlendFuncSeparate`, `glBlendColor`,
-  `glLogicOp`, `glStencilFunc/Op/Mask(Separate)` — TODO
+  `glLogicOp`, `glStencilFunc/Op/Mask(Separate)` → **F13 done**
 - **Rasterizer**: `glPolygonMode/Offset`, `glLineWidth`, `glPointSize`, `glSampleCoverage`,
   `glSampleMaski`, `glMinSampleShading`, `glDepthRange(f/Arrayv)`, `glViewportArrayv/Indexedf`,
-  `glScissorArrayv/Indexed`, `glProvokingVertex`, `glPrimitiveRestartIndex`, `glHint` — TODO
+  `glScissorArrayv/Indexed`, `glProvokingVertex`, `glPrimitiveRestartIndex`, `glHint` → **F13 done**
 - **Draw**: `glDrawRangeElements`, `glMultiDrawArrays/Elements(+Indirect)`,
   `glMultiDrawElementsBaseVertex`, `glDrawElementsInstancedBaseVertex(BaseInstance)`,
-  `glDrawArraysInstancedBaseInstance`, `glPatchParameteri/fv` + `GL_PATCHES` — TODO
-- **Uniforms/reflection**: `glGetUniformiv/fv/uiv`, `glUniform1ui..4ui(v)`,
-  `glGetActiveUniform`, `glGetActiveUniformBlockiv`, `glGetProgramResource*`,
+  `glDrawArraysInstancedBaseInstance`, `glPatchParameteri/fv` + `GL_PATCHES` → **F13 done**
+- **Uniforms**: `glGetUniformiv/fv/uiv`, `glUniform1ui..4ui(v)` → **F9 done**
+- **Reflection**: `glGetActiveUniform`, `glGetActiveUniformBlockiv`, `glGetProgramResource*`,
   `glValidateProgram`, `glProgramParameteri` — TODO
 - **Debug**: `glDebugMessageControl/Insert`, `glGetDebugMessageLog`, `glPush/PopDebugGroup`,
-  `glObjectLabel/glGetObjectLabel` — TODO
+  `glObjectLabel/glGetObjectLabel` → **F13 done**
 - **Queries/sync/getters**: `glGetQueryiv`, `glBegin/EndQueryIndexed`, `glWaitSync`,
-  `glGetSynciv`, `glGetBooleanv/i_v`, `glIsEnabled`, `glIsBuffer/Texture/...` — TODO
-- **Formats**: `glGetInternalformativ/i64v` — TODO
-- **Images 4.3/4.4**: `glCopyImageSubData`, `glTextureView`, `glClearTexImage/SubImage` — TODO
+  `glGetSynciv`, `glGetBooleanv/i_v`, `glIsEnabled`, `glIsBuffer/Texture/...` → **F13 done**
+- **Formats**: `glGetInternalformativ/i64v` → **F13 done**
+- **Images 4.3/4.4**: `glCopyImageSubData`, `glTextureView`, `glClearTexImage/SubImage` → **F13 done**
 
 ### P2 — complete the DSA table (GL 4.5, mechanical via FUHGL_DSA macro)
 `glNamedBufferStorage`, `glMapNamedBuffer(Range)`, `glUnmapNamedBuffer`,

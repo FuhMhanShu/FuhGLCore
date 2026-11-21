@@ -54,6 +54,31 @@ void runLoaderTests() {
     };
     for (const char* fn : f9) CHECK(names.count(fn) == 1);
 
+    // F13 entries (state/draw/debug/queries/getters/images) must be in the table
+    const char* f13[] = {
+        "glDrawBuffer", "glFramebufferTexture", "glFramebufferTextureLayer", "glClearBufferuiv", "glClearBufferfi",
+        "glInvalidateFramebuffer", "glInvalidateSubFramebuffer", "glGetFramebufferAttachmentParameteriv",
+        "glBlendEquation", "glBlendEquationSeparate", "glBlendFuncSeparate", "glBlendColor", "glLogicOp",
+        "glEnablei", "glDisablei", "glIsEnabledi", "glBlendEquationi", "glBlendFunci", "glColorMaski",
+        "glStencilFunc", "glStencilFuncSeparate", "glStencilOp", "glStencilOpSeparate", "glStencilMask", "glStencilMaskSeparate",
+        "glPolygonMode", "glPolygonOffset", "glLineWidth", "glPointSize", "glSampleCoverage", "glSampleMaski",
+        "glMinSampleShading", "glDepthRange", "glDepthRangef", "glDepthRangeArrayv", "glDepthRangeIndexed",
+        "glViewportArrayv", "glViewportIndexedf", "glScissorArrayv", "glScissorIndexed",
+        "glProvokingVertex", "glPrimitiveRestartIndex", "glHint", "glPatchParameteri", "glPatchParameterfv",
+        "glDrawRangeElements", "glDrawElementsBaseVertex", "glDrawRangeElementsBaseVertex",
+        "glDrawElementsInstancedBaseVertex", "glDrawArraysInstancedBaseInstance", "glDrawElementsInstancedBaseInstance",
+        "glDrawElementsInstancedBaseVertexBaseInstance", "glMultiDrawArrays", "glMultiDrawElements",
+        "glMultiDrawElementsBaseVertex", "glMultiDrawArraysIndirect", "glMultiDrawElementsIndirect",
+        "glGetQueryiv", "glBeginQueryIndexed", "glEndQueryIndexed", "glWaitSync", "glGetSynciv",
+        "glGetBooleanv", "glGetBooleani_v", "glGetIntegeri_v", "glGetInteger64i_v",
+        "glIsEnabled", "glIsBuffer", "glIsTexture", "glIsVertexArray", "glIsFramebuffer", "glIsRenderbuffer",
+        "glIsProgram", "glIsShader", "glIsSync", "glIsQuery", "glIsSampler",
+        "glDebugMessageControl", "glDebugMessageInsert", "glGetDebugMessageLog", "glPushDebugGroup", "glPopDebugGroup",
+        "glObjectLabel", "glGetObjectLabel", "glObjectPtrLabel", "glGetObjectPtrLabel",
+        "glGetInternalformativ", "glGetInternalformati64v", "glCopyImageSubData", "glClearTexImage", "glClearTexSubImage",
+    };
+    for (const char* fn : f13) CHECK(names.count(fn) == 1);
+
     // procAddress contract: nullptr in -> nullptr out. (We must NOT assert nullptr
     // for unknown names: Mesa's glXGetProcAddress returns no-op stubs for those.)
     CHECK(procAddress(nullptr) == nullptr);

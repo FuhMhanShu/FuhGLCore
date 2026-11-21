@@ -218,6 +218,10 @@ inline constexpr GLenum GL_TEXTURE_BINDING_2D = 0x8069;
 inline constexpr GLenum GL_FRAMEBUFFER = 0x8D40;
 inline constexpr GLenum GL_READ_FRAMEBUFFER = 0x8CA8;
 inline constexpr GLenum GL_DRAW_FRAMEBUFFER = 0x8CA9;
+inline constexpr GLenum GL_FRAMEBUFFER_BINDING = 0x8CA6;
+inline constexpr GLenum GL_DRAW_FRAMEBUFFER_BINDING = 0x8CA6;
+inline constexpr GLenum GL_READ_FRAMEBUFFER_BINDING = 0x8CAA;
+inline constexpr GLenum GL_VERTEX_ARRAY_BINDING = 0x85B5;
 inline constexpr GLenum GL_RENDERBUFFER = 0x8D41;
 inline constexpr GLenum GL_COLOR_ATTACHMENT0 = 0x8CE0;
 inline constexpr GLenum GL_DEPTH_ATTACHMENT = 0x8D00;
@@ -268,6 +272,146 @@ inline constexpr GLenum GL_MAX_ELEMENTS_INDICES = 0x8D6B;
 inline constexpr GLenum GL_MAX_VERTEX_OUTPUT_COMPONENTS = 0x9122;
 inline constexpr GLenum GL_MAX_FRAGMENT_INPUT_COMPONENTS = 0x9125;
 inline constexpr GLenum GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+// --- framebuffer extras -------------------------------------------------------------
+inline constexpr GLenum GL_FRAMEBUFFER_DEFAULT = 0x8218;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER = 0x8CD4;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING = 0x8210;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE = 0x8211;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE = 0x8212;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE = 0x8213;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE = 0x8214;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE = 0x8215;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE = 0x8216;
+inline constexpr GLenum GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE = 0x8217;
+inline constexpr GLenum GL_STENCIL_INDEX = 0x1901;
+inline constexpr GLenum GL_DEPTH_STENCIL = 0x84F9;
+
+// --- blending / logic op / stencil ----------------------------------------------------
+inline constexpr GLenum GL_FUNC_ADD = 0x8006;
+inline constexpr GLenum GL_FUNC_SUBTRACT = 0x800A;
+inline constexpr GLenum GL_FUNC_REVERSE_SUBTRACT = 0x800B;
+inline constexpr GLenum GL_MIN = 0x8007;
+inline constexpr GLenum GL_MAX = 0x8008;
+inline constexpr GLenum GL_BLEND_EQUATION = 0x8009;
+inline constexpr GLenum GL_BLEND_EQUATION_RGB = 0x8009;
+inline constexpr GLenum GL_BLEND_EQUATION_ALPHA = 0x883D;
+inline constexpr GLenum GL_BLEND_DST_RGB = 0x80C8;
+inline constexpr GLenum GL_BLEND_SRC_RGB = 0x80C9;
+inline constexpr GLenum GL_BLEND_DST_ALPHA = 0x80CA;
+inline constexpr GLenum GL_BLEND_SRC_ALPHA = 0x80CB;
+inline constexpr GLenum GL_BLEND_COLOR = 0x8005;
+inline constexpr GLenum GL_CONSTANT_COLOR = 0x8001;
+inline constexpr GLenum GL_ONE_MINUS_CONSTANT_COLOR = 0x8002;
+inline constexpr GLenum GL_CONSTANT_ALPHA = 0x8003;
+inline constexpr GLenum GL_ONE_MINUS_CONSTANT_ALPHA = 0x8004;
+inline constexpr GLenum GL_CLEAR = 0x1500;
+inline constexpr GLenum GL_SET = 0x150F;
+inline constexpr GLenum GL_COPY = 0x1503;
+inline constexpr GLenum GL_NOOP = 0x1505;
+inline constexpr GLenum GL_AND = 0x1501;
+inline constexpr GLenum GL_NAND = 0x150E;
+inline constexpr GLenum GL_OR = 0x1507;
+inline constexpr GLenum GL_NOR = 0x1508;
+inline constexpr GLenum GL_XOR = 0x1506;
+inline constexpr GLenum GL_EQUIV = 0x1509;
+inline constexpr GLenum GL_INVERT = 0x150A;
+inline constexpr GLenum GL_AND_REVERSE = 0x1502;
+inline constexpr GLenum GL_AND_INVERTED = 0x1504;
+inline constexpr GLenum GL_OR_REVERSE = 0x150B;
+inline constexpr GLenum GL_OR_INVERTED = 0x150D;
+inline constexpr GLenum GL_KEEP = 0x1E00;
+inline constexpr GLenum GL_REPLACE = 0x1E01;
+inline constexpr GLenum GL_INCR = 0x1E02;
+inline constexpr GLenum GL_DECR = 0x1E03;
+inline constexpr GLenum GL_INCR_WRAP = 0x8507;
+inline constexpr GLenum GL_DECR_WRAP = 0x8508;
+
+// --- rasterizer / viewport / scissor ---------------------------------------------------
+inline constexpr GLenum GL_POINT = 0x1B00;
+inline constexpr GLenum GL_LINE = 0x1B01;
+inline constexpr GLenum GL_FILL = 0x1B02;
+inline constexpr GLenum GL_POLYGON_MODE = 0x0B40;
+inline constexpr GLenum GL_POLYGON_OFFSET_POINT = 0x2A01;
+inline constexpr GLenum GL_POLYGON_OFFSET_LINE = 0x2A02;
+inline constexpr GLenum GL_POLYGON_OFFSET_FILL = 0x8037;
+inline constexpr GLenum GL_POINT_SIZE = 0x0B11;
+inline constexpr GLenum GL_LINE_WIDTH = 0x0B21;
+inline constexpr GLenum GL_LINE_SMOOTH = 0x0B20;
+inline constexpr GLenum GL_POLYGON_SMOOTH = 0x0B41;
+inline constexpr GLenum GL_CULL_FACE_MODE = 0x0B45;
+inline constexpr GLenum GL_SAMPLE_COVERAGE = 0x80A0;
+inline constexpr GLenum GL_SAMPLE_MASK = 0x8E51;
+inline constexpr GLenum GL_MIN_SAMPLE_SHADING_VALUE = 0x8C37;
+inline constexpr GLenum GL_PROVOKING_VERTEX = 0x8E4F;
+inline constexpr GLenum GL_FIRST_VERTEX_CONVENTION = 0x8E4D;
+inline constexpr GLenum GL_LAST_VERTEX_CONVENTION = 0x8E4E;
+inline constexpr GLenum GL_UNDEFINED_VERTEX = 0x8260;
+inline constexpr GLenum GL_PRIMITIVE_RESTART = 0x8F9D;
+inline constexpr GLenum GL_PRIMITIVE_RESTART_INDEX = 0x8F9E;
+inline constexpr GLenum GL_SCISSOR_BOX = 0x0C10;
+inline constexpr GLenum GL_DONT_CARE = 0x1100;
+inline constexpr GLenum GL_FASTEST = 0x1101;
+inline constexpr GLenum GL_NICEST = 0x1102;
+inline constexpr GLenum GL_LINE_SMOOTH_HINT = 0x0C52;
+inline constexpr GLenum GL_POLYGON_SMOOTH_HINT = 0x0C53;
+inline constexpr GLenum GL_TEXTURE_COMPRESSION_HINT = 0x84EF;
+inline constexpr GLenum GL_FRAGMENT_SHADER_DERIVATIVE_HINT = 0x8B8B;
+
+// --- patches / tessellation --------------------------------------------------------------
+inline constexpr GLenum GL_PATCHES = 0x000E;
+inline constexpr GLenum GL_PATCH_VERTICES = 0x8E72;
+inline constexpr GLenum GL_MAX_PATCH_VERTICES = 0x8E7D;
+
+// --- queries / sync -----------------------------------------------------------------------
+inline constexpr GLenum GL_QUERY_COUNTER_BITS = 0x8864;
+inline constexpr GLenum GL_CURRENT_QUERY = 0x8865;
+inline constexpr GLenum GL_SYNC_CONDITION = 0x9113;
+inline constexpr GLenum GL_SYNC_STATUS = 0x9114;
+inline constexpr GLenum GL_SYNC_FLAGS = 0x9115;
+inline constexpr GLenum GL_SIGNALED = 0x9119;
+inline constexpr GLenum GL_UNSIGNALED = 0x9118;
+
+// --- object labels / debug ------------------------------------------------------------------
+inline constexpr GLenum GL_BUFFER = 0x82E0;
+inline constexpr GLenum GL_SHADER = 0x82E1;
+inline constexpr GLenum GL_PROGRAM = 0x82E2;
+inline constexpr GLenum GL_VERTEX_ARRAY = 0x8074;
+inline constexpr GLenum GL_QUERY = 0x82E3;
+inline constexpr GLenum GL_PROGRAM_PIPELINE = 0x82E4;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK = 0x8E22;
+inline constexpr GLenum GL_SAMPLER = 0x82E6;
+inline constexpr GLenum GL_TEXTURE = 0x1702;
+inline constexpr GLenum GL_MAX_DEBUG_MESSAGE_LENGTH = 0x9143;
+inline constexpr GLenum GL_MAX_DEBUG_LOGGED_MESSAGES = 0x9144;
+inline constexpr GLenum GL_MAX_DEBUG_GROUP_STACK_DEPTH = 0x826D;
+inline constexpr GLenum GL_DEBUG_GROUP_STACK_DEPTH = 0x826E;
+inline constexpr GLenum GL_DEBUG_LOGGED_MESSAGES = 0x9145;
+inline constexpr GLenum GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH = 0x8243;
+
+// --- internal formats / images ----------------------------------------------------------------
+inline constexpr GLenum GL_SAMPLES = 0x80A9;
+inline constexpr GLenum GL_INTERNALFORMAT_SUPPORTED = 0x826F;
+inline constexpr GLenum GL_INTERNALFORMAT_PREFERRED = 0x8270;
+inline constexpr GLenum GL_INTERNALFORMAT_RED_SIZE = 0x8271;
+inline constexpr GLenum GL_INTERNALFORMAT_GREEN_SIZE = 0x8272;
+inline constexpr GLenum GL_INTERNALFORMAT_BLUE_SIZE = 0x8273;
+inline constexpr GLenum GL_INTERNALFORMAT_ALPHA_SIZE = 0x8274;
+inline constexpr GLenum GL_INTERNALFORMAT_DEPTH_SIZE = 0x8275;
+inline constexpr GLenum GL_INTERNALFORMAT_STENCIL_SIZE = 0x8276;
+inline constexpr GLenum GL_INTERNALFORMAT_SHARED_SIZE = 0x8277;
+inline constexpr GLenum GL_INTERNALFORMAT_RED_TYPE = 0x8278;
+inline constexpr GLenum GL_INTERNALFORMAT_GREEN_TYPE = 0x8279;
+inline constexpr GLenum GL_INTERNALFORMAT_BLUE_TYPE = 0x827A;
+inline constexpr GLenum GL_INTERNALFORMAT_ALPHA_TYPE = 0x827B;
+inline constexpr GLenum GL_INTERNALFORMAT_DEPTH_TYPE = 0x827C;
+inline constexpr GLenum GL_INTERNALFORMAT_STENCIL_TYPE = 0x827D;
+inline constexpr GLenum GL_TEXTURE_IMMUTABLE_FORMAT = 0x912F;
+inline constexpr GLenum GL_IMAGE_COMPATIBILITY_CLASS = 0x82A8;
 
 // --- debug (GL 4.3 / KHR_debug) -------------------------------------------------
 inline constexpr GLenum GL_DEBUG_SOURCE_API = 0x8246;
@@ -345,6 +489,7 @@ inline constexpr GLenum GL_MAX_SAMPLES = 0x8D57;
 inline constexpr GLenum GL_FRAMEBUFFER_SRGB = 0x8DB9;
 inline constexpr GLenum GL_COLOR = 0x1800;
 inline constexpr GLenum GL_DEPTH = 0x1801;
+inline constexpr GLenum GL_STENCIL = 0x1802;
 inline constexpr GLenum GL_COLOR_ATTACHMENT1 = 0x8CE1;
 inline constexpr GLenum GL_COLOR_ATTACHMENT2 = 0x8CE2;
 inline constexpr GLenum GL_COLOR_ATTACHMENT3 = 0x8CE3;
