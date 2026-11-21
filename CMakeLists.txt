@@ -28,6 +28,7 @@ add_library(fuhglcore STATIC
     src/render/light.cpp
     src/render/shadow.cpp
     src/render/forward_renderer.cpp
+    src/render/deferred_renderer.cpp
     src/render/forward.cpp
     src/render/deferred.cpp
     src/render/procedural.cpp

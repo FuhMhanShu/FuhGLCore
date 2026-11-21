@@ -1,6 +1,8 @@
 #include "test_framework.hpp"
 #include "tests.hpp"
 
+#include <fuhgl/cam/first_person.hpp>
+#include <fuhgl/render/deferred_renderer.hpp>
 #include <fuhgl/render/shadow.hpp>
 
 #include <algorithm>
@@ -58,4 +60,18 @@ void runShadowTests() {
     const math::Vec3 outside{std::tan(0.9f) * d, 5.f - d, 0.f};
     const math::Vec3 oc = projectNdc(svp, outside);
     CHECK(std::max(std::fabs(oc.x), std::fabs(oc.y)) > 1.f);
+
+    // --- sunScreenUV (god-ray source position) ----------------------------------------
+    fuhgl::FirstPersonCamera cam;
+    cam.position = {0.f, 0.f, 5.f}; // looks down -Z
+    cam.yaw = 0.f;
+    cam.pitch = 0.f;
+    const math::Vec2 uvFront = sunScreenUV(cam, {0.f, 0.3f, -1.f}, 100, 100); // sun in front, slightly up
+    CHECK(uvFront.x > 0.4f && uvFront.x < 0.6f);
+    CHECK(uvFront.y > 0.5f && uvFront.y < 0.85f); // above center
+    const math::Vec2 uvBehind = sunScreenUV(cam, {0.f, 0.f, 1.f}, 100, 100); // behind the camera
+    CHECK(uvBehind.x < 0.f && uvBehind.y < 0.f);
+    const math::Vec2 uvCenter = sunScreenUV(cam, {0.f, 0.f, -1.f}, 100, 100);
+    CHECK_NEAR(uvCenter.x, 0.5f, 1e-3f);
+    CHECK_NEAR(uvCenter.y, 0.5f, 1e-3f);
 }

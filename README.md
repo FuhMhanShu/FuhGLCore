@@ -55,6 +55,9 @@ no Khronos headers, no vcpkg.
 - **Default forward renderer** — `render::ForwardRenderer`: one `render()` call does the
   shadow depth pass + lit forward pass with lights, PCF shadows and distance fog —
   see [tutorial 22](docs/tutorials/22-forward-renderer.md).
+- **Default deferred renderer + post FX** — `render::DeferredRenderer`: G-buffer with
+  parallax/bump mapping, SSAO, HDR lighting with shadows, bloom, crepuscular god rays
+  and ACES tone mapping — see [tutorial 23](docs/tutorials/23-deferred-renderer-postfx.md).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug

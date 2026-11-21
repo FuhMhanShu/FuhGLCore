@@ -52,6 +52,10 @@ public:
     math::Vec3 albedo{1.f, 1.f, 1.f};       ///< base color (multiplied with the texture if any)
     math::Vec3 emissive{0.f, 0.f, 0.f};     ///< added unlit on top of the lighting
     const Texture* albedoTexture = nullptr; ///< sampled on unit 3 when set
+    const Texture* normalMap = nullptr;     ///< bump/normal map, unit 4 (deferred G-buffer pass)
+    const Texture* heightMap = nullptr;     ///< parallax height map, unit 5 (deferred G-buffer pass)
+    float parallaxScale = 0.03f;            ///< POM depth scale (world units at uv scale 1)
+    int parallaxLayers = 12;                ///< POM linear search steps
     bool builtinShader = false;             ///< true = pipeline built-in shader reads the fields above
 
 private:

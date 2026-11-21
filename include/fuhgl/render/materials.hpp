@@ -49,4 +49,31 @@ inline Material texturedEmissive(const Texture& albedoTex, const math::Vec3& tin
     return m;
 }
 
+/// @brief Bump/normal-mapped material: albedo texture + tangent-space normal map
+/// (unit 4 in the deferred G-buffer pass; the normal perturbs the shading normal).
+inline Material normalMapped(const Texture& albedoTex, const Texture& normalMap,
+                             const math::Vec3& tint = {1.f, 1.f, 1.f}) {
+    Material m;
+    m.builtinShader = true;
+    m.albedo = tint;
+    m.albedoTexture = &albedoTex;
+    m.normalMap = &normalMap;
+    return m;
+}
+
+/// @brief Parallax-occlusion-mapped material: albedo texture + height map (unit 5),
+/// UVs are displaced along the view ray in the deferred G-buffer pass.
+inline Material parallax(const Texture& albedoTex, const Texture& heightMap,
+                         float scale = 0.03f, int layers = 12,
+                         const math::Vec3& tint = {1.f, 1.f, 1.f}) {
+    Material m;
+    m.builtinShader = true;
+    m.albedo = tint;
+    m.albedoTexture = &albedoTex;
+    m.heightMap = &heightMap;
+    m.parallaxScale = scale;
+    m.parallaxLayers = layers;
+    return m;
+}
+
 } // namespace fuhgl::render::materials

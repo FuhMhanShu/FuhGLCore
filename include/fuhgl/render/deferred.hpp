@@ -33,10 +33,24 @@ public:
     void resize(int width, int height);
 
     void render(const SceneView& scene) override;
+    /// @brief Pass 1 only: G-buffer (+ MSAA resolve). Needed when post-processing
+    /// (SSAO/HDR/bloom) sits between geometry and lighting — see DeferredRenderer.
+    void renderGBuffer(const SceneView& scene);
+    /// @brief Pass 2 only: fullscreen lighting into `target` (default: output()).
+    void renderLighting(const SceneView& scene, Framebuffer* target = nullptr);
+
+    /// @brief Optional SSAO map sampled on unit 5 in the lighting pass (F17).
+    const Texture* aoTexture = nullptr;
+    float aoStrength = 1.5f;
 
     Framebuffer& output() { return output_; }
     int width() const { return width_; }
     int height() const { return height_; }
+    /// @brief G-buffer textures as the lighting pass samples them (resolved when MSAA).
+    const Texture& texAlbedo() const { return msaa_ > 0 ? texResolveAlbedo_ : texAlbedo_; }
+    const Texture& texNormal() const { return msaa_ > 0 ? texResolveNormal_ : texNormal_; }
+    const Texture& texPosition() const { return msaa_ > 0 ? texResolvePosition_ : texPosition_; }
+    const Texture& texEmissive() const { return msaa_ > 0 ? texResolveEmissive_ : texEmissive_; }
     /// @brief Default G-buffer material for items with material == nullptr.
     Material& defaultMaterial() { return defaultMaterial_; }
     /// @brief Light UBO (debug/introspection).
