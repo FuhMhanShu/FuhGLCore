@@ -230,15 +230,18 @@ int main() {
         fuhgl::VertexArray vao;
         vao.create();
         vao.bind();
+        while (fuhgl::gl::lastError() != fuhgl::gl::Error::NoError) {} // drain previous sections
         vao.bindVertexBuffer(0, vbo, 0, sizeof(V));
+        expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "bindVertexBuffer legal");
         vao.setAttribFormat(0, 2, fuhgl::gl::GL_FLOAT, false, offsetof(V, p));
         vao.setAttribFormat(1, 3, fuhgl::gl::GL_FLOAT, false, offsetof(V, c));
+        expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "setAttribFormat legal");
         vao.setAttribBinding(0, 0);
         vao.setAttribBinding(1, 0);
         vao.enableAttrib(0);
         vao.enableAttrib(1);
-        vao.setAttribI(2, 1, fuhgl::gl::GL_INT, 0, 0); // integer attrib path, unused by shader
-        expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "VAO 4.3 binding calls are legal");
+        vao.setAttribI(2, 1, fuhgl::gl::GL_INT, 4, 0); // integer attrib path, unused by shader
+        expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "setAttribBinding/enable/setAttribI legal");
 
         fuhgl::Texture colorTex(fuhgl::Texture::Target::Tex2D);
         colorTex.bind();
