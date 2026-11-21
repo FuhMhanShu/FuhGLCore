@@ -49,6 +49,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Text & FPS overlay (bitmap font HUD) | `render::TextRenderer`, `render::FpsCounter` | [24](tutorials/24-text-and-fps-overlay.md) |
 | Wireframe (solids + bounding boxes) | `render::Wireframe` (`addSolid`/`addBoundingBox`/`addMesh`) | [25](tutorials/25-wireframe-solids-and-bounding-boxes.md) |
 | Program pipelines / transform feedback (P3) | `gl::ProgramPipeline`, `gl::TransformFeedback`, `Program::setTransformFeedbackVaryings` | [26](tutorials/26-program-pipelines-transform-feedback-binaries.md) |
+| Program reflection (uniforms/attributes/UBOs) | `Program::activeUniforms()`, `activeAttributes()`, `uniformBlocks()` | [27](tutorials/27-program-reflection.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

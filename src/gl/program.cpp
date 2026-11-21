@@ -133,4 +133,90 @@ void Program::bindShaderStorageBlock(const char* blockName, gl::GLuint binding) 
 
 gl::GLuint Program::id() const { return impl_->id; }
 
+// --- reflection (F22) -------------------------------------------------------------
+
+std::vector<Program::UniformInfo> Program::activeUniforms() const {
+    std::vector<UniformInfo> out;
+    const auto& f = gl::functions();
+    if (!f.glGetProgramiv || !f.glGetActiveUniform) return out;
+    gl::GLint n = 0;
+    f.glGetProgramiv(impl_->id, gl::GL_ACTIVE_UNIFORMS, &n);
+    gl::GLint maxLen = 0;
+    f.glGetProgramiv(impl_->id, gl::GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLen);
+    std::string nameBuf(static_cast<std::size_t>(maxLen > 0 ? maxLen : 1), '\0');
+    for (gl::GLint i = 0; i < n; ++i) {
+        UniformInfo u;
+        gl::GLsizei len = 0;
+        f.glGetActiveUniform(impl_->id, static_cast<gl::GLuint>(i), static_cast<gl::GLsizei>(nameBuf.size()),
+                             &len, &u.size, &u.type, nameBuf.data());
+        u.name.assign(nameBuf.data(), static_cast<std::size_t>(len));
+        if (f.glGetActiveUniformsiv) {
+            const gl::GLuint idx = static_cast<gl::GLuint>(i);
+            gl::GLint v = 0;
+            f.glGetActiveUniformsiv(impl_->id, 1, &idx, gl::GL_UNIFORM_BLOCK_INDEX, &v);
+            u.blockIndex = v;
+            f.glGetActiveUniformsiv(impl_->id, 1, &idx, gl::GL_UNIFORM_OFFSET, &v);
+            u.offset = v;
+            f.glGetActiveUniformsiv(impl_->id, 1, &idx, gl::GL_UNIFORM_ARRAY_STRIDE, &v);
+            u.arrayStride = v;
+        }
+        out.push_back(std::move(u));
+    }
+    return out;
+}
+
+std::vector<Program::AttributeInfo> Program::activeAttributes() const {
+    std::vector<AttributeInfo> out;
+    const auto& f = gl::functions();
+    if (!f.glGetProgramiv || !f.glGetActiveAttrib || !f.glGetAttribLocation) return out;
+    gl::GLint n = 0;
+    f.glGetProgramiv(impl_->id, gl::GL_ACTIVE_ATTRIBUTES, &n);
+    gl::GLint maxLen = 0;
+    f.glGetProgramiv(impl_->id, gl::GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxLen);
+    std::string nameBuf(static_cast<std::size_t>(maxLen > 0 ? maxLen : 1), '\0');
+    for (gl::GLint i = 0; i < n; ++i) {
+        AttributeInfo a;
+        gl::GLsizei len = 0;
+        f.glGetActiveAttrib(impl_->id, static_cast<gl::GLuint>(i), static_cast<gl::GLsizei>(nameBuf.size()),
+                            &len, &a.size, &a.type, nameBuf.data());
+        a.name.assign(nameBuf.data(), static_cast<std::size_t>(len));
+        a.location = f.glGetAttribLocation(impl_->id, a.name.c_str());
+        out.push_back(std::move(a));
+    }
+    return out;
+}
+
+std::vector<Program::UniformBlockInfo> Program::uniformBlocks() const {
+    std::vector<UniformBlockInfo> out;
+    const auto& f = gl::functions();
+    if (!f.glGetProgramiv || !f.glGetActiveUniformBlockiv) return out;
+    gl::GLint n = 0;
+    f.glGetProgramiv(impl_->id, gl::GL_ACTIVE_UNIFORM_BLOCKS, &n);
+    gl::GLint maxLen = 0;
+    f.glGetProgramiv(impl_->id, gl::GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &maxLen);
+    std::string nameBuf(static_cast<std::size_t>(maxLen > 0 ? maxLen : 1), '\0');
+    for (gl::GLint i = 0; i < n; ++i) {
+        UniformBlockInfo b;
+        b.index = static_cast<gl::GLuint>(i);
+        gl::GLsizei len = 0;
+        if (f.glGetActiveUniformBlockName)
+            f.glGetActiveUniformBlockName(impl_->id, b.index, static_cast<gl::GLsizei>(nameBuf.size()), &len, nameBuf.data());
+        b.name.assign(nameBuf.data(), static_cast<std::size_t>(len));
+        gl::GLint v = 0;
+        f.glGetActiveUniformBlockiv(impl_->id, b.index, gl::GL_UNIFORM_BLOCK_DATA_SIZE, &v);
+        b.dataSize = v;
+        f.glGetActiveUniformBlockiv(impl_->id, b.index, gl::GL_UNIFORM_BLOCK_BINDING, &v);
+        b.binding = v;
+        f.glGetActiveUniformBlockiv(impl_->id, b.index, gl::GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &v);
+        b.activeUniforms = v;
+        if (f.glGetActiveUniformBlockiv && v > 0) {
+            b.uniformIndices.resize(static_cast<std::size_t>(v));
+            f.glGetActiveUniformBlockiv(impl_->id, b.index, gl::GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES,
+                                        reinterpret_cast<gl::GLint*>(b.uniformIndices.data()));
+        }
+        out.push_back(std::move(b));
+    }
+    return out;
+}
+
 } // namespace fuhgl

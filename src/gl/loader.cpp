@@ -219,6 +219,11 @@ const Entry kEntries[] = {
     // P3: GL 4.6
     FUHGL_ENTRY(glMultiDrawArraysIndirectCount), FUHGL_ENTRY(glMultiDrawElementsIndirectCount),
     FUHGL_ENTRY(glPolygonOffsetClamp), FUHGL_ENTRY(glSpecializeShader),
+    // F22: reflection
+    FUHGL_ENTRY(glGetActiveAttrib), FUHGL_ENTRY(glGetActiveUniform), FUHGL_ENTRY(glGetActiveUniformName),
+    FUHGL_ENTRY(glGetActiveUniformsiv), FUHGL_ENTRY(glGetActiveUniformBlockiv), FUHGL_ENTRY(glGetActiveUniformBlockName),
+    FUHGL_ENTRY(glGetUniformIndices), FUHGL_ENTRY(glGetProgramInterfaceiv), FUHGL_ENTRY(glGetProgramResourceiv),
+    FUHGL_ENTRY(glGetProgramResourceName), FUHGL_ENTRY(glGetProgramResourceIndex), FUHGL_ENTRY(glGetAttachedShaders),
 };
 
 // DSA (GL 4.5) — optional, resolved by name in init().
