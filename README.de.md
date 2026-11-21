@@ -85,6 +85,13 @@ Rays, Nebel) — siehe `examples/showcase` und
 - **Shadow Mapping** — `render::ShadowMap` (reiner Depth-Pass aus Sicht der Lichtquelle)
   + `lightViewProj()`-Helfer + PCF-Sampling in den Pipelines über `SceneView::shadowMap` —
   siehe [Tutorial 21](docs/de/tutorials/21-shadows.md).
+- **PBR-Materialien** — Metallic-Roughness-Shading (Cook-Torrance GGX) in beiden Pipelines:
+  `materials::pbr(albedo, metallic, roughness, ao)`, im Deferred-Pfad pro Pixel in einem
+  5. G-Buffer-Attachment gespeichert — siehe [Tutorial 31](docs/de/tutorials/31-pbr-materials.md).
+- **IBL (Image-Based Lighting)** — `render::Environment` backt aus einer beliebigen Cubemap
+  eine Irradiance-Cubemap, eine GGX-vorgefilterte Env-Cubemap und eine BRDF-LUT
+  (deterministischer CPU-Bake); `SceneView::env` setzen (oder `ForwardRenderer::setEnvironment()`)
+  — siehe [Tutorial 32](docs/de/tutorials/32-ibl-environment.md).
 - **Default-Forward-Renderer** — `render::ForwardRenderer`: ein `render()`-Aufruf erledigt
   den Schatten-Depth-Pass + den beleuchteten Forward-Pass mit Lichtquellen, PCF-Schatten
   und Distanznebel — siehe [Tutorial 22](docs/de/tutorials/22-forward-renderer.md).

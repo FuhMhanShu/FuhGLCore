@@ -55,6 +55,8 @@ public:
     const Texture& texNormal() const { return msaa_ > 0 ? texResolveNormal_ : texNormal_; }
     const Texture& texPosition() const { return msaa_ > 0 ? texResolvePosition_ : texPosition_; }
     const Texture& texEmissive() const { return msaa_ > 0 ? texResolveEmissive_ : texEmissive_; }
+    /// @brief PBR G-buffer texture: R = metallic, G = roughness, B = ao (F28).
+    const Texture& texPbr() const { return msaa_ > 0 ? texResolvePbr_ : texPbr_; }
     /// @brief Default G-buffer material for items with material == nullptr.
     Material& defaultMaterial() { return defaultMaterial_; }
     /// @brief Fullscreen lighting-pass material (debug/introspection).
@@ -77,6 +79,8 @@ private:
     Texture texNormal_{Texture::Target::Tex2D};
     Texture texPosition_{Texture::Target::Tex2D};
     Texture texEmissive_{Texture::Target::Tex2D};
+    Texture texPbr_{Texture::Target::Tex2D};           ///< F28: metallic/roughness/ao
+    Texture texResolvePbr_{Texture::Target::Tex2D};
     Texture texResolveAlbedo_{Texture::Target::Tex2D};
     Texture texResolveNormal_{Texture::Target::Tex2D};
     Texture texResolveEmissive_{Texture::Target::Tex2D};

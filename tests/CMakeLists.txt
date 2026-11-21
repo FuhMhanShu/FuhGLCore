@@ -14,6 +14,7 @@ add_executable(fuhgl_tests
     test_shadow.cpp
     test_text.cpp
     test_wireframe.cpp
+    test_environment.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
@@ -109,6 +110,12 @@ add_executable(fuhgl_gl_smoke_instancing gl_smoke_instancing.cpp)
 target_link_libraries(fuhgl_gl_smoke_instancing PRIVATE fuhglcore)
 add_test(NAME gl_smoke_instancing COMMAND fuhgl_gl_smoke_instancing)
 
+# F28/F29 PBR + IBL smoke test: metal vs dielectric pixels, env ambient, 5th G-buffer
+# attachment (metallic/roughness/ao) readback. Skips without GL >= 3.3.
+add_executable(fuhgl_gl_smoke_pbr gl_smoke_pbr.cpp)
+target_link_libraries(fuhgl_gl_smoke_pbr PRIVATE fuhglcore)
+add_test(NAME gl_smoke_pbr COMMAND fuhgl_gl_smoke_pbr)
+
 # --- test semantics (F26) ---------------------------------------------------------------
 # "unit": pure CPU tests, no GL context required.
 # "gl_context": needs a GL context; the test exits with code 77 ("Skipped" via
@@ -119,5 +126,5 @@ set_tests_properties(fuhgl_tests PROPERTIES LABELS "unit")
 set_tests_properties(
     gl_smoke gl_smoke_deferred gl_smoke_buffers gl_smoke_solids gl_smoke_state gl_smoke_lights
     gl_smoke_shadows gl_smoke_forward gl_smoke_deferred_fx gl_smoke_dsa gl_smoke_text
-    gl_smoke_wireframe gl_smoke_p3 gl_smoke_reflection gl_smoke_instancing
+    gl_smoke_wireframe gl_smoke_p3 gl_smoke_reflection gl_smoke_instancing gl_smoke_pbr
     PROPERTIES LABELS "gl_context" SKIP_RETURN_CODE 77)

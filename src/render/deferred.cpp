@@ -1,5 +1,6 @@
 #include "fuhgl/render/deferred.hpp"
 #include "fuhgl/render/shadow.hpp"
+#include "fuhgl/render/environment.hpp"
 #include "lighting_glsl.hpp"
 #include "pipeline_internal.hpp"
 
@@ -51,10 +52,14 @@ uniform int uUseHeightMap;
 uniform sampler2D uHeightTex;
 uniform float uParallaxScale;
 uniform int uParallaxLayers;
+uniform float uMetallic;   // F28 PBR
+uniform float uRoughness;
+uniform float uAo;
 layout(location = 0) out vec4 oAlbedo;
 layout(location = 1) out vec4 oNormal;
 layout(location = 2) out vec4 oPosition;
 layout(location = 3) out vec4 oEmissive;
+layout(location = 4) out vec4 oPbr;
 void main() {
     vec2 uv = vUV;
     vec3 N = normalize(vNormal);
@@ -93,6 +98,7 @@ void main() {
     oNormal = vec4(N * 0.5 + 0.5, 1.0);
     oPosition = vec4(vWorldPos, 1.0); // alpha = 1 marks "geometry present"
     oEmissive = vec4(uEmissive, 1.0);
+    oPbr = vec4(uMetallic, uRoughness, uAo, 1.0);
 }
 )GLSL";
 
@@ -119,6 +125,7 @@ uniform float uFogDensity;
 uniform sampler2D uAO;
 uniform int uUseAO;
 uniform float uAOStrength;
+uniform sampler2D uPbr; // F28: metallic/roughness/ao G-buffer texture (unit kTextureUnitGBufferPbr)
 uniform vec3 uSunDir;
 uniform vec3 uSunColor;
 uniform float uSunCos;
@@ -143,8 +150,9 @@ void main() {
     vec3 N = normalize(texture(uNormal, vUV).rgb * 2.0 - 1.0);
     vec3 albedo = texture(uAlbedo, vUV).rgb;
     vec3 emissive = texture(uEmissive, vUV).rgb;
+    vec4 pbr = texture(uPbr, vUV);
     vec3 V = normalize(uCamPos - worldPos);
-    vec3 lit = shade(albedo, N, worldPos, V) + emissive;
+    vec3 lit = shade(albedo, pbr.r, pbr.g, pbr.b, N, worldPos, V) + emissive;
     if (uUseAO == 1) lit *= mix(1.0, texture(uAO, vUV).r, clamp(uAOStrength, 0.0, 2.0));
     if (uFogDensity > 0.0) {
         float d = length(worldPos - uCamPos);
@@ -189,6 +197,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
     makeTarget(texNormal_, gl::GL_RGBA8, width, height, msaa_);
     makeTarget(texPosition_, gl::GL_RGBA16F, width, height, msaa_);
     makeTarget(texEmissive_, gl::GL_RGBA8, width, height, msaa_);
+    makeTarget(texPbr_, gl::GL_RGBA8, width, height, msaa_); // F28: metallic/roughness/ao
 
     gbuffer_.create();
     gbuffer_.setSize(width, height);
@@ -197,6 +206,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
     gbuffer_.attachTexture2D(1, texNormal_);
     gbuffer_.attachTexture2D(2, texPosition_);
     gbuffer_.attachTexture2D(3, texEmissive_);
+    gbuffer_.attachTexture2D(4, texPbr_);
     if (msaa_ > 0) {
         depthMsaa_.create();
         depthMsaa_.bind();
@@ -219,6 +229,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         makeTarget(texResolveNormal_, gl::GL_RGBA8, width, height, 0);
         makeTarget(texResolvePosition_, gl::GL_RGBA16F, width, height, 0);
         makeTarget(texResolveEmissive_, gl::GL_RGBA8, width, height, 0);
+        makeTarget(texResolvePbr_, gl::GL_RGBA8, width, height, 0);
         resolve_.create();
         resolve_.setSize(width, height);
         resolve_.bind();
@@ -226,6 +237,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         resolve_.attachTexture2D(1, texResolveNormal_);
         resolve_.attachTexture2D(2, texResolvePosition_);
         resolve_.attachTexture2D(3, texResolveEmissive_);
+        resolve_.attachTexture2D(4, texResolvePbr_);
         if (!resolve_.isComplete()) {
             std::fprintf(stderr, "DeferredPipeline: resolve FBO incomplete (0x%x)\n", resolve_.status());
             return false;
@@ -264,7 +276,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
         if (!vs.compile(kLightVert)) { std::fprintf(stderr, "DeferredPipeline: light VS: %s\n", vs.infoLog().c_str()); return false; }
         const std::string fragSrc = std::string(kLightFragHead) + kLightingUniforms + kShadowUniforms + kShadowFunc +
-                                    kLightingLoop + kLightFragTail;
+                                    kEnvUniforms + kPbrFuncs + kLightingLoop + kLightFragTail;
         if (!fs.compile(fragSrc.c_str())) { std::fprintf(stderr, "DeferredPipeline: light FS: %s\n", fs.infoLog().c_str()); return false; }
         lightingMaterial_.program().attach(vs);
         lightingMaterial_.program().attach(fs);
@@ -278,6 +290,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
     lightingMaterial_.setTexture(1, texNormal_);
     lightingMaterial_.setTexture(2, texPosition_);
     lightingMaterial_.setTexture(3, texEmissive_);
+    lightingMaterial_.setTexture(kTextureUnitGBufferPbr, texPbr_);
 
     if (!lightsUbo_.create()) return false;
     lightsUbo_.bindBase(0);
@@ -320,9 +333,9 @@ void DeferredPipeline::renderGBuffer(const SceneView& scene) {
 
     // --- pass 1: G-buffer ---
     gbuffer_.bind();
-    const gl::GLenum drawBufs[4] = {gl::GL_COLOR_ATTACHMENT0, gl::GL_COLOR_ATTACHMENT1,
-                                    gl::GL_COLOR_ATTACHMENT2, gl::GL_COLOR_ATTACHMENT3};
-    gl::drawBuffers(4, drawBufs);
+    const gl::GLenum drawBufs[5] = {gl::GL_COLOR_ATTACHMENT0, gl::GL_COLOR_ATTACHMENT1, gl::GL_COLOR_ATTACHMENT2,
+                                    gl::GL_COLOR_ATTACHMENT3, gl::GL_COLOR_ATTACHMENT4};
+    gl::drawBuffers(5, drawBufs);
     gl::viewport(0, 0, width_, height_);
     const float clearZero[4] = {0.f, 0.f, 0.f, 0.f};
     const float clearAlbedo[4] = {scene.clearColor.x, scene.clearColor.y, scene.clearColor.z, 1.f};
@@ -330,6 +343,7 @@ void DeferredPipeline::renderGBuffer(const SceneView& scene) {
     gl::clearBufferfv(gl::GL_COLOR, 1, clearZero);
     gl::clearBufferfv(gl::GL_COLOR, 2, clearZero); // position alpha 0 = background
     gl::clearBufferfv(gl::GL_COLOR, 3, clearZero);
+    gl::clearBufferfv(gl::GL_COLOR, 4, clearZero); // pbr
     gl::clear(gl::ClearBit::Depth);
 
     const math::Mat4 viewProj = scene.camera->viewProj(scene.aspect);
@@ -345,7 +359,7 @@ void DeferredPipeline::renderGBuffer(const SceneView& scene) {
 
     // --- MSAA resolve ---
     if (msaa_ > 0) {
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 5; ++i) {
             const gl::GLenum att = gl::GL_COLOR_ATTACHMENT0 + i;
             f.glReadBuffer(att);
             const gl::GLenum dst[1] = {att};
@@ -361,6 +375,7 @@ void DeferredPipeline::renderGBuffer(const SceneView& scene) {
         lightingMaterial_.setTexture(1, texResolveNormal_);
         lightingMaterial_.setTexture(2, texResolvePosition_);
         lightingMaterial_.setTexture(3, texResolveEmissive_);
+        lightingMaterial_.setTexture(kTextureUnitGBufferPbr, texResolvePbr_);
     }
 }
 
@@ -387,6 +402,24 @@ void DeferredPipeline::renderLighting(const SceneView& scene, Framebuffer* targe
     lp.setUniform(lp.uniformLocation("uNormal"), 1);
     lp.setUniform(lp.uniformLocation("uPosition"), 2);
     lp.setUniform(lp.uniformLocation("uEmissive"), 3);
+    lp.setUniform(lp.uniformLocation("uPbr"), kTextureUnitGBufferPbr);
+    // F29: IBL environment (irradiance/prefilter/BRDF LUT on units 7/8/9)
+    lp.setUniform(lp.uniformLocation("uIrradianceMap"), kTextureUnitIrradiance);
+    lp.setUniform(lp.uniformLocation("uPrefilterMap"), kTextureUnitPrefilter);
+    lp.setUniform(lp.uniformLocation("uBrdfLut"), kTextureUnitBrdfLut);
+    if (scene.env && scene.env->irradianceMap().id()) {
+        gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitIrradiance);
+        gl::functions().glBindTexture(gl::GL_TEXTURE_CUBE_MAP, scene.env->irradianceMap().id());
+        gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitPrefilter);
+        gl::functions().glBindTexture(gl::GL_TEXTURE_CUBE_MAP, scene.env->prefilterMap().id());
+        gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitBrdfLut);
+        gl::functions().glBindTexture(gl::GL_TEXTURE_2D, scene.env->brdfLut().id());
+        lp.setUniform(lp.uniformLocation("uEnvEnabled"), 1);
+        lp.setUniform("uPrefilterMaxLod", static_cast<float>(scene.env->prefilterMaxLod()));
+        lp.setUniform("uEnvIntensity", scene.env->intensity);
+    } else {
+        lp.setUniform(lp.uniformLocation("uEnvEnabled"), 0);
+    }
     lp.setUniform("uCamPos", scene.camera->eye());
     lp.setUniform("uAmbient", scene.ambient);
     lp.setUniform(lp.uniformLocation("uLightCount"), n);

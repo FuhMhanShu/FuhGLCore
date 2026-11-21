@@ -49,10 +49,17 @@ inline void bindItem(const Material& defaultMat, const DrawItem& item,
         }
         prog.setUniform("uParallaxScale", preset->parallaxScale);
         prog.setUniform("uParallaxLayers", preset->parallaxLayers);
+        // PBR (F28): metallic/roughness/ao — stored in the deferred G-buffer, uniforms in forward
+        prog.setUniform("uMetallic", preset->metallic);
+        prog.setUniform("uRoughness", preset->roughness);
+        prog.setUniform("uAo", preset->ao);
     } else {
         prog.setUniform("uAlbedo", math::Vec3{1.f, 1.f, 1.f});
         prog.setUniform("uEmissive", math::Vec3{0.f, 0.f, 0.f});
         prog.setUniform("uUseTex", 0);
+        prog.setUniform("uMetallic", 0.f);
+        prog.setUniform("uRoughness", 0.5f);
+        prog.setUniform("uAo", 1.f);
     }
 }
 

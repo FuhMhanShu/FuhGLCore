@@ -12,6 +12,7 @@
 #include "render/shadow.hpp"
 #include "render/material.hpp"
 #include "render/materials.hpp"
+#include "render/environment.hpp"
 #include "render/procedural.hpp"
 #include "render/solid.hpp"
 #include "render/pipeline.hpp"

@@ -19,6 +19,8 @@
 
 namespace fuhgl::render {
 
+class Environment;
+
 /// @brief Default forward renderer: `render(camera, items, w, h)` does everything —
 /// shadow depth pass (if enabled), then the lit forward pass into the own target
 /// (create(w, h)) or the currently bound framebuffer (create()).
@@ -51,6 +53,8 @@ public:
     void setClearColor(const math::Vec3& c) { clearColor_ = c; }
     /// @brief Exponential distance fog applied in the forward pass (density 0 = off).
     void setFog(const math::Vec3& color, float density) { fogColor_ = color; fogDensity_ = density; }
+    /// @brief IBL environment for the ambient term (F29); nullptr = flat ambient only.
+    void setEnvironment(const Environment* e) { env_ = e; }
 
     // --- shadows ---------------------------------------------------------------------
     void enableShadows(int mapSize = 2048);
@@ -84,6 +88,7 @@ private:
     math::Vec3 clearColor_{0.05f, 0.05f, 0.08f};
     math::Vec3 fogColor_{0.05f, 0.05f, 0.08f};
     float fogDensity_ = 0.f;
+    const Environment* env_ = nullptr;
     bool shadows_ = false;
     int shadowSize_ = 2048;
     math::Vec3 shadowCenter_{0.f, 0.f, 0.f};

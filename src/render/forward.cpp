@@ -1,5 +1,6 @@
 #include "fuhgl/render/forward_pipeline.hpp"
 #include "fuhgl/render/shadow.hpp"
+#include "fuhgl/render/environment.hpp"
 #include "lighting_glsl.hpp"
 #include "pipeline_internal.hpp"
 
@@ -43,6 +44,9 @@ uniform int uUseTex;
 uniform sampler2D uMatTex;
 uniform vec3 uFogColor;
 uniform float uFogDensity;
+uniform float uMetallic;   // F28 PBR (per-item uniforms, set from the preset material)
+uniform float uRoughness;
+uniform float uAo;
 )GLSL";
 
 constexpr const char* kForwardFragTail = R"GLSL(
@@ -52,7 +56,7 @@ void main() {
     if (uUseTex == 1) albedo *= texture(uMatTex, vUV).rgb;
     vec3 N = normalize(vNormal);
     vec3 V = normalize(uCamPos - vWorldPos);
-    vec3 lit = shade(albedo, N, vWorldPos, V) + uEmissive;
+    vec3 lit = shade(albedo, uMetallic, uRoughness, uAo, N, vWorldPos, V) + uEmissive;
     if (uFogDensity > 0.0) {
         float d = length(vWorldPos - uCamPos);
         lit = mix(lit, uFogColor, 1.0 - exp(-uFogDensity * d));
@@ -76,7 +80,7 @@ bool ForwardPipeline::create(int width, int height) {
     Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
     if (!vs.compile(kForwardVert)) return false;
     const std::string fragSrc = std::string(kForwardFrag) + kLightingUniforms + kShadowUniforms + kShadowFunc +
-                                kLightingLoop + kForwardFragTail;
+                                kEnvUniforms + kPbrFuncs + kLightingLoop + kForwardFragTail;
     if (!fs.compile(fragSrc.c_str())) return false;
     defaultMaterial_.program().attach(vs);
     defaultMaterial_.program().attach(fs);
@@ -131,6 +135,15 @@ void ForwardPipeline::render(const SceneView& scene) {
     const gl::GLuint shadowTexId = scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id();
     gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMap);
     gl::functions().glBindTexture(gl::GL_TEXTURE_2D, shadowTexId);
+    // F29: bind the IBL textures (units 7/8/9) when an environment is set
+    if (scene.env && scene.env->irradianceMap().id()) {
+        gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitIrradiance);
+        gl::functions().glBindTexture(gl::GL_TEXTURE_CUBE_MAP, scene.env->irradianceMap().id());
+        gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitPrefilter);
+        gl::functions().glBindTexture(gl::GL_TEXTURE_CUBE_MAP, scene.env->prefilterMap().id());
+        gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitBrdfLut);
+        gl::functions().glBindTexture(gl::GL_TEXTURE_2D, scene.env->brdfLut().id());
+    }
     for (const DrawItem& item : scene.items) {
         if (!item.mesh) continue;
         detail::bindItem(defaultMaterial_, item, item.model, viewProj);
@@ -147,6 +160,15 @@ void ForwardPipeline::render(const SceneView& scene) {
         prog.setUniform("uShadowStrength", scene.shadowStrength);
         prog.setUniform("uFogColor", scene.fogColor);
         prog.setUniform("uFogDensity", scene.fogDensity);
+        // F29: IBL environment (sampler uniforms; texture bindings are global state below)
+        prog.setUniform(prog.uniformLocation("uIrradianceMap"), kTextureUnitIrradiance);
+        prog.setUniform(prog.uniformLocation("uPrefilterMap"), kTextureUnitPrefilter);
+        prog.setUniform(prog.uniformLocation("uBrdfLut"), kTextureUnitBrdfLut);
+        prog.setUniform(prog.uniformLocation("uEnvEnabled"), (scene.env && scene.env->irradianceMap().id()) ? 1 : 0);
+        if (scene.env && scene.env->irradianceMap().id()) {
+            prog.setUniform("uPrefilterMaxLod", static_cast<float>(scene.env->prefilterMaxLod()));
+            prog.setUniform("uEnvIntensity", scene.env->intensity);
+        }
         item.mesh->draw();
     }
 

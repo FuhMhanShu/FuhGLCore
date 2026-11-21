@@ -495,6 +495,10 @@ inline constexpr GLenum GL_STENCIL = 0x1802;
 inline constexpr GLenum GL_COLOR_ATTACHMENT1 = 0x8CE1;
 inline constexpr GLenum GL_COLOR_ATTACHMENT2 = 0x8CE2;
 inline constexpr GLenum GL_COLOR_ATTACHMENT3 = 0x8CE3;
+inline constexpr GLenum GL_COLOR_ATTACHMENT4 = 0x8CE4;
+inline constexpr GLenum GL_COLOR_ATTACHMENT5 = 0x8CE5;
+inline constexpr GLenum GL_COLOR_ATTACHMENT6 = 0x8CE6;
+inline constexpr GLenum GL_COLOR_ATTACHMENT7 = 0x8CE7;
 inline constexpr GLenum GL_RGB16F = 0x881B;
 
 // --- DSA (GL 4.5) / buffer storage / queries / formats ---------------------------
@@ -526,6 +530,8 @@ inline constexpr GLenum GL_RENDERBUFFER_SAMPLES = 0x8CAB;
 inline constexpr GLenum GL_ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
 inline constexpr GLenum GL_SAMPLER_BINDING = 0x8919;
 inline constexpr GLenum GL_R32F = 0x822E;
+inline constexpr GLenum GL_RG16F = 0x822F;
+inline constexpr GLenum GL_RG32F = 0x8230;
 inline constexpr GLenum GL_R32UI = 0x8236;
 inline constexpr GLenum GL_RGBA32UI = 0x8D70;
 inline constexpr GLenum GL_RED_INTEGER = 0x8D94;

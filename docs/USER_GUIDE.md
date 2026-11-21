@@ -46,6 +46,8 @@ library gives you safe, modern-C++ handles for GL objects:
 | GL state, batching, debug labels, image ops | `gl::stencilOp()`, `gl::multiDrawElements()`, `gl::objectLabel()`, … | [19](en/tutorials/19-state-batching-and-debug.md) |
 | Lights: directional / point / spot | `render::Light::directional/point/spot()`, `SceneView::lights` | [20](en/tutorials/20-lights.md) |
 | Shadow mapping (depth pass + PCF) | `render::ShadowMap`, `render::lightViewProj()`, `SceneView::shadowMap` | [21](en/tutorials/21-shadows.md) |
+| PBR materials (metallic-roughness, GGX) | `materials::pbr(...)`, `Material::metallic/roughness/ao` | [31](en/tutorials/31-pbr-materials.md) |
+| IBL environment (irradiance / prefilter / BRDF LUT) | `render::Environment`, `SceneView::env` | [32](en/tutorials/32-ibl-environment.md) |
 | Default forward renderer | `render::ForwardRenderer` (lights + auto shadows + fog) | [22](en/tutorials/22-forward-renderer.md) |
 | Default deferred renderer + post FX | `render::DeferredRenderer` (SSAO, HDR, bloom, god rays, parallax/bump, ACES) | [23](en/tutorials/23-deferred-renderer-postfx.md) |
 | Text & FPS overlay (bitmap font HUD) | `render::TextRenderer`, `render::FpsCounter` | [24](en/tutorials/24-text-and-fps-overlay.md) |

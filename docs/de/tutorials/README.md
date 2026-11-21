@@ -38,6 +38,8 @@ Screenshots in `docs/images/` werden headless von der CI (`docs`-Job) gerendert
 | 28 | Instancing: Modellmatrizen pro Instanz, ein Draw-Call pro Mesh | [28-instancing.md](28-instancing.md) |
 | 29 | Showcase-Szene: Landschaft mit DeferredRenderer voller FX (README-Hero-Bilder) | [29-showcase-scene.md](29-showcase-scene.md) |
 | 30 | Quaternionen & geseedetes Noise (Perlin / fBm) in `fuhgl::math` | [30-math-quaternions-noise.md](30-math-quaternions-noise.md) |
+| 31 | PBR-Materialien: Metallic-Roughness (Cook-Torrance GGX) in beiden Pipelines | [31-pbr-materials.md](31-pbr-materials.md) |
+| 32 | IBL: Irradiance- + vorgefilterte Env-Cubemap + BRDF-LUT aus beliebiger Cubemap | [32-ibl-environment.md](32-ibl-environment.md) |
 
 Voraussetzung für alle: Bibliothek bauen und `FuhGLCore::fuhglcore` linken
 (siehe [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

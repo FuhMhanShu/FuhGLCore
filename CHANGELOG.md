@@ -38,6 +38,18 @@ All notable changes to FuhGLCore are documented here. The format follows
   seeded improved-Perlin 2D/3D + fBm (amplitude-normalized). Header-only value types,
   unit tests (`test_quat.cpp`, `test_noise.cpp`), tutorials 30 (en + de).
 
+### Added
+- F28 — PBR (metallic-roughness, Cook-Torrance GGX) in the built-in forward + deferred
+  pipelines: `Material::metallic/roughness/ao`, presets `materials::pbr()` /
+  `pbrTextured()`, 5th G-buffer attachment (unit `kTextureUnitGBufferPbr`), shared GLSL
+  `kPbrFuncs` + new `shade()` in `lighting_glsl.hpp`.
+- F29 — IBL: `render::Environment` (`render/environment.hpp`) bakes an irradiance
+  cubemap, a GGX-prefiltered env cubemap (mip per roughness) and a BRDF LUT from any
+  source cubemap on the CPU (deterministic, GL 3.3-safe); `SceneView::env` /
+  `ForwardRenderer::setEnvironment()`; texture units 7/8/9; `kEnvUniforms` +
+  `pbrAmbient()` in GLSL. Tests: `test_environment.cpp` (unit), `gl_smoke_pbr.cpp`
+  (gl_context); tutorials 31 + 32 (en + de).
+
 ## [0.1.0] — initial release
 
 Zero-dependency C++17 OpenGL wrapper + built-in render layer. Highlights:

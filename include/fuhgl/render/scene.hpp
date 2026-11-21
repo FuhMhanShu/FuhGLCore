@@ -16,6 +16,7 @@ namespace fuhgl::render {
 class Mesh;
 class Material;
 class ShadowMap;
+class Environment;
 
 /// @brief One drawable object: mesh + material + model matrix.
 struct DrawItem {
@@ -46,6 +47,8 @@ struct SceneView {
     math::Vec3 sunDirection{0.f, 1.f, 0.f}; ///< direction TO the sun (from the first directional light)
     math::Vec3 sunColor{0.f, 0.f, 0.f};     ///< 0 = no sun disk (HDR brightness for bloom/rays)
     float sunCos = 0.99995f;                ///< cos of the sun's angular radius
+    // --- IBL (F29): optional environment for image-based ambient lighting -----------
+    const Environment* env = nullptr;       ///< nullptr = flat uAmbient term only
 };
 
 /// @brief Vertex attribute layout for Mesh::setData.

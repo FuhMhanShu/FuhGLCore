@@ -22,6 +22,10 @@ inline constexpr int kTextureUnitShadowMap = 4; ///< shadow depth map (forward +
 inline constexpr int kTextureUnitNormalMap = 4; ///< normal/bump map (deferred G-buffer pass)
 inline constexpr int kTextureUnitHeightMap = 5; ///< parallax height map (deferred G-buffer pass)
 inline constexpr int kTextureUnitSSAO = 5;      ///< SSAO map (deferred lighting pass)
+inline constexpr int kTextureUnitGBufferPbr = 6; ///< metallic/roughness/ao G-buffer texture (deferred lighting pass, F28)
+inline constexpr int kTextureUnitIrradiance = 7; ///< IBL irradiance cubemap (F29)
+inline constexpr int kTextureUnitPrefilter = 8;  ///< IBL prefiltered env cubemap (F29)
+inline constexpr int kTextureUnitBrdfLut = 9;    ///< IBL BRDF LUT (F29)
 
 /// @brief Program + texture bindings. bind() makes the program current and binds
 /// all textures to their units. Pipelines set the standard uniforms
@@ -67,6 +71,11 @@ public:
     const Texture* heightMap = nullptr;     ///< parallax height map, unit kTextureUnitHeightMap (5, deferred G-buffer pass)
     float parallaxScale = 0.03f;            ///< POM depth scale (world units at uv scale 1)
     int parallaxLayers = 12;                ///< POM linear search steps
+    // --- PBR (F28): metallic-roughness model, sampled per pixel from the deferred
+    // G-buffer (kTextureUnitGBufferPbr) or set as uniforms in the forward pass ---
+    float metallic = 0.f;                   ///< 0 = dielectric, 1 = metal
+    float roughness = 0.5f;                ///< 0 = smooth mirror, 1 = fully rough
+    float ao = 1.f;                         ///< ambient occlusion multiplier
     bool builtinShader = false;             ///< true = pipeline built-in shader reads the fields above
 
 private:

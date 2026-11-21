@@ -79,6 +79,7 @@ void ForwardRenderer::render(const Camera& camera, const std::vector<DrawItem>& 
     scene.fogDensity = fogDensity_;
     scene.items = items;
     scene.lights = lights_;
+    scene.env = env_; // F29
 
     // shadow depth pass from the first directional/spot light
     if (shadows_ && shadowMap_.size() > 0) {

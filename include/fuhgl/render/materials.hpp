@@ -76,4 +76,30 @@ inline Material parallax(const Texture& albedoTex, const Texture& heightMap,
     return m;
 }
 
+/// @brief PBR (metallic-roughness) material with a flat albedo (F28). The pipelines
+/// shade it with Cook-Torrance GGX; `metallic` 0 = dielectric, 1 = metal.
+inline Material pbr(const math::Vec3& albedo = {0.8f, 0.8f, 0.8f}, float metallic = 0.f,
+                    float roughness = 0.5f, float ao = 1.f) {
+    Material m;
+    m.builtinShader = true;
+    m.albedo = albedo;
+    m.metallic = metallic;
+    m.roughness = roughness;
+    m.ao = ao;
+    return m;
+}
+
+/// @brief PBR textured material: albedo texture (kTextureUnitAlbedo) modulated by a tint.
+inline Material pbrTextured(const Texture& albedoTex, const math::Vec3& tint = {1.f, 1.f, 1.f},
+                            float metallic = 0.f, float roughness = 0.5f, float ao = 1.f) {
+    Material m;
+    m.builtinShader = true;
+    m.albedo = tint;
+    m.albedoTexture = &albedoTex;
+    m.metallic = metallic;
+    m.roughness = roughness;
+    m.ao = ao;
+    return m;
+}
+
 } // namespace fuhgl::render::materials

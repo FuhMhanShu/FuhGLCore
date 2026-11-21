@@ -79,6 +79,12 @@ fog) — see `examples/showcase` and [tutorial 29](docs/en/tutorials/29-showcase
 - **Shadow mapping** — `render::ShadowMap` (depth-only pass from the light's POV) +
   `lightViewProj()` helpers + PCF sampling in the pipelines via `SceneView::shadowMap` —
   see [tutorial 21](docs/en/tutorials/21-shadows.md).
+- **PBR materials** — metallic-roughness shading (Cook-Torrance GGX) in both pipelines:
+  `materials::pbr(albedo, metallic, roughness, ao)`, stored per pixel in a 5th G-buffer
+  attachment in the deferred path — see [tutorial 31](docs/en/tutorials/31-pbr-materials.md).
+- **IBL (image-based lighting)** — `render::Environment` bakes an irradiance cubemap, a
+  GGX-prefiltered env cubemap and a BRDF LUT from any cubemap (deterministic CPU bake);
+  set `SceneView::env` (or `ForwardRenderer::setEnvironment()`) — see [tutorial 32](docs/en/tutorials/32-ibl-environment.md).
 - **Default forward renderer** — `render::ForwardRenderer`: one `render()` call does the
   shadow depth pass + lit forward pass with lights, PCF shadows and distance fog —
   see [tutorial 22](docs/en/tutorials/22-forward-renderer.md).
