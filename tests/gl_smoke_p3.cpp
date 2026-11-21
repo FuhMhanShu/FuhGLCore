@@ -202,10 +202,24 @@ int main() {
         expect(static_cast<GLuint>(tfBound) == tf.id(), "glBindTransformFeedback (binding getter)");
         prog.use();
         expectClean("prog.use");
+        GLint curProg = -1;
+        f.glGetIntegerv(GL_CURRENT_PROGRAM, &curProg);
+        std::fprintf(stderr, "  [info] current program = %d (prog id %u)\n", curProg, prog.id());
+        GLchar vname[64] = {};
+        GLsizei vlen = 0, vsize = 0;
+        GLenum vtype = 0;
+        f.glGetTransformFeedbackVarying(prog.id(), 0, sizeof(vname), &vlen, &vsize, &vtype, vname);
+        std::fprintf(stderr, "  [info] TF varying 0: name='%s' size=%d type=0x%x\n", vname, vsize, vtype);
         tf.begin(GL_TRIANGLES);
         expectClean("tf.begin (no rasterizer discard)");
         tf.end();
         expectClean("tf.end (immediate)");
+        f.glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0); // default object
+        expectClean("bind default TF");
+        tf.begin(GL_TRIANGLES);
+        expectClean("tf.begin on default object");
+        tf.end();
+        f.glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, tf.id()); // rebind named object
         f.glEnable(GL_RASTERIZER_DISCARD);
         expectClean("enable rasterizer discard");
         tf.begin(GL_TRIANGLES);
