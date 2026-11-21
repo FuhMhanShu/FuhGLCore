@@ -116,25 +116,24 @@ int main() {
     // TAA on: raw jittered frames differ, the first accumulated frame equals the raw
     // frame (uAlpha = 1), and the accumulation stabilizes over frames
     r.taaEnabled = true;
-    renderFrame();
-    const auto raw0 = readHdr("ssr");
-    const auto acc0 = readHdr("taa");
-    renderFrame();
-    const auto raw1 = readHdr("ssr");
-    std::vector<float> accPrev, accLast;
-    for (int i = 0; i < 9; ++i) {
+    std::vector<std::vector<float>> raws, accs;
+    for (int i = 0; i < 11; ++i) {
         renderFrame();
-        accPrev = accLast;
-        accLast = readHdr("taa");
+        raws.push_back(readHdr("ssr"));
+        accs.push_back(readHdr("taa"));
+        if (i > 0)
+            std::fprintf(stderr, "gl_smoke_taa: frame %d dRaw=%.6f dAcc=%.6f\n", i,
+                         meanAbsDiff(raws[i], raws[i - 1]), meanAbsDiff(accs[i], accs[i - 1]));
     }
 
-    const double dRaw = meanAbsDiff(raw0, raw1);
-    const double dFirst = meanAbsDiff(acc0, raw0);
-    const double dAcc = meanAbsDiff(accPrev, accLast);
+    const double dRaw = meanAbsDiff(raws[0], raws[1]);
+    const double dFirst = meanAbsDiff(accs[0], raws[0]);
+    const double dAcc = meanAbsDiff(accs[9], accs[10]);
     std::fprintf(stderr, "gl_smoke_taa: dRaw=%.4f dFirst=%.6f dAcc=%.6f\n", dRaw, dFirst, dAcc);
     expect(dRaw > 0.002, "subpixel jitter changes the raw HDR frame");
     expect(dFirst < 0.001, "first TAA frame resolves with alpha=1 (equals the raw frame)");
     expect(dAcc < dRaw * 0.5, "TAA accumulation stabilizes across frames");
+    expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
     expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
 
     if (g_failures) {

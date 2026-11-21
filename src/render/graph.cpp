@@ -171,6 +171,7 @@ bool RenderGraph::compile() {
             fb.input = in;
             fb.scratch = static_cast<int>(impl_->resources.size()) - 1;
             p.feedbacks.push_back(std::move(fb));
+            std::fprintf(stderr, "RenderGraph: pass '%s' feedback input '%s' -> scratch #%d\n", p.name.c_str(), in.c_str(), fb.scratch);
         }
     }
     // allocate owned resources
