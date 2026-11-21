@@ -42,7 +42,7 @@ fuhgl::render::SceneView makeScene(fuhgl::Camera& cam, float aspect, int w, int 
     scene.height = h;
     scene.aspect = aspect;
     scene.clearColor = {0.05f, 0.06f, 0.09f};
-    scene.ambient = {0.05f, 0.05f, 0.06f};
+    scene.ambient = {0.13f, 0.13f, 0.15f};
 
     meshes.resize(4);
     fuhgl::render::shapes::box(meshes[0], {6.f, 0.25f, 6.f}, {0.55f, 0.55f, 0.58f}); // floor
@@ -57,9 +57,9 @@ fuhgl::render::SceneView makeScene(fuhgl::Camera& cam, float aspect, int w, int 
 
     // directional "sun" (warm), point light (cool) hovering over the red box,
     // spot light aimed at the green pillar
-    scene.lights.push_back(fuhgl::render::Light::directional({-0.4f, -1.f, -0.25f}, {1.f, 0.85f, 0.65f}, 1.6f));
-    scene.lights.push_back(fuhgl::render::Light::point({-2.2f, 2.6f, 0.6f}, {0.45f, 0.65f, 1.f}, 14.f, 9.f));
-    scene.lights.push_back(fuhgl::render::Light::spot({0.3f, 4.5f, 1.6f}, {0.f, -1.f, -0.35f}, {1.f, 0.95f, 0.7f}, 60.f,
+    scene.lights.push_back(fuhgl::render::Light::directional({-0.4f, -1.f, -0.25f}, {1.f, 0.85f, 0.65f}, 1.3f));
+    scene.lights.push_back(fuhgl::render::Light::point({-2.2f, 2.6f, 0.6f}, {0.45f, 0.65f, 1.f}, 11.f, 9.f));
+    scene.lights.push_back(fuhgl::render::Light::spot({0.3f, 4.5f, 1.6f}, {0.f, -1.f, -0.35f}, {1.f, 0.95f, 0.7f}, 32.f,
                                                       fuhgl::math::radians(18.f), fuhgl::math::radians(32.f)));
     return scene;
 }
@@ -88,8 +88,8 @@ int main(int argc, char** argv) {
     }
 
     fuhgl::FirstPersonCamera cam;
-    cam.position = {0.f, 2.4f, 7.5f};
-    cam.pitch = -0.22f;
+    cam.position = {0.f, 2.8f, 8.2f};
+    cam.pitch = -0.26f;
 
     std::vector<fuhgl::render::Mesh> meshes;
     const float aspect = static_cast<float>(args.width) / static_cast<float>(args.height);
