@@ -426,11 +426,7 @@ void DeferredRenderer::drawTAA(RenderGraph::PassContext& ctx) {
         return;
     }
     ctx.bindInput(0, "ssr");
-    ctx.bindInput(1, "taa"); // previous accumulated frame
-    if (frameIndex_ <= 2)
-        std::fprintf(stderr, "drawTAA: frameIndex_=%u alpha=%.3f hist=%u\n", frameIndex_,
-                     frameIndex_ == 0 ? 1.f : taaBlend,
-                     ctx.texture("taa") ? ctx.texture("taa")->id() : 0u);
+    ctx.bindInput(1, "taa"); // previous accumulated frame (scratch copy, see RenderGraph)
     drawFs(taaMat_, [&](Program& p) {
         p.setUniform("uAlpha", frameIndex_ == 0 ? 1.f : taaBlend);
         p.setUniform("uTexel", math::Vec2(1.f / static_cast<float>(width_), 1.f / static_cast<float>(height_)));

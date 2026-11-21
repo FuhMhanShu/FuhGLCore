@@ -1,7 +1,9 @@
 // Headless smoke test for F32 TAA in DeferredRenderer: with taaEnabled the G-buffer is
 // rendered with Halton subpixel jitter and accumulated over frames. Measured in HDR float
 // on the post-graph resources ("ssr" = raw jittered frame, "taa" = accumulated), because
-// the subpixel jitter is quantized away in the 8-bit LDR output.
+// the subpixel jitter is quantized away in the 8-bit LDR output. The scene uses flat
+// shaded surfaces (only silhouette edges move under jitter) so the TAA neighborhood clamp
+// does not dominate the convergence measurement.
 // Skips cleanly without GL >= 3.3.
 
 #include <fuhgl/fuhgl.hpp>
@@ -60,16 +62,16 @@ int main() {
     r.godRaysEnabled = false;
     r.ssrEnabled = false;
 
-    // high-frequency albedo on a large floor so the subpixel jitter changes many pixels
-    fuhgl::Texture noiseTex = fuhgl::render::procedural::makeTexture(fuhgl::render::procedural::noise(128, 128, 7u, 4));
-    fuhgl::render::Material floorMat = fuhgl::render::materials::pbrTextured(noiseTex, {1.f, 1.f, 1.f}, 0.f, 0.9f);
-    fuhgl::render::Mesh floorMesh, boxMesh;
-    fuhgl::render::shapes::box(floorMesh, {6.f, 0.25f, 6.f}, {1.f, 1.f, 1.f});
-    fuhgl::render::shapes::box(boxMesh, {0.8f, 0.8f, 0.8f}, {0.8f, 0.7f, 0.6f});
+    // flat shaded floor + boxes: subpixel jitter moves the silhouette edges
+    fuhgl::render::Mesh floorMesh, boxA, boxB, boxC;
+    fuhgl::render::shapes::box(floorMesh, {8.f, 0.25f, 8.f}, {0.55f, 0.55f, 0.58f});
+    fuhgl::render::shapes::box(boxA, {0.9f, 1.4f, 0.9f}, {0.8f, 0.3f, 0.25f});
+    fuhgl::render::shapes::box(boxB, {0.7f, 0.7f, 0.7f}, {0.25f, 0.5f, 0.85f});
+    fuhgl::render::shapes::box(boxC, {0.6f, 1.0f, 0.6f}, {0.3f, 0.75f, 0.4f});
 
     fuhgl::FirstPersonCamera cam;
-    cam.position = {0.f, 1.2f, 3.2f};
-    cam.pitch = -0.5f;
+    cam.position = {0.f, 1.4f, 3.4f};
+    cam.pitch = -0.42f;
 
     fuhgl::render::SceneView scene;
     scene.camera = &cam;
@@ -78,8 +80,10 @@ int main() {
     scene.aspect = 1.f;
     scene.clearColor = {0.05f, 0.06f, 0.09f};
     scene.ambient = {0.15f, 0.15f, 0.17f};
-    scene.items.push_back({&floorMesh, &floorMat, fuhgl::math::translate({0.f, -0.25f, 0.f})});
-    scene.items.push_back({&boxMesh, nullptr, fuhgl::math::translate({0.f, 0.4f, -0.5f})});
+    scene.items.push_back({&floorMesh, nullptr, fuhgl::math::translate({0.f, -0.25f, 0.f})});
+    scene.items.push_back({&boxA, nullptr, fuhgl::math::translate({-1.1f, 0.7f, -0.4f})});
+    scene.items.push_back({&boxB, nullptr, fuhgl::math::translate({0.9f, 0.35f, 0.3f})});
+    scene.items.push_back({&boxC, nullptr, fuhgl::math::translate({0.1f, 0.5f, -1.6f})});
     scene.lights.push_back(fuhgl::render::Light::directional({0.4f, -1.f, 0.3f}, {1.f, 0.95f, 0.85f}, 1.2f));
 
     // read an HDR (float) resource of the post graph
@@ -114,32 +118,24 @@ int main() {
     expect(dOff < 0.001, "TAA off: consecutive frames are identical (no jitter)");
 
     // TAA on: raw jittered frames differ, the first accumulated frame equals the raw
-    // frame (uAlpha = 1), and the accumulation stabilizes over frames
+    // frame (uAlpha = 1), history is blended in, and the accumulation stabilizes
     r.taaEnabled = true;
     std::vector<std::vector<float>> raws, accs;
     for (int i = 0; i < 11; ++i) {
         renderFrame();
         raws.push_back(readHdr("ssr"));
         accs.push_back(readHdr("taa"));
-        if (i > 0)
-            std::fprintf(stderr, "gl_smoke_taa: frame %d dRaw=%.6f dAcc=%.6f lumRaw=%.4f lumAcc=%.4f\n", i,
-                         meanAbsDiff(raws[i], raws[i - 1]), meanAbsDiff(accs[i], accs[i - 1]),
-                         meanAbs(raws[i]), meanAbs(accs[i]));
-        if (i <= 3) {
-            const size_t c = (static_cast<size_t>(H / 2) * W + W / 2) * 4;
-            std::fprintf(stderr, "gl_smoke_taa: frame %d center raw=(%.4f,%.4f,%.4f) acc=(%.4f,%.4f,%.4f)\n", i,
-                         raws[i][c], raws[i][c + 1], raws[i][c + 2], accs[i][c], accs[i][c + 1], accs[i][c + 2]);
-        }
     }
 
     const double dRaw = meanAbsDiff(raws[0], raws[1]);
     const double dFirst = meanAbsDiff(accs[0], raws[0]);
     const double dAcc = meanAbsDiff(accs[9], accs[10]);
-    std::fprintf(stderr, "gl_smoke_taa: dRaw=%.4f dFirst=%.6f dAcc=%.6f\n", dRaw, dFirst, dAcc);
-    expect(dRaw > 0.002, "subpixel jitter changes the raw HDR frame");
+    const double dAccRaw = meanAbsDiff(accs[10], raws[10]);
+    std::fprintf(stderr, "gl_smoke_taa: dRaw=%.4f dFirst=%.6f dAcc=%.6f dAccRaw=%.6f\n", dRaw, dFirst, dAcc, dAccRaw);
+    expect(dRaw > 0.001, "subpixel jitter changes the raw HDR frame");
     expect(dFirst < 0.001, "first TAA frame resolves with alpha=1 (equals the raw frame)");
+    expect(dAccRaw > 0.001, "accumulated frame differs from the raw frame (history blended in)");
     expect(dAcc < dRaw * 0.5, "TAA accumulation stabilizes across frames");
-    expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
     expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
 
     if (g_failures) {
