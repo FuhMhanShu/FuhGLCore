@@ -78,6 +78,19 @@ struct Functions {
     void (*glUniformMatrix4fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
     void (*glUniformBlockBinding)(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding);
     GLuint (*glGetUniformBlockIndex)(GLuint program, const GLchar* uniformBlockName);
+    void (*glGetUniformiv)(GLuint program, GLint location, GLint* params);
+    void (*glGetUniformfv)(GLuint program, GLint location, GLfloat* params);
+    void (*glGetUniformuiv)(GLuint program, GLint location, GLuint* params);
+    void (*glUniform1ui)(GLint location, GLuint v0);
+    void (*glUniform2ui)(GLint location, GLuint v0, GLuint v1);
+    void (*glUniform3ui)(GLint location, GLuint v0, GLuint v1, GLuint v2);
+    void (*glUniform4ui)(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
+    void (*glUniform1uiv)(GLint location, GLsizei count, const GLuint* value);
+    void (*glUniform2uiv)(GLint location, GLsizei count, const GLuint* value);
+    void (*glUniform3uiv)(GLint location, GLsizei count, const GLuint* value);
+    void (*glUniform4uiv)(GLint location, GLsizei count, const GLuint* value);
+    GLuint (*glGetShaderStorageBlockIndex)(GLuint program, const GLchar* storageBlockName);
+    void (*glShaderStorageBlockBinding)(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding);
     // buffers
     void (*glGenBuffers)(GLsizei n, GLuint* buffers);
     void (*glBindBuffer)(GLenum target, GLuint buffer);
@@ -85,7 +98,15 @@ struct Functions {
     void (*glBufferSubData)(GLenum target, GLintptr offset, GLsizeiptr size, const void* data);
     void (*glDeleteBuffers)(GLsizei n, const GLuint* buffers);
     void* (*glMapBuffer)(GLenum target, GLenum access);
+    void* (*glMapBufferRange)(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
     GLboolean (*glUnmapBuffer)(GLenum target);
+    void (*glFlushMappedBufferRange)(GLenum target, GLintptr offset, GLsizeiptr length);
+    void (*glCopyBufferSubData)(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+    void (*glGetBufferSubData)(GLenum target, GLintptr offset, GLsizeiptr size, void* data);
+    void (*glGetBufferParameteriv)(GLenum target, GLenum pname, GLint* params);
+    void (*glGetBufferParameteri64v)(GLenum target, GLenum pname, GLint64* params);
+    void (*glInvalidateBufferData)(GLuint buffer);
+    void (*glInvalidateBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr length);
     void (*glBindBufferBase)(GLenum target, GLuint index, GLuint buffer);
     void (*glBindBufferRange)(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
     // vertex arrays
@@ -95,7 +116,17 @@ struct Functions {
     void (*glEnableVertexAttribArray)(GLuint index);
     void (*glDisableVertexAttribArray)(GLuint index);
     void (*glVertexAttribPointer)(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer);
+    void (*glVertexAttribIPointer)(GLuint index, GLint size, GLenum type, GLsizei stride, const void* pointer);
+    void (*glVertexAttribLPointer)(GLuint index, GLint size, GLenum type, GLsizei stride, const void* pointer);
     void (*glVertexAttribDivisor)(GLuint index, GLuint divisor);
+    // vertex attrib binding (GL 4.3)
+    void (*glBindVertexBuffer)(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+    void (*glBindVertexBuffers)(GLuint first, GLsizei count, const GLuint* buffers, const GLintptr* offsets, const GLsizei* strides);
+    void (*glVertexAttribBinding)(GLuint attribindex, GLuint bindingindex);
+    void (*glVertexAttribFormat)(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
+    void (*glVertexAttribIFormat)(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+    void (*glVertexAttribLFormat)(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+    void (*glVertexBindingDivisor)(GLuint bindingindex, GLuint divisor);
     // textures
     void (*glGenTextures)(GLsizei n, GLuint* textures);
     void (*glBindTexture)(GLenum target, GLuint texture);
@@ -103,6 +134,22 @@ struct Functions {
     void (*glActiveTexture)(GLenum texture);
     void (*glTexImage2D)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels);
     void (*glTexSubImage2D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
+    void (*glTexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* pixels);
+    void (*glCopyTexImage2D)(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
+    void (*glCopyTexSubImage2D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+    void (*glCopyTexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+    void (*glGetTexImage)(GLenum target, GLint level, GLenum format, GLenum type, void* pixels);
+    void (*glGetCompressedTexImage)(GLenum target, GLint level, void* img);
+    void (*glGetTexLevelParameteriv)(GLenum target, GLint level, GLenum pname, GLint* params);
+    void (*glGetTexParameteriv)(GLenum target, GLenum pname, GLint* params);
+    void (*glGetTexParameterfv)(GLenum target, GLenum pname, GLfloat* params);
+    void (*glCompressedTexImage2D)(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void* data);
+    void (*glCompressedTexImage3D)(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void* data);
+    void (*glCompressedTexSubImage2D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void* data);
+    void (*glCompressedTexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void* data);
+    void (*glTexBuffer)(GLenum target, GLenum internalformat, GLuint buffer);
+    void (*glTexBufferRange)(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+    void (*glTextureView)(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers);
     void (*glGenerateMipmap)(GLenum target);
     void (*glTexParameteri)(GLenum target, GLenum pname, GLint param);
     void (*glTexParameterf)(GLenum target, GLenum pname, GLfloat param);
@@ -131,9 +178,12 @@ struct Functions {
     void (*glReadBuffer)(GLenum src);
     void (*glClearBufferfv)(GLenum buffer, GLint drawbuffer, const GLfloat* value);
     void (*glClearBufferiv)(GLenum buffer, GLint drawbuffer, const GLint* value);
-    // compute (GL 4.3)
+    // compute / images (GL 4.2/4.3)
     void (*glDispatchCompute)(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
+    void (*glDispatchComputeIndirect)(GLintptr indirect);
     void (*glMemoryBarrier)(GLbitfield barriers);
+    void (*glBindImageTexture)(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
+    void (*glBindImageTextures)(GLuint first, GLsizei count, const GLuint* textures);
     // queries (GL 3.3)
     void (*glGenQueries)(GLsizei n, GLuint* ids);
     void (*glDeleteQueries)(GLsizei n, const GLuint* ids);

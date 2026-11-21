@@ -39,6 +39,21 @@ void runLoaderTests() {
     }
     CHECK(names.size() == functionNameCount()); // no duplicates
 
+    // F9 entries (buffer/texture/image power-ups) must be in the curated table
+    const char* f9[] = {
+        "glMapBufferRange", "glFlushMappedBufferRange", "glCopyBufferSubData", "glGetBufferSubData",
+        "glGetBufferParameteriv", "glGetBufferParameteri64v", "glInvalidateBufferData", "glInvalidateBufferSubData",
+        "glVertexAttribIPointer", "glVertexAttribLPointer", "glBindVertexBuffer", "glBindVertexBuffers",
+        "glVertexAttribBinding", "glVertexAttribFormat", "glVertexAttribIFormat", "glVertexAttribLFormat",
+        "glVertexBindingDivisor", "glTexSubImage3D", "glCopyTexImage2D", "glCopyTexSubImage2D", "glCopyTexSubImage3D",
+        "glGetTexImage", "glGetCompressedTexImage", "glGetTexLevelParameteriv", "glGetTexParameteriv", "glGetTexParameterfv",
+        "glCompressedTexImage2D", "glCompressedTexImage3D", "glCompressedTexSubImage2D", "glCompressedTexSubImage3D",
+        "glTexBuffer", "glTexBufferRange", "glTextureView", "glBindImageTexture", "glBindImageTextures",
+        "glDispatchComputeIndirect", "glShaderStorageBlockBinding", "glGetShaderStorageBlockIndex",
+        "glGetUniformiv", "glGetUniformfv", "glGetUniformuiv", "glUniform1ui", "glUniform4uiv",
+    };
+    for (const char* fn : f9) CHECK(names.count(fn) == 1);
+
     // procAddress contract: nullptr in -> nullptr out. (We must NOT assert nullptr
     // for unknown names: Mesa's glXGetProcAddress returns no-op stubs for those.)
     CHECK(procAddress(nullptr) == nullptr);

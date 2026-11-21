@@ -31,6 +31,11 @@ no Khronos headers, no vcpkg.
 - **Device info & capabilities** — `gl::queryDeviceInfo()`: GPU vendor/renderer, GL/GLSL
   version, extension list, implementation limits and feature flags (DSA, compute, …),
   plus a printable report (see [tutorial 14](docs/tutorials/14-device-info-and-capabilities.md)).
+- **Buffer/texture power-ups** — `Buffer::mapRange()` streaming, `gl::copyBufferSubData()`,
+  compressed texture upload (`Texture::compressedImage2D()`), texture readback
+  (`gl::getTexImage`), GL 4.3 vertex binding, compute image I/O (`gl::bindImageTexture`,
+  `gl::dispatchComputeIndirect`) — see [tutorials 15](docs/tutorials/15-buffer-streaming-and-copies.md)
+  and [16](docs/tutorials/16-textures-images-and-compute-io.md).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug

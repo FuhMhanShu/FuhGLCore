@@ -117,7 +117,36 @@ inline void clearBufferiv(GLenum buffer, GLint drawbuffer, const GLint* value) {
 
 // --- compute (GL 4.3) ------------------------------------------------------------
 inline void dispatchCompute(GLuint x, GLuint y, GLuint z) { functions().glDispatchCompute(x, y, z); }
+/// @brief Indirect compute dispatch: reads num_groups_x/y/z from the GL_DISPATCH_INDIRECT_BUFFER.
+inline void dispatchComputeIndirect(GLintptr indirect) {
+    if (functions().glDispatchComputeIndirect) functions().glDispatchComputeIndirect(indirect);
+}
 inline void memoryBarrier(GLbitfield barriers) { functions().glMemoryBarrier(barriers); }
+
+/// @brief GPU-side copy between two bound buffer targets (GL_COPY_READ/WRITE_BUFFER).
+inline void copyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) {
+    if (functions().glCopyBufferSubData) functions().glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
+}
+
+/// @brief Reads back a texture level into host memory (bind the texture / use a PIXEL_PACK_BUFFER first).
+inline void getTexImage(GLenum target, GLint level, GLenum format, GLenum type, void* pixels) {
+    if (functions().glGetTexImage) functions().glGetTexImage(target, level, format, type, pixels);
+}
+/// @brief Reads back a compressed texture level (buffer must hold GL_TEXTURE_COMPRESSED_IMAGE_SIZE bytes).
+inline void getCompressedTexImage(GLenum target, GLint level, void* img) {
+    if (functions().glGetCompressedTexImage) functions().glGetCompressedTexImage(target, level, img);
+}
+
+/// @brief Binds a texture level as a compute image (GL 4.2): access = GL_READ_ONLY/WRITE_ONLY/READ_WRITE,
+/// format = sized internal format (e.g. GL_RGBA8). layered=false + layer for array/cube slices.
+inline void bindImageTexture(GLuint unit, GLuint texture, GLint level, bool layered, GLint layer, GLenum access, GLenum format) {
+    if (functions().glBindImageTexture)
+        functions().glBindImageTexture(unit, texture, level, layered ? GL_TRUE : GL_FALSE, layer, access, format);
+}
+/// @brief Binds a range of consecutive image units to textures (GL 4.2+).
+inline void bindImageTextures(GLuint first, GLsizei count, const GLuint* textures) {
+    if (functions().glBindImageTextures) functions().glBindImageTextures(first, count, textures);
+}
 
 // --- indirect draws (GL 4.0) ------------------------------------------------------
 inline void drawArraysIndirect(Primitive mode, const void* indirect) {

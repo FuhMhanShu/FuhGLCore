@@ -35,6 +35,7 @@ APIs). It provides:
 | F6 | Math module | `fuhgl::math`: `Vec2/Vec3/Vec4`, `Mat3/Mat4` (column-major, `data()` compatible with `glUniformMatrix*fv`), dot/cross/normalize/lerp, mat mul/transpose/inverse/determinant, `translate/rotate/scale`, `perspective`, `ortho`, `lookAt`, angle helpers; `constexpr`/`noexcept` where possible; header-only |
 | F7 | Camera controllers | common base `Camera` (`view()`, `projection(aspect)`, `update(dt)`); `FirstPersonCamera` (yaw/pitch, WASD + mouse look, no roll), `FreeCamera` (6-DOF, roll via Q/E), `IsometricCamera` (orthographic, fixed 45°/≈35.264° angles, pan + zoom); input via `Window` events (`attach(window)`) |
 | F8 | Device info & capabilities | `gl::DeviceInfo` + `gl::queryDeviceInfo()` after `init()`: GPU strings (vendor/renderer/GL version/GLSL), parsed `Version`, core-profile flag, full extension list (`gl::extensions()` / `hasExtension()`), curated `Limits` (textures 2D/3D/cube/array, renderbuffer, viewport, attribs, uniforms, texture units, MRT draw buffers/color attachments, MSAA samples, UBO/SSBO bindings+sizes, compute work-group limits, element counts, aniso), `Features` flags (DSA, compute, debug output, anisotropic filtering, SSBO), human-readable `report()`; value types (no PIMPL — no GL handles) |
+| F9 | Buffer/texture power-ups + image binding (P1 subset, see §7) | `Buffer`: `mapRange()`/`flushMappedRange()`/`unmap()`, `invalidateData()/invalidateSubData()`, `getSubData()`, parameter query; free `gl::copyBufferSubData(...)`; `VertexArray`: `setAttribI/L()` (integer/64-bit attribs) + GL 4.3 `bindVertexBuffer(s)`/`setAttribFormat(I/L)/Binding/BindingDivisor`; `Texture`: `setSubImage3D`, `copyTexImage2D`, `copyTexSubImage2D/3D`, `compressedImage2D/3D`, `compressedSubImage2D/3D`, `texBuffer(Range)`, `textureView()`, parameter getters, free `gl::getTexImage`/`gl::getCompressedTexImage`; compute/images: `gl::bindImageTexture(s)`, `gl::dispatchComputeIndirect`, `Program::shaderStorageBlockBinding()`/`uniform*uiv`/`getUniform*`; new loader entries + constants |
 
 ## 4. Non-functional requirements
 
@@ -63,6 +64,73 @@ APIs). It provides:
   functions up to 4.6 are loaded opportunistically; DSA (4.5) usable via
   `procAddress` when present.
 - Platforms: Windows (WGL), Linux (X11/GLX), macOS (Cocoa). Linux v1: X11 only.
+
+## 7. Backlog / TODO — GL coverage gaps (from coverage analysis, 2026-11-21)
+
+Covered today: 115 core functions in the curated loader table + 23 DSA entries
+(GL 4.5) + runtime `procAddress` for a few platform/legacy entries. Below: the
+GL core functions **not** covered yet that are worth implementing, grouped by
+priority. F9 (in progress) covers the buffer/texture/image-binding part of P1.
+
+### P1 — high value, low effort
+- **Buffers**: `glMapBufferRange`, `glFlushMappedBufferRange`, `glCopyBufferSubData`,
+  `glGetBufferSubData`, `glGetBufferParameteriv/i64v`, `glInvalidateBufferData`,
+  `glInvalidateBufferSubData` → F9
+- **Vertex attribs/binding**: `glVertexAttribIPointer`, `glVertexAttribLPointer`,
+  GL 4.3 `glBindVertexBuffer(s)`, `glVertexAttribBinding/Format/IFormat/LFormat`,
+  `glVertexBindingDivisor` → F9
+- **Textures**: `glTexSubImage3D`, `glCopyTexImage2D`, `glCopyTexSubImage2D/3D`,
+  `glGetTexImage`, `glGetTexLevelParameteriv`, `glGetTexParameter*`,
+  `glCompressedTexImage2D/3D`, `glCompressedTexSubImage2D/3D`, `glGetCompressedTexImage`,
+  `glTexBuffer(Range)` → F9
+- **Compute/images**: `glBindImageTexture(s)`, `glDispatchComputeIndirect`,
+  `glShaderStorageBlockBinding`, `glGetShaderStorageBlockIndex` → F9
+- **Framebuffers**: `glDrawBuffer`, `glFramebufferTexture(Layer)`, `glClearBufferfi/uiv`,
+  `glInvalidateFramebuffer/SubFramebuffer`, `glGetFramebufferAttachmentParameteriv` — TODO
+- **Blending/stencil**: `glBlendEquation(Separate)`, `glBlendFuncSeparate`, `glBlendColor`,
+  `glLogicOp`, `glStencilFunc/Op/Mask(Separate)` — TODO
+- **Rasterizer**: `glPolygonMode/Offset`, `glLineWidth`, `glPointSize`, `glSampleCoverage`,
+  `glSampleMaski`, `glMinSampleShading`, `glDepthRange(f/Arrayv)`, `glViewportArrayv/Indexedf`,
+  `glScissorArrayv/Indexed`, `glProvokingVertex`, `glPrimitiveRestartIndex`, `glHint` — TODO
+- **Draw**: `glDrawRangeElements`, `glMultiDrawArrays/Elements(+Indirect)`,
+  `glMultiDrawElementsBaseVertex`, `glDrawElementsInstancedBaseVertex(BaseInstance)`,
+  `glDrawArraysInstancedBaseInstance`, `glPatchParameteri/fv` + `GL_PATCHES` — TODO
+- **Uniforms/reflection**: `glGetUniformiv/fv/uiv`, `glUniform1ui..4ui(v)`,
+  `glGetActiveUniform`, `glGetActiveUniformBlockiv`, `glGetProgramResource*`,
+  `glValidateProgram`, `glProgramParameteri` — TODO
+- **Debug**: `glDebugMessageControl/Insert`, `glGetDebugMessageLog`, `glPush/PopDebugGroup`,
+  `glObjectLabel/glGetObjectLabel` — TODO
+- **Queries/sync/getters**: `glGetQueryiv`, `glBegin/EndQueryIndexed`, `glWaitSync`,
+  `glGetSynciv`, `glGetBooleanv/i_v`, `glIsEnabled`, `glIsBuffer/Texture/...` — TODO
+- **Formats**: `glGetInternalformativ/i64v` — TODO
+- **Images 4.3/4.4**: `glCopyImageSubData`, `glTextureView`, `glClearTexImage/SubImage` — TODO
+
+### P2 — complete the DSA table (GL 4.5, mechanical via FUHGL_DSA macro)
+`glNamedBufferStorage`, `glMapNamedBuffer(Range)`, `glUnmapNamedBuffer`,
+`glFlushMappedNamedBufferRange`, `glCopyNamedBufferSubData`, `glClearNamedBufferSubData`,
+`glInvalidateNamedBufferData/SubData`, `glGetNamedBufferParameteriv/i64v`,
+`glGetNamedBufferSubData`, `glCreateTransformFeedbacks`, `glNamedFramebufferDrawBuffer(s)`,
+`glNamedFramebufferReadBuffer`, `glClearNamedFramebuffer*`, `glNamedFramebufferTextureLayer`,
+`glNamedRenderbufferStorageMultisample`, `glGetNamedRenderbufferParameteriv`,
+`glTextureParameteri/f/fv`, `glTextureSubImage3D`, `glCompressedTextureSubImage2D/3D`,
+`glCopyTextureSubImage2D/3D`, `glGenerateTextureMipmap`, `glTextureStorage2DMultisample/3DMultisample`,
+`glGetTextureImage`, `glGetTextureLevelParameteriv`, `glGetCompressedTextureImage`,
+`glVertexArrayAttribBinding/IFormat/LFormat`, `glVertexArrayBindingDivisor`, `glGetVertexArray*`,
+`glSamplerParameterf/fv`, `glBindSamplers`, `glCreateQueries`, `glBindImageTexture`,
+`glTextureBuffer(Range)`, `glClearTexImage/SubImage` — TODO
+
+### P3 — larger subsystems
+- Program pipelines / separable programs (4.1): `glCreateProgramPipelines`,
+  `glBindProgramPipeline`, `glUseProgramStages`, `glActiveShaderProgram`, `glProgramUniform*`,
+  `glCreateShaderProgramv` — TODO
+- Transform feedback: `glBindTransformFeedback`, `glBegin/End/Pause/ResumeTransformFeedback`,
+  `glDrawTransformFeedback(Stream)`, `glTransformFeedbackVaryings` — TODO
+- Tessellation: `GL_PATCHES` primitive + `glPatchParameteri/fv` (shader stages covered) — TODO
+- Shader cache: `glGetProgramBinary`, `glProgramBinary`, `glShaderBinary`,
+  `glReleaseShaderCompiler`, `glGetShaderPrecisionFormat` — TODO
+- Shader subroutines (4.0): `glGetSubroutineUniformLocation`, `glUniformSubroutinesuiv`, ... — TODO (low value)
+- GL 4.6: `glMultiDrawArraysIndirectCount`, `glMultiDrawElementsIndirectCount`,
+  `glPolygonOffsetClamp`, `glSpecializeShader` — TODO
 
 ## 6. Feasibility assessment
 
