@@ -53,6 +53,8 @@ public:
     const Texture& texEmissive() const { return msaa_ > 0 ? texResolveEmissive_ : texEmissive_; }
     /// @brief Default G-buffer material for items with material == nullptr.
     Material& defaultMaterial() { return defaultMaterial_; }
+    /// @brief Fullscreen lighting-pass material (debug/introspection).
+    Material& lightingMaterial() { return lightingMaterial_; }
     /// @brief Light UBO (debug/introspection).
     const UniformBuffer& lightsUbo() const { return lightsUbo_; }
 

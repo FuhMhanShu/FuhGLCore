@@ -172,6 +172,17 @@ int main() {
         const size_t hp = (static_cast<size_t>(sy) * W + sx) * 4;
         std::fprintf(stderr, "gl_smoke_deferred_fx: hdr sunPx=(%.2f,%.2f,%.2f) maxR5x5=%d at (%d,%d)\n",
                      hdr[hp], hdr[hp + 1], hdr[hp + 2], maxR, argx, argy);
+        // read back the lighting program's sun uniforms
+        fuhgl::Program& lp = renderer.pipeline().lightingMaterial().program();
+        float v3[3] = {0, 0, 0}, v1 = 0;
+        fuhgl::gl::functions().glGetUniformfv(lp.id(), lp.uniformLocation("uSunColor"), v3);
+        fuhgl::gl::functions().glGetUniformfv(lp.id(), lp.uniformLocation("uSunDir"), v3);
+        std::fprintf(stderr, "gl_smoke_deferred_fx: uSunDir loc=%d val=(%.3f,%.3f,%.3f)\n",
+                     lp.uniformLocation("uSunDir"), v3[0], v3[1], v3[2]);
+        fuhgl::gl::functions().glGetUniformfv(lp.id(), lp.uniformLocation("uSunColor"), v3);
+        fuhgl::gl::functions().glGetUniformf(lp.id(), lp.uniformLocation("uSunCos"), &v1);
+        std::fprintf(stderr, "gl_smoke_deferred_fx: uSunColor loc=%d val=(%.3f,%.3f,%.3f) uSunCos=%.6f\n",
+                     lp.uniformLocation("uSunColor"), v3[0], v3[1], v3[2], v1);
     }
     expect(sumOn > sumOff + 150, "god rays add light toward the sun");
 
