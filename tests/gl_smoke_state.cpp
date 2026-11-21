@@ -364,7 +364,7 @@ int main() {
         a.bind();
         a.texStorage2D(1, fuhgl::gl::GL_RGBA8, 4, 4);
         const unsigned char red[4] = {255, 0, 0, 255};
-        a.setImage2D(0, fuhgl::gl::GL_RGBA8, 1, 1, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, red);
+        a.setSubImage2D(0, 0, 0, 1, 1, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, red);
         b.bind();
         b.texStorage2D(1, fuhgl::gl::GL_RGBA8, 4, 4);
         fuhgl::gl::copyImageSubData(a.id(), fuhgl::gl::GL_TEXTURE_2D, 0, 0, 0, 0,
