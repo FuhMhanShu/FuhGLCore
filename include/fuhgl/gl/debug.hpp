@@ -70,9 +70,9 @@ inline std::string getObjectLabel(ObjectType type, GLuint name) {
     GLsizei len = 0;
     functions().glGetObjectLabel(static_cast<GLenum>(type), name, 0, &len, nullptr);
     if (len <= 0) return {};
-    std::string out(static_cast<size_t>(len), '\0');
-    functions().glGetObjectLabel(static_cast<GLenum>(type), name, len, &len, out.data());
-    out.resize(static_cast<size_t>(len));
+    std::string out(static_cast<size_t>(len) + 1, '\0');
+    functions().glGetObjectLabel(static_cast<GLenum>(type), name, static_cast<GLsizei>(out.size()), &len, out.data());
+    out.resize(std::char_traits<char>::length(out.c_str()));
     return out;
 }
 inline void objectPtrLabel(const void* ptr, const char* label) {

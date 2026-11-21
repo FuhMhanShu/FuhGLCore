@@ -76,8 +76,14 @@ int main() {
     fbo.create();
     expect(fuhgl::gl::isBuffer(buf.id()), "isBuffer(vbo)");
     expect(fuhgl::gl::isTexture(tex.id()), "isTexture");
-    expect(fuhgl::gl::isVertexArray(vao.id()), "isVertexArray");
-    expect(fuhgl::gl::isFramebuffer(fbo.id()), "isFramebuffer");
+    if (fuhgl::gl::functions().glIsVertexArray)
+        expect(fuhgl::gl::isVertexArray(vao.id()), "isVertexArray");
+    else
+        std::fprintf(stderr, "  [skip] glIsVertexArray not exported by this GL library\n");
+    if (fuhgl::gl::functions().glIsFramebuffer)
+        expect(fuhgl::gl::isFramebuffer(fbo.id()), "isFramebuffer");
+    else
+        std::fprintf(stderr, "  [skip] glIsFramebuffer not exported by this GL library\n");
     expect(!fuhgl::gl::isBuffer(424242u), "isBuffer(bogus) == false");
     fuhgl::gl::enable(fuhgl::gl::Cap::DepthTest);
     expect(fuhgl::gl::isEnabled(fuhgl::gl::Cap::DepthTest), "isEnabled(DepthTest) after enable");
@@ -87,8 +93,14 @@ int main() {
     fuhgl::gl::enable(fuhgl::gl::Cap::ScissorTest);
     expect(fuhgl::gl::getBoolean(fuhgl::gl::GL_SCISSOR_TEST), "getBoolean(GL_SCISSOR_TEST) == true");
     fuhgl::gl::disable(fuhgl::gl::Cap::ScissorTest);
-    expect(fuhgl::gl::getIntegeri(fuhgl::gl::GL_VIEWPORT, 2) > 0 || true, "getIntegeri callable"); // viewport w
-    expect(fuhgl::gl::getIntegeri(fuhgl::gl::GL_MAX_TEXTURE_SIZE, 0) >= 1024, "getIntegeri(GL_MAX_TEXTURE_SIZE)");
+    if (fuhgl::gl::functions().glGetIntegeri_v && fuhgl::gl::version().atLeast(4, 1)) {
+        GLint vp[4] = {};
+        fuhgl::gl::functions().glGetIntegeri_v(fuhgl::gl::GL_VIEWPORT, 0, vp);
+        expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "getIntegeri_v(GL_VIEWPORT,0) legal");
+    } else {
+        std::fprintf(stderr, "  [skip] glGetIntegeri_v (needs GL 4.1)\n");
+    }
+    while (fuhgl::gl::lastError() != fuhgl::gl::Error::NoError) {}
 
     // --- FBO: color + depth-stencil, attachment params, layer attach, invalidate ---
     fuhgl::Texture colorTex(fuhgl::Texture::Target::Tex2D);
@@ -284,7 +296,8 @@ int main() {
         expect(left[1] > 200 && right[1] > 200, "multiDrawElements drew both triangles (left+right green)");
 
         fuhgl::gl::clear(fuhgl::gl::ClearBit::Color);
-        fuhgl::gl::drawRangeElements(fuhgl::gl::Primitive::Triangles, 3, 5, 3, fuhgl::gl::GL_UNSIGNED_INT, nullptr);
+        fuhgl::gl::drawRangeElements(fuhgl::gl::Primitive::Triangles, 3, 5, 3, fuhgl::gl::GL_UNSIGNED_INT,
+                                     reinterpret_cast<const void*>(3 * sizeof(unsigned int)));
         unsigned char left2[4] = {}, right2[4] = {};
         fuhgl::gl::readPixels(16, 32, 1, 1, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, left2);
         fuhgl::gl::readPixels(48, 32, 1, 1, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, right2);
@@ -334,7 +347,7 @@ int main() {
     }
 
     // --- internal formats + image ops (GL 4.3/4.4) ----------------------------------------------
-    if (fuhgl::gl::functions().glGetInternalformativ) {
+    if (fuhgl::gl::functions().glGetInternalformativ && fuhgl::gl::version().atLeast(4, 3)) {
         expect(fuhgl::gl::getInternalformati(fuhgl::gl::GL_TEXTURE_2D, fuhgl::gl::GL_RGBA8, fuhgl::gl::GL_INTERNALFORMAT_SUPPORTED) == 1,
                "internalformativ: RGBA8 supported");
         expect(fuhgl::gl::getInternalformati(fuhgl::gl::GL_TEXTURE_2D, fuhgl::gl::GL_RGBA8, fuhgl::gl::GL_INTERNALFORMAT_RED_SIZE) == 8,

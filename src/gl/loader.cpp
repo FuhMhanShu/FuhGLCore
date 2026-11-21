@@ -52,7 +52,8 @@ void* openGlLibrary() {
 
 void* lookupProc(const char* name) {
     if (!g_lib) return nullptr;
-    return dlsym(g_lib, name);
+    if (void* p = dlsym(g_lib, name)) return p;
+    return dlsym(RTLD_DEFAULT, name); // symbols re-exported by other loaded GL libs
 }
 
 #else // Linux / other Unix: GLX via libGL
@@ -71,7 +72,8 @@ void* lookupProc(const char* name) {
     if (auto glXGetProcAddress = reinterpret_cast<GlxGetProc>(dlsym(g_lib, "glXGetProcAddress"))) {
         if (void* p = glXGetProcAddress(reinterpret_cast<const unsigned char*>(name))) return p;
     }
-    return dlsym(g_lib, name); // GL 1.0/1.1 entry points
+    if (void* p = dlsym(g_lib, name)) return p; // GL 1.0/1.1 entry points
+    return dlsym(RTLD_DEFAULT, name); // e.g. libGLdispatch/libEGL loaded globally (EGL-only setups)
 }
 
 #endif
