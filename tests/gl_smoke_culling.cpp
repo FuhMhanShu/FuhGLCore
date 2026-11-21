@@ -57,17 +57,26 @@ int main() {
 
     const int W = 128, H = 128;
 
+    const auto v = fuhgl::gl::version();
+    std::fprintf(stderr, "gl_smoke_culling: GL %d.%d\n", v.major, v.minor);
+    auto errNow = [&](const char* what) {
+        std::fprintf(stderr, "gl_smoke_culling: err after %s = 0x%x\n", what, static_cast<unsigned>(fuhgl::gl::lastError()));
+    };
+
     fuhgl::render::Mesh boxMesh;
     fuhgl::render::shapes::box(boxMesh, {0.3f, 0.3f, 0.3f}, {1.f, 1.f, 1.f});
     expect(boxMesh.boundingSphere().w > 0.4f && boxMesh.boundingSphere().w < 0.6f,
            "mesh bounding sphere of a 0.6 box has radius ~0.52");
+    errNow("mesh");
 
     fuhgl::render::GpuCuller culler;
     if (!culler.create(1024)) {
         std::fprintf(stderr, "gl_smoke_culling: culler create failed\n");
         return 1;
     }
+    errNow("culler.create");
     culler.setMesh(boxMesh);
+    errNow("setMesh");
 
     // 500 instances in front (z < 0), 500 behind the camera (z > 0)
     std::vector<fuhgl::math::Mat4> models;
@@ -81,6 +90,7 @@ int main() {
     for (int i = 0; i < 500; ++i)
         models.push_back(fuhgl::math::translate({0.f, 0.f, 2.f + 4.f * i / 500.f}));
     culler.setInstances(models.data(), static_cast<int>(models.size()));
+    errNow("setInstances");
     expect(culler.instanceCount() == 1000, "1000 instances uploaded");
 
     fuhgl::Shader vs(fuhgl::Shader::Type::Vertex), fs(fuhgl::Shader::Type::Fragment);
@@ -107,6 +117,7 @@ int main() {
     fbo.setSize(W, H);
     fbo.bind();
     fbo.attachTexture2D(0, colorTex);
+    errNow("fbo");
 
     fuhgl::FirstPersonCamera cam;
     cam.position = {0.f, 0.f, 0.f};
