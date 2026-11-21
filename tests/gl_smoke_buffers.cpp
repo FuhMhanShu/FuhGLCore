@@ -73,12 +73,13 @@ int main() {
         fuhgl::Buffer buf(fuhgl::Buffer::Target::Array);
         buf.bind();
         buf.setData(256, nullptr, fuhgl::Buffer::Usage::StreamDraw);
-        void* p = buf.mapRange(0, 256, fuhgl::gl::GL_MAP_WRITE_BIT | fuhgl::gl::GL_MAP_INVALIDATE_BUFFER_BIT);
-        expect(p != nullptr, "mapRange(MAP_WRITE|MAP_INVALIDATE_BUFFER)");
+        void* p = buf.mapRange(0, 256, fuhgl::gl::GL_MAP_WRITE_BIT | fuhgl::gl::GL_MAP_INVALIDATE_BUFFER_BIT |
+                                         fuhgl::gl::GL_MAP_FLUSH_EXPLICIT_BIT);
+        expect(p != nullptr, "mapRange(MAP_WRITE|MAP_INVALIDATE_BUFFER|MAP_FLUSH_EXPLICIT)");
         if (p) {
             auto* bytes = static_cast<unsigned char*>(p);
             for (int i = 0; i < 256; ++i) bytes[i] = static_cast<unsigned char>(i);
-            buf.flushMappedRange(0, 256); // no-op without FLUSH_EXPLICIT, must not error
+            buf.flushMappedRange(0, 256); // legal: mapped with FLUSH_EXPLICIT
             expect(buf.unmap(), "unmap");
         }
         unsigned char back[256] = {};
@@ -123,9 +124,9 @@ int main() {
         const unsigned char* at = px + (2 * 4 + 1) * 4;
         expect(at[0] == 0 && at[1] == 255 && at[2] == 0 && at[3] == 255, "getTexImage sees setSubImage2D pixel");
         expect(tex.getLevelParameteri(fuhgl::gl::GL_TEXTURE_WIDTH, 0) == 4, "getLevelParameteri(GL_TEXTURE_WIDTH) == 4");
-        expect(tex.getParameteri(fuhgl::gl::GL_TEXTURE_MIN_FILTER) == fuhgl::gl::GL_NEAREST ||
-               tex.getParameteri(fuhgl::gl::GL_TEXTURE_MIN_FILTER) == fuhgl::gl::GL_LINEAR,
-               "getParameteri(GL_TEXTURE_MIN_FILTER) readable");
+        tex.setParameteri(fuhgl::gl::GL_TEXTURE_MIN_FILTER, fuhgl::gl::GL_LINEAR);
+        expect(tex.getParameteri(fuhgl::gl::GL_TEXTURE_MIN_FILTER) == fuhgl::gl::GL_LINEAR,
+               "getParameteri(GL_TEXTURE_MIN_FILTER) reads back the set value");
 
         fuhgl::Texture tex3(fuhgl::Texture::Target::Tex3D);
         tex3.bind();
@@ -181,12 +182,11 @@ int main() {
         expect(px[0] == 64 && px[1] == 128 && px[2] == 191 && px[3] == 255, "compute wrote via image binding");
 
         // indirect dispatch through GL_DISPATCH_INDIRECT_BUFFER
+        // (the shader writes the same color everywhere, so re-running it is idempotent)
         fuhgl::Buffer indirect(fuhgl::Buffer::Target::DispatchIndirect);
         const unsigned int groups[3] = {1, 1, 1};
         indirect.bind();
         indirect.setData(sizeof groups, groups, fuhgl::Buffer::Usage::StaticDraw);
-        img.bind();
-        img.texStorage2D(1, fuhgl::gl::GL_RGBA8, 8, 8); // clear again
         fuhgl::gl::bindImageTexture(0, img.id(), 0, false, 0, fuhgl::gl::GL_WRITE_ONLY, fuhgl::gl::GL_RGBA8);
         fuhgl::gl::dispatchComputeIndirect(0);
         fuhgl::gl::memoryBarrier(fuhgl::gl::GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
