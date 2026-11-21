@@ -38,12 +38,12 @@ public:
     std::string infoLog() const;
     void getiv(gl::GLenum pname, gl::GLint* params) const;
 
-    // --- program uniforms (apply to the active program of the pipeline) ---
-    void programUniform(gl::GLint location, int v) const;
-    void programUniform(gl::GLint location, float v) const;
-    void programUniform(gl::GLint location, unsigned v) const;
-    void programUniform(gl::GLint location, const math::Vec4& v) const;
-    void programUniform(gl::GLint location, const math::Mat4& v) const;
+    // --- program uniforms: glProgramUniform*(program, ...) targets a separable program ---
+    void programUniform(gl::GLuint program, gl::GLint location, int v) const;
+    void programUniform(gl::GLuint program, gl::GLint location, float v) const;
+    void programUniform(gl::GLuint program, gl::GLint location, unsigned v) const;
+    void programUniform(gl::GLuint program, gl::GLint location, const math::Vec4& v) const;
+    void programUniform(gl::GLuint program, gl::GLint location, const math::Mat4& v) const;
 
     /// @brief Compiles+links a single-stage separable program in one call (glCreateShaderProgramv, GL 4.1).
     /// @return program id (0 on failure).

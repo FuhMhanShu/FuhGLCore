@@ -70,21 +70,21 @@ void ProgramPipeline::getiv(gl::GLenum pname, gl::GLint* params) const {
     if (const auto& f = gl::functions(); f.glGetProgramPipelineiv) f.glGetProgramPipelineiv(id_, pname, params);
 }
 
-void ProgramPipeline::programUniform(gl::GLint location, int v) const {
-    if (const auto& f = gl::functions(); f.glProgramUniform1i) f.glProgramUniform1i(id_, location, v);
+void ProgramPipeline::programUniform(gl::GLuint program, gl::GLint location, int v) const {
+    if (const auto& f = gl::functions(); f.glProgramUniform1i) f.glProgramUniform1i(program, location, v);
 }
-void ProgramPipeline::programUniform(gl::GLint location, float v) const {
-    if (const auto& f = gl::functions(); f.glProgramUniform1f) f.glProgramUniform1f(id_, location, v);
+void ProgramPipeline::programUniform(gl::GLuint program, gl::GLint location, float v) const {
+    if (const auto& f = gl::functions(); f.glProgramUniform1f) f.glProgramUniform1f(program, location, v);
 }
-void ProgramPipeline::programUniform(gl::GLint location, unsigned v) const {
-    if (const auto& f = gl::functions(); f.glProgramUniform1ui) f.glProgramUniform1ui(id_, location, v);
+void ProgramPipeline::programUniform(gl::GLuint program, gl::GLint location, unsigned v) const {
+    if (const auto& f = gl::functions(); f.glProgramUniform1ui) f.glProgramUniform1ui(program, location, v);
 }
-void ProgramPipeline::programUniform(gl::GLint location, const math::Vec4& v) const {
-    if (const auto& f = gl::functions(); f.glProgramUniform4f) f.glProgramUniform4f(id_, location, v.x, v.y, v.z, v.w);
+void ProgramPipeline::programUniform(gl::GLuint program, gl::GLint location, const math::Vec4& v) const {
+    if (const auto& f = gl::functions(); f.glProgramUniform4f) f.glProgramUniform4f(program, location, v.x, v.y, v.z, v.w);
 }
-void ProgramPipeline::programUniform(gl::GLint location, const math::Mat4& v) const {
+void ProgramPipeline::programUniform(gl::GLuint program, gl::GLint location, const math::Mat4& v) const {
     if (const auto& f = gl::functions(); f.glProgramUniformMatrix4fv)
-        f.glProgramUniformMatrix4fv(id_, location, 1, gl::GL_FALSE, v.data());
+        f.glProgramUniformMatrix4fv(program, location, 1, gl::GL_FALSE, v.data());
 }
 
 gl::GLuint ProgramPipeline::createShaderProgram(gl::GLenum shaderType, const char* source) {
