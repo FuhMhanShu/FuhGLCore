@@ -50,7 +50,7 @@ void main() {
         if (sp.a < 0.5) continue;
         float sd = -((uView * vec4(sp.rgb, 1.0)).z);      // stored geometry depth
         float pd = -((uView * vec4(s, 1.0)).z);           // sample depth
-        if (sd < pd - 0.01 && abs(sd - fragDepth) < uRadius * 2.0) occ += 1.0;
+        if (sd < pd - 0.02 && abs(sd - fragDepth) < uRadius * 3.0) occ += 1.0;
     }
     FragColor = vec4(vec3(1.0 - occ / float(SAMPLES)), 1.0);
 }
