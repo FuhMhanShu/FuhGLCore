@@ -69,25 +69,32 @@ bool GpuCuller::create(int maxInstances) {
     maxInstances_ = maxInstances;
     instanceCount_ = 0;
 
+    auto err = [](const char* what) {
+        std::fprintf(stderr, "GpuCuller::create: err after %s = 0x%x\n", what, static_cast<unsigned>(gl::lastError()));
+    };
     items_.setData(static_cast<gl::GLsizeiptr>(maxInstances) * sizeof(CullItem), nullptr, Buffer::Usage::DynamicDraw);
     models_.setData(static_cast<gl::GLsizeiptr>(maxInstances) * 64, nullptr, Buffer::Usage::DynamicDraw);
     std::vector<unsigned int> zeros(kCmdBufferBytes / 4, 0u);
     cmd_.setData(kCmdBufferBytes, zeros.data(), Buffer::Usage::DynamicDraw);
+    err("setData");
 
     Shader comp(Shader::Type::Compute);
     if (!comp.compile(kCullComp)) {
         std::fprintf(stderr, "GpuCuller: compute shader: %s\n", comp.infoLog().c_str());
         return false;
     }
+    err("shader compile");
     if (!prog_.create()) return false;
     prog_.attach(comp);
     if (!prog_.link()) {
         std::fprintf(stderr, "GpuCuller: link: %s\n", prog_.infoLog().c_str());
         return false;
     }
+    err("link");
     prog_.bindShaderStorageBlock("Items", 0);
     prog_.bindShaderStorageBlock("Models", 1);
     prog_.bindShaderStorageBlock("Cmd", 2);
+    err("bindShaderStorageBlock");
     ready_ = true;
     return true;
 }
