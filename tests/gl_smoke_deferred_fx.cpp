@@ -5,6 +5,7 @@
 #include <fuhgl/fuhgl.hpp>
 #include <fuhgl/render.hpp>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
@@ -139,13 +140,21 @@ int main() {
     renderer.godRaysEnabled = true;
     // compare total red-channel energy in the top quarter of the frame (toward the sun)
     long sumOn = 0, sumOff = 0;
+    int anyDiff = 0;
     for (int y = H - H / 4; y < H; ++y)
         for (int x = 0; x < W; ++x) {
             const size_t o = (static_cast<size_t>(y) * W + x) * 4;
             sumOn += base[o];
             sumOff += noRays[o];
+            if (base[o] != noRays[o]) ++anyDiff;
         }
-    std::fprintf(stderr, "gl_smoke_deferred_fx: rays top-quarter R sum on=%ld off=%ld\n", sumOn, sumOff);
+    const fuhgl::math::Vec3 sunDir = -fuhgl::math::normalize(fuhgl::math::Vec3{-0.3f, -0.08f, 1.f});
+    const fuhgl::math::Vec2 suv = fuhgl::render::sunScreenUV(cam, sunDir, W, H);
+    const int sx = std::min(W - 1, std::max(0, static_cast<int>(suv.x * W)));
+    const int sy = std::min(H - 1, std::max(0, static_cast<int>(suv.y * H)));
+    const size_t so = (static_cast<size_t>(sy) * W + sx) * 4;
+    std::fprintf(stderr, "gl_smoke_deferred_fx: rays top-quarter R sum on=%ld off=%ld anyDiff=%d sunUV=(%.2f,%.2f) sunPx=(%d,%d,%d)\n",
+                 sumOn, sumOff, anyDiff, suv.x, suv.y, base[so], base[so + 1], base[so + 2]);
     expect(sumOn > sumOff + 150, "god rays add light toward the sun");
 
     const std::vector<unsigned char> noParallax = renderImage(&plainMat);
