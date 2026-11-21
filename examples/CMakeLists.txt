@@ -30,3 +30,6 @@ target_link_libraries(postfx PRIVATE fuhglcore)
 
 add_executable(text text/main.cpp)
 target_link_libraries(text PRIVATE fuhglcore)
+
+add_executable(instancing instancing/main.cpp)
+target_link_libraries(instancing PRIVATE fuhglcore)

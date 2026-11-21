@@ -101,3 +101,8 @@ add_test(NAME gl_smoke_p3 COMMAND fuhgl_gl_smoke_p3)
 add_executable(fuhgl_gl_smoke_reflection gl_smoke_reflection.cpp)
 target_link_libraries(fuhgl_gl_smoke_reflection PRIVATE fuhglcore)
 add_test(NAME gl_smoke_reflection COMMAND fuhgl_gl_smoke_reflection)
+
+# F24 instancing smoke test: one mesh + per-instance matrices, pixel-verified
+add_executable(fuhgl_gl_smoke_instancing gl_smoke_instancing.cpp)
+target_link_libraries(fuhgl_gl_smoke_instancing PRIVATE fuhglcore)
+add_test(NAME gl_smoke_instancing COMMAND fuhgl_gl_smoke_instancing)

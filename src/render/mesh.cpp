@@ -14,7 +14,11 @@ Mesh& Mesh::operator=(Mesh&&) noexcept = default;
 bool Mesh::create() {
     vertexCount_ = 0;
     indexCount_ = 0;
-    return vao_.create();
+    instanceCount_ = 0;
+    const bool ok = vao_.create();
+    vao_.bind();
+    for (gl::GLuint i = 4; i < 8; ++i) vao_.disableAttrib(i); // no instance attribute by default
+    return ok;
 }
 
 void Mesh::setData(const void* data, gl::GLsizeiptr bytes, gl::GLsizei vertexCount,
@@ -49,12 +53,43 @@ void Mesh::setMeshData(const MeshData& data, Buffer::Usage usage) {
         setIndices(data.indices.data(), static_cast<gl::GLsizei>(data.indices.size()), gl::GL_UNSIGNED_INT, usage);
 }
 
+void Mesh::setInstanceData(const math::Mat4* models, gl::GLsizei count, Buffer::Usage usage) {
+    constexpr gl::GLsizei kMat4Bytes = 16 * sizeof(float);
+    instanceVbo_.bind();
+    instanceVbo_.setData(static_cast<gl::GLsizeiptr>(count) * kMat4Bytes, models, usage);
+    vao_.bind();
+    // mat4 attribute = 4 vec4 columns at locations 4..7, one per 16 bytes, divisor 1
+    for (gl::GLuint i = 0; i < 4; ++i) {
+        vao_.setAttrib(4 + i, 4, gl::GL_FLOAT, false, kMat4Bytes, static_cast<gl::GLintptr>(i * 4 * sizeof(float)));
+        vao_.setDivisor(4 + i, 1);
+    }
+    instanceCount_ = count;
+}
+
+void Mesh::updateInstanceData(const math::Mat4* models, gl::GLsizei count) {
+    if (count != instanceCount_) return;
+    instanceVbo_.bind();
+    instanceVbo_.setSubData(0, static_cast<gl::GLsizeiptr>(count) * 16 * sizeof(float), models);
+}
+
+void Mesh::clearInstanceData() {
+    vao_.bind();
+    for (gl::GLuint i = 4; i < 8; ++i) vao_.disableAttrib(i);
+    instanceCount_ = 0;
+}
+
 void Mesh::draw() const {
     vao_.bind();
-    if (indexCount_ > 0)
+    if (instanceCount_ > 0) {
+        if (indexCount_ > 0)
+            gl::drawElementsInstanced(gl::Primitive::Triangles, indexCount_, indexType_, nullptr, instanceCount_);
+        else
+            gl::drawArraysInstanced(gl::Primitive::Triangles, 0, vertexCount_, instanceCount_);
+    } else if (indexCount_ > 0) {
         gl::drawElements(gl::Primitive::Triangles, indexCount_, indexType_, nullptr);
-    else
+    } else {
         gl::drawArrays(gl::Primitive::Triangles, 0, vertexCount_);
+    }
 }
 
 namespace shapes {
