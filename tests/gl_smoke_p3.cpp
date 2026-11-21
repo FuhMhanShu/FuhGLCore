@@ -245,12 +245,11 @@ int main() {
         if (binLen <= 0) {
             std::fprintf(stderr, "  [info] driver reports no program binaries (len=0) — skipping binary round-trip\n");
             expect(true, "GL_PROGRAM_BINARY_LENGTH > 0 (unsupported -> skipped)");
-        } else
-        std::vector<unsigned char> bin(static_cast<size_t>(binLen > 0 ? binLen : 4));
-        GLsizei len = 0;
-        GLenum fmt = 0;
-        f.glGetProgramBinary(prog.id(), static_cast<GLsizei>(bin.size()), &len, &fmt, bin.data());
-        {
+        } else {
+            std::vector<unsigned char> bin(static_cast<size_t>(binLen));
+            GLsizei len = 0;
+            GLenum fmt = 0;
+            f.glGetProgramBinary(prog.id(), static_cast<GLsizei>(bin.size()), &len, &fmt, bin.data());
             expect(len > 0, "glGetProgramBinary returned bytes");
             const GLuint prog2 = f.glCreateProgram();
             f.glProgramBinary(prog2, fmt, bin.data(), len);
