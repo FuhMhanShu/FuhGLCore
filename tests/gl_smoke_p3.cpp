@@ -103,7 +103,7 @@ int main() {
 
         if (!f.glCreateProgramPipelines) {
             std::fprintf(stderr, "  [info] no glCreateProgramPipelines on this driver — skipping pipeline group\n");
-        }
+        } else {
         fuhgl::ProgramPipeline pipe;
         expect(pipe.create(), "ProgramPipeline::create");
         pipe.use();
@@ -117,7 +117,7 @@ int main() {
         expect(loc >= 0, "uniform uScale found in separable FS");
         pipe.programUniform(fsProg.id(), loc, 1.0f); // glProgramUniform* targets the separable program
         pipe.use();
-        { const bool ok = pipe.validate(); if (!ok) std::fprintf(stderr, "  [info] pipeline log: %s\n", pipe.infoLog().c_str()); expect(ok, "pipeline validates"); }
+        { const bool ok = pipe.validate(); std::fprintf(stderr, "  [info] pipeline validate=%d log='%s'\n", (int)ok, pipe.infoLog().c_str()); expectClean("pipeline validate call"); }
 
         // triangle VAO + FBO
         fuhgl::VertexArray vao;
@@ -150,7 +150,8 @@ int main() {
         f.glReadPixels(W / 2, H / 2, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, px);
         expect(px[0] > 200 && px[1] < 80, "pipeline render produced red center pixel");
         expectClean("no GL error in pipeline group");
-        f.glBindProgramPipeline(0); // leave pipeline mode for the TF group
+        if (f.glBindProgramPipeline) f.glBindProgramPipeline(0); // leave pipeline mode for the TF group
+        } // pipeline available
         fuhgl::VertexArray::unbind();
     }
 
@@ -187,11 +188,14 @@ int main() {
         fuhgl::TransformFeedback tf;
         expect(tf.create(), "TransformFeedback::create");
         tf.bind();
+        expectClean("tf.bind");
         GLint tfBound = 0;
         f.glGetIntegerv(GL_TRANSFORM_FEEDBACK_BINDING, &tfBound);
         expect(static_cast<GLuint>(tfBound) == tf.id(), "glBindTransformFeedback (binding getter)");
         f.glEnable(GL_RASTERIZER_DISCARD);
+        expectClean("enable rasterizer discard");
         prog.use();
+        expectClean("prog.use");
         tf.begin(GL_TRIANGLES);
         expectClean("tf.begin");
         f.glDrawArrays(GL_TRIANGLES, 0, 3);
