@@ -5,6 +5,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <vector>
 
 namespace fuhgl::render {
@@ -146,20 +147,17 @@ void GpuCuller::setInstances(const math::Mat4* models, int count) {
 void GpuCuller::cull(const math::Mat4& viewProj) {
     if (!ready_ || instanceCount_ <= 0) return;
     const math::Frustum f = math::Frustum::fromViewProj(viewProj);
-    float planes[24];
-    for (int p = 0; p < 6; ++p) {
-        planes[p * 4 + 0] = f.planes[p].n.x;
-        planes[p * 4 + 1] = f.planes[p].n.y;
-        planes[p * 4 + 2] = f.planes[p].n.z;
-        planes[p * 4 + 3] = f.planes[p].d;
-    }
     // reset instanceCount (cmd[1]) and the atomic counter (cmd[5])
     const unsigned int zero = 0u;
     cmd_.setSubData(4, 4, &zero);
     cmd_.setSubData(kCmdCounterOffset, 4, &zero);
 
     prog_.use();
-    prog_.setUniform("uPlanes", 6, planes);
+    // vec4 array: set each element by name (glUniform1fv would only fill .x)
+    for (int p = 0; p < 6; ++p) {
+        const std::string name = "uPlanes[" + std::to_string(p) + "]";
+        prog_.setUniform(name.c_str(), math::Vec4(f.planes[p].n.x, f.planes[p].n.y, f.planes[p].n.z, f.planes[p].d));
+    }
     prog_.setUniform("uItemCount", static_cast<unsigned int>(instanceCount_));
     items_.bindBase(0);
     models_.bindBase(1);
