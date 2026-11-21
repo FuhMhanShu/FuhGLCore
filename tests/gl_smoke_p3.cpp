@@ -20,6 +20,7 @@ void expect(bool cond, const char* what) {
 }
 
 constexpr const char* kVs = R"GLSL(#version 330 core
+out gl_PerVertex { vec4 gl_Position; };   // required for separate shader objects (SSO)
 layout(location = 0) in vec2 aPos;
 out vec4 vColor;
 void main() {
@@ -29,6 +30,7 @@ void main() {
 )GLSL";
 
 constexpr const char* kVsTf = R"GLSL(#version 330 core
+out gl_PerVertex { vec4 gl_Position; };
 layout(location = 0) in vec2 aPos;
 out vec4 vOut;
 void main() {
@@ -99,6 +101,9 @@ int main() {
         fsProg.attach(fs);
         { const bool ok = fsProg.link(); if (!ok) std::fprintf(stderr, "  [info] FS log: %s\n", fsProg.infoLog().c_str()); expect(ok, "separable FS linked"); }
 
+        if (!f.glCreateProgramPipelines) {
+            std::fprintf(stderr, "  [info] no glCreateProgramPipelines on this driver — skipping pipeline group\n");
+        }
         fuhgl::ProgramPipeline pipe;
         expect(pipe.create(), "ProgramPipeline::create");
         pipe.use();
@@ -111,8 +116,8 @@ int main() {
         const GLint loc = f.glGetUniformLocation ? f.glGetUniformLocation(fsProg.id(), "uScale") : -1;
         expect(loc >= 0, "uniform uScale found in separable FS");
         pipe.programUniform(fsProg.id(), loc, 1.0f); // glProgramUniform* targets the separable program
-        { const bool ok = pipe.validate(); if (!ok) std::fprintf(stderr, "  [info] pipeline log: %s\n", pipe.infoLog().c_str()); expect(ok, "pipeline validates"); }
         pipe.use();
+        { const bool ok = pipe.validate(); if (!ok) std::fprintf(stderr, "  [info] pipeline log: %s\n", pipe.infoLog().c_str()); expect(ok, "pipeline validates"); }
 
         // triangle VAO + FBO
         fuhgl::VertexArray vao;
@@ -166,6 +171,7 @@ int main() {
         capture.bind();
         capture.setData(3 * 16, nullptr, fuhgl::Buffer::Usage::StreamDraw);
         f.glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, capture.id());
+        expectClean("glBindBufferBase TF buffer");
 
         fuhgl::VertexArray vao;
         vao.create();
@@ -187,14 +193,19 @@ int main() {
         f.glEnable(GL_RASTERIZER_DISCARD);
         prog.use();
         tf.begin(GL_TRIANGLES);
+        expectClean("tf.begin");
         f.glDrawArrays(GL_TRIANGLES, 0, 3);
+        expectClean("draw with TF active");
         tf.end();
+        expectClean("tf.end");
         f.glDisable(GL_RASTERIZER_DISCARD);
         GLint written = -1;
         tf.geti_v(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, 0, &written);
+        expectClean("tf.geti_v");
         expect(written == 1, "TF primitives written == 1");
         float out[4] = {};
         f.glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 16, out);
+        expectClean("glGetBufferSubData TF");
         expect(out[0] == -0.5f && out[1] == -0.5f && out[2] == 0.5f && out[3] == 1.0f, "TF captured vertex readback");
         expectClean("no GL error in TF group");
         fuhgl::VertexArray::unbind();
@@ -246,6 +257,7 @@ int main() {
             expect(idxRed != GL_INVALID_INDEX && idxGreen != GL_INVALID_INDEX && idxRed != idxGreen, "glGetSubroutineIndex");
             const GLint loc = f.glGetSubroutineUniformLocation(prog.id(), GL_FRAGMENT_SHADER, "uShade");
             expect(loc >= 0, "glGetSubroutineUniformLocation");
+            prog.use(); // subroutine uniforms apply to the current program (no pipeline bound)
             const GLuint idx[1] = {idxGreen};
             f.glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, idx);
             GLuint back = 0xFFFFFFFFu;
