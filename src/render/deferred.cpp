@@ -128,7 +128,8 @@ void main() {
     vec4 pos = texture(uPosition, vUV);
     if (pos.a < 0.5) {
         // background: sky gradient + HDR sun disk (god-ray/bloom source)
-        vec3 ray = normalize((uInvViewProj * vec4(vUV * 2.0 - 1.0, 1.0, 1.0)).xyz - uCamPos);
+        vec4 fp = uInvViewProj * vec4(vUV * 2.0 - 1.0, 1.0, 1.0); // far-plane point (needs w division!)
+        vec3 ray = normalize(fp.xyz / fp.w - uCamPos);
         vec3 sky = mix(uSkyBottom, uSkyTop, clamp(vUV.y, 0.0, 1.0));
         float s = dot(ray, uSunDir);
         sky += uSunColor * smoothstep(uSunCos, 1.0, s);
