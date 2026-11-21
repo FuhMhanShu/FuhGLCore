@@ -209,6 +209,112 @@ struct Functions {
     void (*glTexStorage3D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
     void (*glTexStorage2DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
     void (*glRenderbufferStorageMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+    // framebuffers (F13)
+    void (*glDrawBuffer)(GLenum buf);
+    void (*glFramebufferTexture)(GLenum target, GLenum attachment, GLuint texture, GLint level);
+    void (*glFramebufferTextureLayer)(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
+    void (*glClearBufferuiv)(GLenum buffer, GLint drawbuffer, const GLuint* value);
+    void (*glClearBufferfi)(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
+    void (*glInvalidateFramebuffer)(GLenum target, GLsizei numAttachments, const GLenum* attachments);
+    void (*glInvalidateSubFramebuffer)(GLenum target, GLsizei numAttachments, const GLenum* attachments, GLint x, GLint y, GLsizei width, GLsizei height);
+    void (*glGetFramebufferAttachmentParameteriv)(GLenum target, GLenum attachment, GLenum pname, GLint* params);
+    // blending / logic op / stencil (F13)
+    void (*glBlendEquation)(GLenum mode);
+    void (*glBlendEquationSeparate)(GLenum modeRGB, GLenum modeAlpha);
+    void (*glBlendFuncSeparate)(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
+    void (*glBlendColor)(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+    void (*glLogicOp)(GLenum opcode);
+    void (*glEnablei)(GLenum target, GLuint index);
+    void (*glDisablei)(GLenum target, GLuint index);
+    GLboolean (*glIsEnabledi)(GLenum target, GLuint index);
+    void (*glBlendEquationi)(GLuint buf, GLenum mode);
+    void (*glBlendEquationSeparatei)(GLuint buf, GLenum modeRGB, GLenum modeAlpha);
+    void (*glBlendFunci)(GLuint buf, GLenum src, GLenum dst);
+    void (*glBlendFuncSeparatei)(GLuint buf, GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
+    void (*glColorMaski)(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a);
+    void (*glStencilFunc)(GLenum func, GLint ref, GLuint mask);
+    void (*glStencilFuncSeparate)(GLenum face, GLenum func, GLint ref, GLuint mask);
+    void (*glStencilOp)(GLenum sfail, GLenum dpfail, GLenum dppass);
+    void (*glStencilOpSeparate)(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
+    void (*glStencilMask)(GLuint mask);
+    void (*glStencilMaskSeparate)(GLenum face, GLuint mask);
+    // rasterizer / viewport / scissor (F13)
+    void (*glPolygonMode)(GLenum face, GLenum mode);
+    void (*glPolygonOffset)(GLfloat factor, GLfloat units);
+    void (*glLineWidth)(GLfloat width);
+    void (*glPointSize)(GLfloat size);
+    void (*glPointParameterf)(GLenum pname, GLfloat param);
+    void (*glPointParameterfv)(GLenum pname, const GLfloat* params);
+    void (*glSampleCoverage)(GLfloat value, GLboolean invert);
+    void (*glSampleMaski)(GLuint maskNumber, GLbitfield mask);
+    void (*glMinSampleShading)(GLfloat value);
+    void (*glDepthRange)(GLdouble n, GLdouble f);
+    void (*glDepthRangef)(GLfloat n, GLfloat f);
+    void (*glDepthRangeArrayv)(GLuint first, GLsizei count, const GLdouble* v);
+    void (*glDepthRangeIndexed)(GLuint index, GLdouble n, GLdouble f);
+    void (*glViewportArrayv)(GLuint first, GLsizei count, const GLfloat* v);
+    void (*glViewportIndexedf)(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h);
+    void (*glScissorArrayv)(GLuint first, GLsizei count, const GLint* v);
+    void (*glScissorIndexed)(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height);
+    void (*glProvokingVertex)(GLenum mode);
+    void (*glPrimitiveRestartIndex)(GLuint index);
+    void (*glHint)(GLenum target, GLenum mode);
+    // patches (tessellation, F13)
+    void (*glPatchParameteri)(GLenum pname, GLint value);
+    void (*glPatchParameterfv)(GLenum pname, const GLfloat* values);
+    // draw batching (F13)
+    void (*glDrawRangeElements)(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void* indices);
+    void (*glDrawElementsBaseVertex)(GLenum mode, GLsizei count, GLenum type, const void* indices, GLint basevertex);
+    void (*glDrawRangeElementsBaseVertex)(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void* indices, GLint basevertex);
+    void (*glDrawElementsInstancedBaseVertex)(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei instancecount, GLint basevertex);
+    void (*glDrawArraysInstancedBaseInstance)(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance);
+    void (*glDrawElementsInstancedBaseInstance)(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei instancecount, GLuint baseinstance);
+    void (*glDrawElementsInstancedBaseVertexBaseInstance)(GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance);
+    void (*glMultiDrawArrays)(GLenum mode, const GLint* first, const GLsizei* count, GLsizei drawcount);
+    void (*glMultiDrawElements)(GLenum mode, const GLsizei* count, GLenum type, const void* const* indices, GLsizei drawcount);
+    void (*glMultiDrawElementsBaseVertex)(GLenum mode, const GLsizei* count, GLenum type, const void* const* indices, GLsizei drawcount, const GLint* basevertex);
+    void (*glMultiDrawArraysIndirect)(GLenum mode, const void* indirect, GLsizei drawcount, GLsizei stride);
+    void (*glMultiDrawElementsIndirect)(GLenum mode, GLenum type, const void* indirect, GLsizei drawcount, GLsizei stride);
+    // queries / sync / generic getters (F13)
+    void (*glGetQueryiv)(GLenum target, GLenum pname, GLint* params);
+    void (*glBeginQueryIndexed)(GLenum target, GLuint index, GLuint id);
+    void (*glEndQueryIndexed)(GLenum target, GLuint index);
+    void (*glWaitSync)(GLsync sync, GLuint flags, GLuint64 timeout);
+    void (*glGetSynciv)(GLsync sync, GLenum pname, GLsizei count, GLsizei* length, GLint* values);
+    void (*glGetBooleanv)(GLenum pname, GLboolean* data);
+    void (*glGetBooleani_v)(GLenum target, GLuint index, GLboolean* data);
+    void (*glGetIntegeri_v)(GLenum target, GLuint index, GLint* data);
+    void (*glGetInteger64i_v)(GLenum target, GLuint index, GLint64* data);
+    GLboolean (*glIsEnabled)(GLenum cap);
+    GLboolean (*glIsBuffer)(GLuint buffer);
+    GLboolean (*glIsTexture)(GLuint texture);
+    GLboolean (*glIsVertexArray)(GLuint array);
+    GLboolean (*glIsFramebuffer)(GLuint framebuffer);
+    GLboolean (*glIsRenderbuffer)(GLuint renderbuffer);
+    GLboolean (*glIsProgram)(GLuint program);
+    GLboolean (*glIsShader)(GLuint shader);
+    GLboolean (*glIsSync)(GLsync sync);
+    GLboolean (*glIsQuery)(GLuint id);
+    GLboolean (*glIsSampler)(GLuint sampler);
+    // debug (F13)
+    void (*glDebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint* ids, GLboolean enabled);
+    void (*glDebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* buf);
+    GLuint (*glGetDebugMessageLog)(GLuint count, GLsizei bufSize, GLenum* sources, GLenum* types, GLuint* ids, GLenum* severities, GLsizei* lengths, GLchar* messageLog);
+    void (*glPushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar* message);
+    void (*glPopDebugGroup)();
+    void (*glObjectLabel)(GLenum identifier, GLuint name, GLsizei length, const GLchar* label);
+    void (*glGetObjectLabel)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei* length, GLchar* label);
+    void (*glObjectPtrLabel)(const void* ptr, GLsizei length, const GLchar* label);
+    void (*glGetObjectPtrLabel)(const void* ptr, GLsizei bufSize, GLsizei* length, GLchar* label);
+    // internal formats / image ops (F13)
+    void (*glGetInternalformativ)(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint* params);
+    void (*glGetInternalformati64v)(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint64* params);
+    void (*glCopyImageSubData)(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ,
+                               GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ,
+                               GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth);
+    void (*glClearTexImage)(GLuint texture, GLint level, GLenum format, GLenum type, const void* data);
+    void (*glClearTexSubImage)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+                              GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* data);
 };
 
 /// @brief Direct State Access entry points (GL 4.5). Filled by init() via procAddress;

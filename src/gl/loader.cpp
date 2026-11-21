@@ -146,6 +146,46 @@ const Entry kEntries[] = {
     FUHGL_ENTRY(glSamplerParameteri), FUHGL_ENTRY(glSamplerParameterf),
     FUHGL_ENTRY(glTexStorage2D), FUHGL_ENTRY(glTexStorage3D), FUHGL_ENTRY(glTexStorage2DMultisample),
     FUHGL_ENTRY(glRenderbufferStorageMultisample),
+    // F13: framebuffers
+    FUHGL_ENTRY(glDrawBuffer), FUHGL_ENTRY(glFramebufferTexture), FUHGL_ENTRY(glFramebufferTextureLayer),
+    FUHGL_ENTRY(glClearBufferuiv), FUHGL_ENTRY(glClearBufferfi),
+    FUHGL_ENTRY(glInvalidateFramebuffer), FUHGL_ENTRY(glInvalidateSubFramebuffer),
+    FUHGL_ENTRY(glGetFramebufferAttachmentParameteriv),
+    // F13: blending / logic / stencil
+    FUHGL_ENTRY(glBlendEquation), FUHGL_ENTRY(glBlendEquationSeparate), FUHGL_ENTRY(glBlendFuncSeparate),
+    FUHGL_ENTRY(glBlendColor), FUHGL_ENTRY(glLogicOp), FUHGL_ENTRY(glEnablei), FUHGL_ENTRY(glDisablei),
+    FUHGL_ENTRY(glIsEnabledi), FUHGL_ENTRY(glBlendEquationi), FUHGL_ENTRY(glBlendEquationSeparatei),
+    FUHGL_ENTRY(glBlendFunci), FUHGL_ENTRY(glBlendFuncSeparatei), FUHGL_ENTRY(glColorMaski),
+    FUHGL_ENTRY(glStencilFunc), FUHGL_ENTRY(glStencilFuncSeparate), FUHGL_ENTRY(glStencilOp),
+    FUHGL_ENTRY(glStencilOpSeparate), FUHGL_ENTRY(glStencilMask), FUHGL_ENTRY(glStencilMaskSeparate),
+    // F13: rasterizer / viewport / scissor
+    FUHGL_ENTRY(glPolygonMode), FUHGL_ENTRY(glPolygonOffset), FUHGL_ENTRY(glLineWidth), FUHGL_ENTRY(glPointSize),
+    FUHGL_ENTRY(glPointParameterf), FUHGL_ENTRY(glPointParameterfv), FUHGL_ENTRY(glSampleCoverage),
+    FUHGL_ENTRY(glSampleMaski), FUHGL_ENTRY(glMinSampleShading), FUHGL_ENTRY(glDepthRange), FUHGL_ENTRY(glDepthRangef),
+    FUHGL_ENTRY(glDepthRangeArrayv), FUHGL_ENTRY(glDepthRangeIndexed), FUHGL_ENTRY(glViewportArrayv),
+    FUHGL_ENTRY(glViewportIndexedf), FUHGL_ENTRY(glScissorArrayv), FUHGL_ENTRY(glScissorIndexed),
+    FUHGL_ENTRY(glProvokingVertex), FUHGL_ENTRY(glPrimitiveRestartIndex), FUHGL_ENTRY(glHint),
+    // F13: patches + draw batching
+    FUHGL_ENTRY(glPatchParameteri), FUHGL_ENTRY(glPatchParameterfv),
+    FUHGL_ENTRY(glDrawRangeElements), FUHGL_ENTRY(glDrawElementsBaseVertex), FUHGL_ENTRY(glDrawRangeElementsBaseVertex),
+    FUHGL_ENTRY(glDrawElementsInstancedBaseVertex), FUHGL_ENTRY(glDrawArraysInstancedBaseInstance),
+    FUHGL_ENTRY(glDrawElementsInstancedBaseInstance), FUHGL_ENTRY(glDrawElementsInstancedBaseVertexBaseInstance),
+    FUHGL_ENTRY(glMultiDrawArrays), FUHGL_ENTRY(glMultiDrawElements), FUHGL_ENTRY(glMultiDrawElementsBaseVertex),
+    FUHGL_ENTRY(glMultiDrawArraysIndirect), FUHGL_ENTRY(glMultiDrawElementsIndirect),
+    // F13: queries / sync / getters
+    FUHGL_ENTRY(glGetQueryiv), FUHGL_ENTRY(glBeginQueryIndexed), FUHGL_ENTRY(glEndQueryIndexed),
+    FUHGL_ENTRY(glWaitSync), FUHGL_ENTRY(glGetSynciv), FUHGL_ENTRY(glGetBooleanv), FUHGL_ENTRY(glGetBooleani_v),
+    FUHGL_ENTRY(glGetIntegeri_v), FUHGL_ENTRY(glGetInteger64i_v),
+    FUHGL_ENTRY(glIsEnabled), FUHGL_ENTRY(glIsBuffer), FUHGL_ENTRY(glIsTexture), FUHGL_ENTRY(glIsVertexArray),
+    FUHGL_ENTRY(glIsFramebuffer), FUHGL_ENTRY(glIsRenderbuffer), FUHGL_ENTRY(glIsProgram), FUHGL_ENTRY(glIsShader),
+    FUHGL_ENTRY(glIsSync), FUHGL_ENTRY(glIsQuery), FUHGL_ENTRY(glIsSampler),
+    // F13: debug
+    FUHGL_ENTRY(glDebugMessageControl), FUHGL_ENTRY(glDebugMessageInsert), FUHGL_ENTRY(glGetDebugMessageLog),
+    FUHGL_ENTRY(glPushDebugGroup), FUHGL_ENTRY(glPopDebugGroup), FUHGL_ENTRY(glObjectLabel),
+    FUHGL_ENTRY(glGetObjectLabel), FUHGL_ENTRY(glObjectPtrLabel), FUHGL_ENTRY(glGetObjectPtrLabel),
+    // F13: internal formats / image ops
+    FUHGL_ENTRY(glGetInternalformativ), FUHGL_ENTRY(glGetInternalformati64v),
+    FUHGL_ENTRY(glCopyImageSubData), FUHGL_ENTRY(glClearTexImage), FUHGL_ENTRY(glClearTexSubImage),
 };
 
 // DSA (GL 4.5) — optional, resolved by name in init().

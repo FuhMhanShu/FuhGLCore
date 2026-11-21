@@ -42,6 +42,10 @@ no Khronos headers, no vcpkg.
   (`makeCube(...) - makeSphere(...)`) mesh analytic bodies via marching tetrahedra —
   see [tutorials 17](docs/tutorials/17-procedural-textures-and-materials.md) and
   [18](docs/tutorials/18-solids-and-csg.md).
+- **Full GL state & batching** — blending/stencil, polygon mode, viewport/scissor arrays,
+  multi-draw/instanced-base draws, debug labels & groups (`gl/debug.hpp`), queries/sync
+  helpers, internal-format queries, `glCopyImageSubData`/`glClearTexImage` —
+  see [tutorial 19](docs/tutorials/19-state-batching-and-debug.md).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug

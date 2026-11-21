@@ -40,9 +40,34 @@ void Framebuffer::attachTexture2D(unsigned int colorIndex, const Texture& textur
     gl::functions().glFramebufferTexture2D(gl::GL_FRAMEBUFFER, gl::GL_COLOR_ATTACHMENT0 + colorIndex,
                                            gl::GL_TEXTURE_2D, texture.id(), level);
 }
+void Framebuffer::attachTexture(Attachment attachment, const Texture& texture, gl::GLint level) const {
+    if (gl::functions().glFramebufferTexture)
+        gl::functions().glFramebufferTexture(gl::GL_FRAMEBUFFER, static_cast<gl::GLenum>(attachment),
+                                             texture.id(), level);
+}
+void Framebuffer::attachTextureLayer(Attachment attachment, const Texture& texture, gl::GLint level, gl::GLint layer) const {
+    if (gl::functions().glFramebufferTextureLayer)
+        gl::functions().glFramebufferTextureLayer(gl::GL_FRAMEBUFFER, static_cast<gl::GLenum>(attachment),
+                                                  texture.id(), level, layer);
+}
 void Framebuffer::attachRenderbuffer(Attachment attachment, const Renderbuffer& rb) const {
     gl::functions().glFramebufferRenderbuffer(gl::GL_FRAMEBUFFER, static_cast<gl::GLenum>(attachment),
                                               gl::GL_RENDERBUFFER, rb.id());
+}
+
+void Framebuffer::invalidate(gl::GLsizei numAttachments, const gl::GLenum* attachments) const {
+    if (gl::functions().glInvalidateFramebuffer)
+        gl::functions().glInvalidateFramebuffer(gl::GL_FRAMEBUFFER, numAttachments, attachments);
+}
+void Framebuffer::invalidateSub(gl::GLsizei numAttachments, const gl::GLenum* attachments, gl::GLint x, gl::GLint y, gl::GLsizei w, gl::GLsizei h) const {
+    if (gl::functions().glInvalidateSubFramebuffer)
+        gl::functions().glInvalidateSubFramebuffer(gl::GL_FRAMEBUFFER, numAttachments, attachments, x, y, w, h);
+}
+gl::GLint Framebuffer::attachmentParameteri(gl::GLenum attachment, gl::GLenum pname) const {
+    gl::GLint v = 0;
+    if (gl::functions().glGetFramebufferAttachmentParameteriv)
+        gl::functions().glGetFramebufferAttachmentParameteriv(gl::GL_FRAMEBUFFER, attachment, pname, &v);
+    return v;
 }
 
 gl::GLenum Framebuffer::status() const {

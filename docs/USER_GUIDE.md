@@ -41,6 +41,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Texture upload/readback/compressed, compute images | `Texture::compressedImage2D()`, `gl::bindImageTexture()` | [16](tutorials/16-textures-images-and-compute-io.md) |
 | Procedural textures & predefined materials | `render::procedural::voronoi()`, `render::materials::matte/textured/emissive` | [17](tutorials/17-procedural-textures-and-materials.md) |
 | Solids & CSG (bodies + boolean ops) | `render::Solid`, `makeCube(...) - makeSphere(...)`, `buildMesh()` | [18](tutorials/18-solids-and-csg.md) |
+| GL state, batching, debug labels, image ops | `gl::stencilOp()`, `gl::multiDrawElements()`, `gl::objectLabel()`, … | [19](tutorials/19-state-batching-and-debug.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

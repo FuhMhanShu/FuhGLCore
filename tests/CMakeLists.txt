@@ -33,3 +33,9 @@ add_test(NAME gl_smoke_buffers COMMAND fuhgl_gl_smoke_buffers)
 add_executable(fuhgl_gl_smoke_solids gl_smoke_solids.cpp)
 target_link_libraries(fuhgl_gl_smoke_solids PRIVATE fuhglcore)
 add_test(NAME gl_smoke_solids COMMAND fuhgl_gl_smoke_solids)
+
+# Headless test for F13: state setters, batching draws, debug labels, queries/sync,
+# internal formats, image copies/clears — verified via pixel readback where possible.
+add_executable(fuhgl_gl_smoke_state gl_smoke_state.cpp)
+target_link_libraries(fuhgl_gl_smoke_state PRIVATE fuhglcore)
+add_test(NAME gl_smoke_state COMMAND fuhgl_gl_smoke_state)
