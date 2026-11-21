@@ -23,6 +23,8 @@ examples/               triangle (windowed demo), screenshot (headless PNG rende
                         deferred (forward/deferred demo, headless --screenshot mode)
 tests/                  unit tests (own mini runner, no framework) + gl_smoke
 cmake/                  package config template
+README.md / README.de.md  project readme (English / German)
+SECURITY.md             vulnerability reporting policy
 docs/                   USER_GUIDE.md, DEVELOPMENT.md, REQUIREMENTS.md, tutorials/,
                         Doxyfile, images/ (committed screenshots), doxygen/ (gitignored)
 .github/workflows/ci.yml
@@ -70,6 +72,14 @@ X11/Wayland dev packages are needed. The hand-marshalled Wayland protocol in
 | `FUHGL_BUILD_EXAMPLES` | ON/OFF | ON |
 | `FUHGL_BUILD_TESTS` | ON/OFF | ON |
 | `FUHGL_LINUX_BACKEND` | `X11` / `EGL` | `X11` |
+| `FUHGL_ENABLE_HARDENING` | ON/OFF | ON |
+
+`FUHGL_ENABLE_HARDENING=ON` (GNU/Clang only) adds compiler/linker hardening flags,
+each applied only when the toolchain supports it (`check_cxx_compiler_flag` /
+`check_linker_flag`): `-fstack-protector-strong` everywhere, and on Linux
+`-fstack-clash-protection`, `-D_FORTIFY_SOURCE=2` in optimized configs
+(Release/RelWithDebInfo/MinSizeRel), plus full RELRO (`-z relro -z now`) and
+`-z noexecstack` at link time (PUBLIC, so consumers inherit them).
 
 Install/export provides `find_package(FuhGLCore)` → target `FuhGLCore::fuhglcore`.
 
@@ -93,6 +103,28 @@ Run: `ctest --test-dir build --output-on-failure`
   `docs/images/*.png`); both are uploaded as artifacts (`doxygen-html`,
   `tutorial-screenshots`). The committed screenshots in `docs/images/` were produced
   by this job.
+- `hardening` (ubuntu): strict `-Werror` build (with the hardening flags ON) plus an
+  ASan+UBSan build running the `unit` tests with leak detection — catches memory
+  errors/UB in the CPU-side code.
+
+Workflow-level hardening: top-level `permissions: contents: read` (least privilege),
+`concurrency` with `cancel-in-progress`, and all third-party actions pinned to
+immutable commit SHAs (e.g. `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+# v4.2.2`) so a repointed tag cannot change what CI executes.
+
+## Hardening
+
+- **CI**: see above — least-privilege token, SHA-pinned actions, sanitizer job.
+- **Build flags**: `FUHGL_ENABLE_HARDENING=ON` (default, GNU/Clang) — see the build
+  options table above.
+- **Code**: `Shader::compile(nullptr)` is safe (treated as empty source);
+  `Shader::resolveIncludes()` is bounded (include depth ≤ 16, resolved output
+  ≤ 4 MiB) so a pathological include graph cannot exhaust memory; platform loaders
+  (`dlopen` of libGL/libX11/libEGL/libwayland) validate that the mandatory symbols
+  resolved before use. Unit tests cover the include guards
+  (`tests/test_shader_includes.cpp`).
+- **Reporting**: see [SECURITY.md](../SECURITY.md) — private vulnerability reporting
+  via GitHub, no public issues for security bugs.
 
 ## Adding a feature
 

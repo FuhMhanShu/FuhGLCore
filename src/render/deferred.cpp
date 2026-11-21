@@ -312,9 +312,9 @@ void DeferredPipeline::renderGBuffer(const SceneView& scene) {
     gl::cullFace(gl::Face::Back);
     gl::frontFace(true);
 
-    // upload lights
+    // upload lights (count only needed by the lighting pass below)
     LightBlock block{};
-    const int n = packLightBlock(scene.lights, block);
+    packLightBlock(scene.lights, block);
     lightsUbo_.upload(block);
     lightsUbo_.bindBase(0);
 

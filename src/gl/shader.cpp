@@ -10,31 +10,42 @@ std::string trimLeft(std::string s) {
     const auto pos = s.find_first_not_of(" \t\r");
     return pos == std::string::npos ? std::string{} : s.substr(pos);
 }
-} // namespace
 
-std::string Shader::resolveIncludes(const std::string& source, const IncludeResolver& resolver, int depth) {
-    if (depth > 16 || !resolver) return source;
+// Hardening limits: include recursion depth and total resolved size, so a
+// pathological include graph (self-including or exponentially expanding files
+// behind an application-supplied resolver) cannot exhaust memory.
+constexpr int kMaxIncludeDepth = 16;
+constexpr std::size_t kMaxResolvedBytes = std::size_t{4} << 20; // 4 MiB
+
+std::string resolveIncludesImpl(const std::string& source, const Shader::IncludeResolver& resolver,
+                                int depth, std::size_t& budget) {
+    if (depth > kMaxIncludeDepth || !resolver) return source;
     std::istringstream in(source);
     std::ostringstream out;
     std::string line;
-    bool firstLine = true;
     while (std::getline(in, line)) {
         const std::string t = trimLeft(line);
         if (t.rfind("#include", 0) == 0) {
             const auto q1 = t.find('"');
             const auto q2 = q1 == std::string::npos ? std::string::npos : t.find('"', q1 + 1);
-            if (q1 != std::string::npos && q2 != std::string::npos) {
+            if (q1 != std::string::npos && q2 != std::string::npos && budget > 0) {
                 const std::string path = t.substr(q1 + 1, q2 - q1 - 1);
                 std::string content = resolver(path);
-                out << resolveIncludes(content, resolver, depth + 1) << '\n';
+                if (content.size() > budget) content.resize(budget);
+                budget -= content.size();
+                out << resolveIncludesImpl(content, resolver, depth + 1, budget) << '\n';
                 continue;
             }
         }
         out << line << '\n';
-        firstLine = false;
     }
-    (void)firstLine;
     return out.str();
+}
+} // namespace
+
+std::string Shader::resolveIncludes(const std::string& source, const IncludeResolver& resolver, int depth) {
+    std::size_t budget = kMaxResolvedBytes;
+    return resolveIncludesImpl(source, resolver, depth, budget);
 }
 
 bool Shader::compileWithIncludes(const char* source, const IncludeResolver& resolver) {
@@ -69,7 +80,8 @@ bool Shader::create(Type type) {
 }
 
 bool Shader::compile(const char* source) {
-    return compile(&source, 1, nullptr);
+    const char* safe = source ? source : ""; // never hand a null string to glShaderSource
+    return compile(&safe, 1, nullptr);
 }
 
 bool Shader::compile(const char* const* sources, gl::GLsizei count, const gl::GLint* lengths) {

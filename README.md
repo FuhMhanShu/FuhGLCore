@@ -1,8 +1,19 @@
 # FuhGLCore
 
-A lightweight OpenGL wrapper for C++17 with **zero third-party dependencies** —
-only the C++ standard library and platform system APIs. No GLAD/GLEW, no GLFW/SDL,
-no Khronos headers, no vcpkg.
+**A zero-dependency C++17 OpenGL toolkit — from the GL core up to a ready-to-use
+render layer.** Only the C++ standard library and platform system APIs are used:
+no GLAD/GLEW, no GLFW/SDL, no Khronos headers, no vcpkg.
+
+Bottom layer: a runtime OpenGL loader (GL 1.0–4.6 resolved by name at runtime),
+thin RAII wrappers, native windows + GL contexts (Win32/WGL, X11/GLX, macOS Cocoa,
+plus an experimental EGL backend on Linux with Wayland and surfaceless headless),
+a header-only math module and camera controllers. On top of that sits the built-in
+render layer (`fuhgl/render.hpp`) — forward & deferred pipelines with lights, PCF
+shadow mapping, SSAO, HDR post-processing (bloom, god rays, ACES tone mapping),
+procedural textures & materials, CSG solids, text/FPS overlay, wireframe overlay
+and instancing.
+
+🇩🇪 [Deutsche Version dieser README](README.de.md)
 
 The name "Core" refers to the zero-dependency GL/window/math core; the built-in
 render layer on top (`fuhgl/render.hpp` — pipelines, default renderers, post FX,
@@ -126,7 +137,9 @@ ctest --test-dir build --output-on-failure
 ```
 
 Options: `-DFUHGL_BUILD_EXAMPLES=ON` (default), `-DFUHGL_BUILD_TESTS=ON` (default),
-`-DFUHGL_LINUX_BACKEND=X11|EGL` (default X11; EGL adds Wayland + surfaceless headless).
+`-DFUHGL_LINUX_BACKEND=X11|EGL` (default X11; EGL adds Wayland + surfaceless headless),
+`-DFUHGL_ENABLE_HARDENING=ON` (default; compiler/linker hardening flags, see
+[DEVELOPMENT.md](docs/DEVELOPMENT.md)).
 
 Only a C++17 compiler and CMake ≥ 3.20 are required — GL functions are loaded at runtime,
 so no OpenGL dev packages are needed at build time.
@@ -139,6 +152,11 @@ so no OpenGL dev packages are needed at build time.
 - [Requirements](docs/REQUIREMENTS.md) — the agreed functional/non-functional requirements
 - API reference — Doxygen HTML is built in CI and uploaded as the `doxygen-html` artifact
   (locally: `cd docs && doxygen Doxyfile`)
+
+## Security
+
+Found a vulnerability? Please report it privately (no public issues) —
+see [SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -5,6 +5,26 @@ All notable changes to FuhGLCore are documented here. The format follows
 [Semantic Versioning](https://semver.org/) (the CMake project version is
 `0.1.0` with same-major compatibility).
 
+## [Unreleased]
+
+- README reworked: the "lightweight OpenGL wrapper" headline is replaced by a
+  description of the current scope (zero-dependency GL core + built-in render
+  layer); complete German translation added as `README.de.md` (cross-linked).
+- Project hardening:
+  - CI: top-level `permissions: contents: read`, `concurrency` with
+    `cancel-in-progress`, all actions pinned to commit SHAs
+    (`actions/checkout` v4.2.2, `actions/upload-artifact` v4.6.2), new `hardening`
+    job (strict `-Werror` build + ASan/UBSan unit tests with leak detection).
+  - Build: new option `FUHGL_ENABLE_HARDENING=ON` (default, GNU/Clang) — stack
+    protector, stack-clash protection, `_FORTIFY_SOURCE=2` (optimized configs),
+    full RELRO + noexec stack on Linux, each guarded by a feature check.
+  - New `SECURITY.md` with private vulnerability reporting.
+  - `Shader::compile(nullptr)` is now safe (treated as empty source) and
+    `Shader::resolveIncludes()` caps the resolved output at 4 MiB in addition to
+    the include-depth limit (16); covered by new unit tests.
+  - Fixed two warnings (`-Werror`-clean now): unused variable in
+    `src/render/deferred.cpp`, unused `ext` in `src/render/solid.cpp`.
+
 ## [0.1.0] — initial release
 
 Zero-dependency C++17 OpenGL wrapper + built-in render layer. Highlights:

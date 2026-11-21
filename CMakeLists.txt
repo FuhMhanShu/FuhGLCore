@@ -76,6 +76,34 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(fuhglcore PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+# --- hardening flags (GNU/Clang, Linux; opt out with -DFUHGL_ENABLE_HARDENING=OFF) ---
+option(FUHGL_ENABLE_HARDENING "Compiler/linker hardening (stack protector, FORTIFY, RELRO) for GNU/Clang" ON)
+if(FUHGL_ENABLE_HARDENING AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag("-fstack-protector-strong" FUHGL_HAS_STACK_PROTECTOR)
+    if(FUHGL_HAS_STACK_PROTECTOR)
+        target_compile_options(fuhglcore PRIVATE -fstack-protector-strong)
+    endif()
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        include(CheckLinkerFlag)
+        check_cxx_compiler_flag("-fstack-clash-protection" FUHGL_HAS_STACK_CLASH)
+        if(FUHGL_HAS_STACK_CLASH)
+            target_compile_options(fuhglcore PRIVATE -fstack-clash-protection)
+        endif()
+        # _FORTIFY_SOURCE only does something with optimization enabled
+        target_compile_options(fuhglcore PRIVATE
+            $<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:-D_FORTIFY_SOURCE=2>)
+        check_linker_flag(CXX "-Wl,-z,relro,-z,now" FUHGL_HAS_FULL_RELRO)
+        if(FUHGL_HAS_FULL_RELRO)
+            target_link_options(fuhglcore PUBLIC -Wl,-z,relro,-z,now)
+        endif()
+        check_linker_flag(CXX "-Wl,-z,noexecstack" FUHGL_HAS_NOEXECSTACK)
+        if(FUHGL_HAS_NOEXECSTACK)
+            target_link_options(fuhglcore PUBLIC -Wl,-z,noexecstack)
+        endif()
+    endif()
+endif()
+
 # --- install / package export -------------------------------------------------
 include(GNUInstallDirs)
 install(TARGETS fuhglcore

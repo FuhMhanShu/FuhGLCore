@@ -211,7 +211,6 @@ MeshData Solid::buildMeshData(int resolution, const math::Vec3& color, SolidUv u
     if (resolution < 2) resolution = 2;
     const Grid g = sampleField(*this, resolution);
     const math::Vec3 mn = aabbMin(), mx = aabbMax();
-    const math::Vec3 ext = mx - mn;
 
     // cube corner offsets (bit0=x, bit1=y, bit2=z)
     static const int corner[8][3] = {{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}};
