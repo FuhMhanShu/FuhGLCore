@@ -1,5 +1,6 @@
 #include "fuhgl/render/culling.hpp"
 
+#include "fuhgl/gl/error.hpp"
 #include "fuhgl/gl/loader.hpp"
 #include "fuhgl/gl/state.hpp"
 
