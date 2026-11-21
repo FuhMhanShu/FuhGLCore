@@ -175,9 +175,6 @@ int main() {
         expectClean("glTextureBuffer");
         d.glTextureBufferRange(texB, GL_R32F, buf, 0, 32);
         expectClean("glTextureBufferRange");
-        GLint tbs = -1;
-        d.glGetTextureLevelParameteriv(texB, 0, GL_TEXTURE_BUFFER_SIZE, &tbs);
-        std::fprintf(stderr, "  [info] GL_TEXTURE_BUFFER_SIZE after range(0,32) = %d\n", tbs);
         expectClean("3D/MS/buffer-texture group");
         f.glDeleteTextures(1, &tex3);
         f.glDeleteTextures(1, &texMS);
