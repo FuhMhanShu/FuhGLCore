@@ -36,6 +36,12 @@ no Khronos headers, no vcpkg.
   (`gl::getTexImage`), GL 4.3 vertex binding, compute image I/O (`gl::bindImageTexture`,
   `gl::dispatchComputeIndirect`) — see [tutorials 15](docs/tutorials/15-buffer-streaming-and-copies.md)
   and [16](docs/tutorials/16-textures-images-and-compute-io.md).
+- **Procedural textures, preset materials, solids & CSG** — `render::procedural` generates
+  textures in code (checker/noise/voronoi/…), `render::materials` provides
+  matte/textured/emissive presets, and `render::Solid` + CSG operators
+  (`makeCube(...) - makeSphere(...)`) mesh analytic bodies via marching tetrahedra —
+  see [tutorials 17](docs/tutorials/17-procedural-textures-and-materials.md) and
+  [18](docs/tutorials/18-solids-and-csg.md).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug

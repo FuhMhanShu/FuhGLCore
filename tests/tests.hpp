@@ -8,3 +8,4 @@ void runLoaderTests();
 void runFrustumTests();
 void runShaderIncludeTests();
 void runInfoTests();
+void runSolidTests();

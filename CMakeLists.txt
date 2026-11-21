@@ -27,6 +27,8 @@ add_library(fuhglcore STATIC
     src/render/material.cpp
     src/render/forward.cpp
     src/render/deferred.cpp
+    src/render/procedural.cpp
+    src/render/solid.cpp
 )
 add_library(FuhGLCore::fuhglcore ALIAS fuhglcore)
 

@@ -57,6 +57,16 @@ struct Frustum {
             if (dot(pl.n, center) + pl.d < -radius) return false;
         return true;
     }
+    /// @brief AABB/frustum intersection test (positive-vertex test per plane).
+    bool intersectsAabb(const Vec3& mn, const Vec3& mx) const {
+        for (const Plane& pl : planes) {
+            const Vec3 pv{pl.n.x >= 0.f ? mx.x : mn.x,
+                          pl.n.y >= 0.f ? mx.y : mn.y,
+                          pl.n.z >= 0.f ? mx.z : mn.z};
+            if (dot(pl.n, pv) + pl.d < 0.f) return false;
+        }
+        return true;
+    }
 };
 
 /// @brief Ray in world space.

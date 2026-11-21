@@ -1,5 +1,6 @@
 #include "fuhgl/render/pipeline.hpp"
 #include "lighting_glsl.hpp"
+#include "pipeline_internal.hpp"
 
 #include "fuhgl/gl/state.hpp"
 
@@ -10,16 +11,19 @@ constexpr const char* kForwardVert = R"GLSL(#version 330 core
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec3 aColor;
+layout(location = 3) in vec2 aUV;
 uniform mat4 uModel;
 uniform mat4 uViewProj;
 out vec3 vWorldPos;
 out vec3 vNormal;
 out vec3 vColor;
+out vec2 vUV;
 void main() {
     vec4 wp = uModel * vec4(aPos, 1.0);
     vWorldPos = wp.xyz;
     vNormal = mat3(uModel) * aNormal;
     vColor = aColor;
+    vUV = aUV;
     gl_Position = uViewProj * wp;
 }
 )GLSL";
@@ -28,14 +32,21 @@ constexpr const char* kForwardFrag = R"GLSL(#version 330 core
 in vec3 vWorldPos;
 in vec3 vNormal;
 in vec3 vColor;
+in vec2 vUV;
+uniform vec3 uAlbedo;
+uniform vec3 uEmissive;
+uniform int uUseTex;
+uniform sampler2D uMatTex;
 )GLSL";
 
 constexpr const char* kForwardFragTail = R"GLSL(
 out vec4 FragColor;
 void main() {
+    vec3 albedo = uAlbedo * vColor;
+    if (uUseTex == 1) albedo *= texture(uMatTex, vUV).rgb;
     vec3 N = normalize(vNormal);
     vec3 V = normalize(uCamPos - vWorldPos);
-    FragColor = vec4(shade(vColor, N, vWorldPos, V), 1.0);
+    FragColor = vec4(shade(albedo, N, vWorldPos, V) + uEmissive, 1.0);
 }
 )GLSL";
 
@@ -102,11 +113,10 @@ void ForwardPipeline::render(const SceneView& scene) {
     const math::Mat4 viewProj = scene.camera->viewProj(scene.aspect);
     for (const DrawItem& item : scene.items) {
         if (!item.mesh) continue;
-        const Material& mat = item.material ? *item.material : defaultMaterial_;
-        mat.bind();
-        Program& prog = const_cast<Program&>(mat.program());
-        prog.setUniform("uModel", item.model);
-        prog.setUniform("uViewProj", viewProj);
+        detail::bindItem(defaultMaterial_, item, item.model, viewProj);
+        Program& prog = const_cast<Program&>(
+            (item.material && item.material->builtinShader) ? defaultMaterial_.program()
+                                                            : (item.material ? *item.material : defaultMaterial_).program());
         prog.setUniform("uCamPos", scene.camera->eye());
         prog.setUniform("uAmbient", scene.ambient);
         prog.setUniform(prog.uniformLocation("uLightCount"), n);

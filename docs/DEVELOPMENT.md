@@ -35,8 +35,9 @@ docs/                   USER_GUIDE.md, DEVELOPMENT.md, REQUIREMENTS.md, tutorial
   `dlsym`), so building needs no GL dev packages.
 - **PIMPL by default** for classes that wrap GL/platform resources (`Shader`, `Buffer`,
   `Window`, …): public header declares `struct Impl; std::unique_ptr<Impl>`, the `.cpp`
-  defines it. Math, camera and device-info types (`gl::DeviceInfo`/`Limits`/`Features`)
-  are plain value types (no PIMPL — they hold only floats/strings, no GL handles).
+  defines it. Math, camera, device-info and solid types (`gl::DeviceInfo`/`Limits`/`Features`,
+  `render::Solid`) are plain value types (no PIMPL — they hold only floats/strings/pointers,
+  no GL handles; meshes are uploaded only on demand via `buildMesh()`).
 - **No exceptions.** Fallible APIs return `bool` + info-log; `FUHGL_ASSERT` in debug.
 - **Namespace `fuhgl`** (`fuhgl::math` for math, `fuhgl::gl` for GL functions/state).
 - **Performance**: wrappers are thin inline pass-throughs; no state tracking, no

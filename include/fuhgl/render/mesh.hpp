@@ -12,6 +12,17 @@
 
 namespace fuhgl::render {
 
+/// @brief CPU-side mesh data with the standard vertex layout used by the pipelines
+/// and the solid mesher: per vertex 11 floats = pos(3), normal(3), color(3), uv(2).
+/// Attribute locations: 0 = pos, 1 = normal, 2 = color, 3 = uv.
+struct MeshData {
+    std::vector<float> vertices;        ///< 11 floats per vertex
+    std::vector<unsigned int> indices;  ///< empty = non-indexed draw
+    static constexpr int kFloatsPerVertex = 11;
+    static constexpr int kVertexBytes = kFloatsPerVertex * 4;
+    std::size_t vertexCount() const { return vertices.size() / kFloatsPerVertex; }
+};
+
 /// @brief Geometry: one VAO with a vertex buffer and an optional index buffer.
 class Mesh {
 public:
@@ -32,6 +43,8 @@ public:
     /// @brief Uploads an index buffer and makes draw() use drawElements.
     void setIndices(const void* data, gl::GLsizei indexCount, gl::GLenum indexType = gl::GL_UNSIGNED_INT,
                     Buffer::Usage usage = Buffer::Usage::StaticDraw);
+    /// @brief Uploads MeshData (standard pos/normal/color/uv layout, attribs 0..3).
+    void setMeshData(const MeshData& data, Buffer::Usage usage = Buffer::Usage::StaticDraw);
 
     /// @brief Binds the VAO and issues the draw call.
     void draw() const;
@@ -53,12 +66,12 @@ private:
 
 namespace shapes {
 
-/// @brief Fills a Mesh with an axis-aligned box (positions + normals + color,
-/// stride 9 floats, 24 vertices, 36 indices).
+/// @brief Fills a Mesh with an axis-aligned box (standard layout, 24 vertices, 36 indices,
+/// per-face planar UVs).
 void box(Mesh& mesh, const math::Vec3& halfExtents, const math::Vec3& color);
 
-/// @brief Fills a Mesh with a fullscreen-triangle-less unit grid? No — a simple
-/// colored quad in the XY plane (positions + normals + color, 4 vertices, 6 indices).
+/// @brief Fills a Mesh with a quad in the XY plane (standard layout, 4 vertices, 6 indices,
+/// UVs 0..1).
 void quad(Mesh& mesh, float halfSize, const math::Vec3& color);
 
 } // namespace shapes

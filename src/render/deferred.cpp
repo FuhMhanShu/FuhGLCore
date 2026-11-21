@@ -1,5 +1,6 @@
 #include "fuhgl/render/deferred.hpp"
 #include "lighting_glsl.hpp"
+#include "pipeline_internal.hpp"
 
 #include "fuhgl/gl/state.hpp"
 
@@ -13,16 +14,19 @@ constexpr const char* kGBufferVert = R"GLSL(#version 330 core
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec3 aColor;
+layout(location = 3) in vec2 aUV;
 uniform mat4 uModel;
 uniform mat4 uViewProj;
 out vec3 vWorldPos;
 out vec3 vNormal;
 out vec3 vColor;
+out vec2 vUV;
 void main() {
     vec4 wp = uModel * vec4(aPos, 1.0);
     vWorldPos = wp.xyz;
     vNormal = mat3(uModel) * aNormal;
     vColor = aColor;
+    vUV = aUV;
     gl_Position = uViewProj * wp;
 }
 )GLSL";
@@ -31,13 +35,22 @@ constexpr const char* kGBufferFrag = R"GLSL(#version 330 core
 in vec3 vWorldPos;
 in vec3 vNormal;
 in vec3 vColor;
+in vec2 vUV;
+uniform vec3 uAlbedo;
+uniform vec3 uEmissive;
+uniform int uUseTex;
+uniform sampler2D uMatTex;
 layout(location = 0) out vec4 oAlbedo;
 layout(location = 1) out vec4 oNormal;
 layout(location = 2) out vec4 oPosition;
+layout(location = 3) out vec4 oEmissive;
 void main() {
-    oAlbedo = vec4(vColor, 1.0);
+    vec3 albedo = uAlbedo * vColor;
+    if (uUseTex == 1) albedo *= texture(uMatTex, vUV).rgb;
+    oAlbedo = vec4(albedo, 1.0);
     oNormal = vec4(normalize(vNormal) * 0.5 + 0.5, 1.0);
     oPosition = vec4(vWorldPos, 1.0); // alpha = 1 marks "geometry present"
+    oEmissive = vec4(uEmissive, 1.0);
 }
 )GLSL";
 
@@ -56,6 +69,7 @@ in vec2 vUV;
 uniform sampler2D uAlbedo;
 uniform sampler2D uNormal;
 uniform sampler2D uPosition;
+uniform sampler2D uEmissive;
 uniform vec3 uSkyTop;
 uniform vec3 uSkyBottom;
 )GLSL";
@@ -72,8 +86,9 @@ void main() {
     vec3 worldPos = pos.rgb;
     vec3 N = normalize(texture(uNormal, vUV).rgb * 2.0 - 1.0);
     vec3 albedo = texture(uAlbedo, vUV).rgb;
+    vec3 emissive = texture(uEmissive, vUV).rgb;
     vec3 V = normalize(uCamPos - worldPos);
-    FragColor = vec4(shade(albedo, N, worldPos, V), 1.0);
+    FragColor = vec4(shade(albedo, N, worldPos, V) + emissive, 1.0);
 }
 )GLSL";
 
@@ -111,15 +126,15 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
     makeTarget(texAlbedo_, gl::GL_RGBA8, width, height, msaa_);
     makeTarget(texNormal_, gl::GL_RGBA8, width, height, msaa_);
     makeTarget(texPosition_, gl::GL_RGBA16F, width, height, msaa_);
+    makeTarget(texEmissive_, gl::GL_RGBA8, width, height, msaa_);
 
     gbuffer_.create();
     gbuffer_.setSize(width, height);
     gbuffer_.bind();
-    const gl::GLenum target = msaa_ > 0 ? gl::GL_TEXTURE_2D_MULTISAMPLE : gl::GL_TEXTURE_2D;
-    (void)target;
     gbuffer_.attachTexture2D(0, texAlbedo_);
     gbuffer_.attachTexture2D(1, texNormal_);
     gbuffer_.attachTexture2D(2, texPosition_);
+    gbuffer_.attachTexture2D(3, texEmissive_);
     if (msaa_ > 0) {
         depthMsaa_.create();
         depthMsaa_.bind();
@@ -141,12 +156,14 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
         makeTarget(texResolveAlbedo_, gl::GL_RGBA8, width, height, 0);
         makeTarget(texResolveNormal_, gl::GL_RGBA8, width, height, 0);
         makeTarget(texResolvePosition_, gl::GL_RGBA16F, width, height, 0);
+        makeTarget(texResolveEmissive_, gl::GL_RGBA8, width, height, 0);
         resolve_.create();
         resolve_.setSize(width, height);
         resolve_.bind();
         resolve_.attachTexture2D(0, texResolveAlbedo_);
         resolve_.attachTexture2D(1, texResolveNormal_);
         resolve_.attachTexture2D(2, texResolvePosition_);
+        resolve_.attachTexture2D(3, texResolveEmissive_);
         if (!resolve_.isComplete()) {
             std::fprintf(stderr, "DeferredPipeline: resolve FBO incomplete (0x%x)\n", resolve_.status());
             return false;
@@ -197,6 +214,7 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
     lightingMaterial_.setTexture(0, texAlbedo_);
     lightingMaterial_.setTexture(1, texNormal_);
     lightingMaterial_.setTexture(2, texPosition_);
+    lightingMaterial_.setTexture(3, texEmissive_);
 
     if (!lightsUbo_.create()) return false;
     lightsUbo_.bindBase(0);
@@ -236,30 +254,28 @@ void DeferredPipeline::render(const SceneView& scene) {
 
     // --- pass 1: G-buffer ---
     gbuffer_.bind();
-    const gl::GLenum drawBufs[3] = {gl::GL_COLOR_ATTACHMENT0, gl::GL_COLOR_ATTACHMENT1, gl::GL_COLOR_ATTACHMENT2};
-    gl::drawBuffers(3, drawBufs);
+    const gl::GLenum drawBufs[4] = {gl::GL_COLOR_ATTACHMENT0, gl::GL_COLOR_ATTACHMENT1,
+                                    gl::GL_COLOR_ATTACHMENT2, gl::GL_COLOR_ATTACHMENT3};
+    gl::drawBuffers(4, drawBufs);
     gl::viewport(0, 0, width_, height_);
     const float clearZero[4] = {0.f, 0.f, 0.f, 0.f};
     const float clearAlbedo[4] = {scene.clearColor.x, scene.clearColor.y, scene.clearColor.z, 1.f};
     gl::clearBufferfv(gl::GL_COLOR, 0, clearAlbedo);
     gl::clearBufferfv(gl::GL_COLOR, 1, clearZero);
     gl::clearBufferfv(gl::GL_COLOR, 2, clearZero); // position alpha 0 = background
+    gl::clearBufferfv(gl::GL_COLOR, 3, clearZero);
     gl::clear(gl::ClearBit::Depth);
 
     const math::Mat4 viewProj = scene.camera->viewProj(scene.aspect);
     for (const DrawItem& item : scene.items) {
         if (!item.mesh) continue;
-        const Material& mat = item.material ? *item.material : defaultMaterial_;
-        mat.bind();
-        Program& prog = const_cast<Program&>(mat.program());
-        prog.setUniform("uModel", item.model);
-        prog.setUniform("uViewProj", viewProj);
+        detail::bindItem(defaultMaterial_, item, item.model, viewProj);
         item.mesh->draw();
     }
 
     // --- MSAA resolve ---
     if (msaa_ > 0) {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 4; ++i) {
             const gl::GLenum att = gl::GL_COLOR_ATTACHMENT0 + i;
             f.glReadBuffer(att);
             const gl::GLenum dst[1] = {att};
@@ -275,6 +291,7 @@ void DeferredPipeline::render(const SceneView& scene) {
         lightingMaterial_.setTexture(0, texResolveAlbedo_);
         lightingMaterial_.setTexture(1, texResolveNormal_);
         lightingMaterial_.setTexture(2, texResolvePosition_);
+        lightingMaterial_.setTexture(3, texResolveEmissive_);
     }
 
     // --- pass 2: lighting (fullscreen) ---
@@ -290,6 +307,7 @@ void DeferredPipeline::render(const SceneView& scene) {
     lp.setUniform(lp.uniformLocation("uAlbedo"), 0);
     lp.setUniform(lp.uniformLocation("uNormal"), 1);
     lp.setUniform(lp.uniformLocation("uPosition"), 2);
+    lp.setUniform(lp.uniformLocation("uEmissive"), 3);
     lp.setUniform("uCamPos", scene.camera->eye());
     lp.setUniform("uAmbient", scene.ambient);
     lp.setUniform(lp.uniformLocation("uLightCount"), n);

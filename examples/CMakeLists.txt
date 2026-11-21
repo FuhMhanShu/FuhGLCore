@@ -12,3 +12,6 @@ target_link_libraries(gpuinfo PRIVATE fuhglcore)
 
 add_executable(stream stream/main.cpp)
 target_link_libraries(stream PRIVATE fuhglcore)
+
+add_executable(solids solids/main.cpp)
+target_link_libraries(solids PRIVATE fuhglcore)
