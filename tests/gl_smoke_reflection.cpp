@@ -22,7 +22,7 @@ void expect(bool cond, const char* what) {
 constexpr const char* kVs = R"GLSL(#version 330 core
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec2 aUV;
-layout(std140, binding = 0) uniform Lights {
+layout(std140) uniform Lights {   // binding set via API (glUniformBlockBinding), GLSL 330-safe
     vec4 uLightPos;
     vec4 uLightColor;
 } lights;
