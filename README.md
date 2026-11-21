@@ -4,6 +4,12 @@ A lightweight OpenGL wrapper for C++17 with **zero third-party dependencies** â€
 only the C++ standard library and platform system APIs. No GLAD/GLEW, no GLFW/SDL,
 no Khronos headers, no vcpkg.
 
+![showcase day](docs/images/readme-showcase-day.png)
+![showcase sunset](docs/images/readme-showcase-sunset.png)
+
+Landscape rendered with the `DeferredRenderer` (shadows, SSAO, HDR + bloom, god rays,
+fog) â€” see `examples/showcase` and [tutorial 29](docs/tutorials/29-showcase-scene.md).
+
 ![first triangle](docs/images/tutorial-first-triangle.png)
 ![isometric skybox](docs/images/tutorial-isometric-skybox.png)
 

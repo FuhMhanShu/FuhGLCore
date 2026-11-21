@@ -50,6 +50,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Wireframe (solids + bounding boxes) | `render::Wireframe` (`addSolid`/`addBoundingBox`/`addMesh`) | [25](tutorials/25-wireframe-solids-and-bounding-boxes.md) |
 | Program pipelines / transform feedback (P3) | `gl::ProgramPipeline`, `gl::TransformFeedback`, `Program::setTransformFeedbackVaryings` | [26](tutorials/26-program-pipelines-transform-feedback-binaries.md) |
 | Program reflection (uniforms/attributes/UBOs) | `Program::activeUniforms()`, `activeAttributes()`, `uniformBlocks()` | [27](tutorials/27-program-reflection.md) |
+| Showcase scene (README hero images) | `examples/showcase` — DeferredRenderer landscape, day/sunset | [29](tutorials/29-showcase-scene.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 
