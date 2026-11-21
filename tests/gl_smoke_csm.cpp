@@ -83,23 +83,29 @@ int main() {
         }
         return std::pair<int, int>{darker, lit};
     };
+    auto litOf = [](const std::vector<unsigned char>& px) {
+        int lit = 0;
+        for (size_t i = 0; i < px.size(); i += 4)
+            if (px[i] > 100) ++lit;
+        return lit;
+    };
 
-    // near view (cascade 0 covers it) and far view (higher cascade)
-    const auto nearCsm = renderImage({0.f, 4.f, 8.f}, -0.38f);
+    // near view (cascade 0 covers it) and far view (higher cascade); noShadow first
     renderer.disableCsmShadows();
     const auto nearNoShadow = renderImage({0.f, 4.f, 8.f}, -0.38f);
     renderer.enableCsmShadows(1024, 4);
-    renderer.setShadowZRange(0.5f, 120.f);
-    renderer.setShadowSceneBounds({0.f, 0.5f, 0.f}, 12.f);
-
-    const auto farCsm = renderImage({0.f, 14.f, 32.f}, -0.42f);
+    const auto nearCsm = renderImage({0.f, 4.f, 8.f}, -0.38f);
     renderer.disableCsmShadows();
     const auto farNoShadow = renderImage({0.f, 14.f, 32.f}, -0.42f);
+    renderer.enableCsmShadows(1024, 4);
+    const auto farCsm = renderImage({0.f, 14.f, 32.f}, -0.42f);
 
     const auto [nearDarker, nearLit] = countDarker(nearCsm, nearNoShadow);
     const auto [farDarker, farLit] = countDarker(farCsm, farNoShadow);
-    std::fprintf(stderr, "gl_smoke_csm: near darker=%d lit=%d | far darker=%d lit=%d\n", nearDarker, nearLit,
-                 farDarker, farLit);
+    std::fprintf(stderr,
+                 "gl_smoke_csm: near darker=%d lit=%d (csmLit=%d) | far darker=%d lit=%d (csmLit=%d) | center near csm=%d noshadow=%d\n",
+                 nearDarker, nearLit, litOf(nearCsm), farDarker, farLit, litOf(farCsm),
+                 nearCsm[(H / 2 * W + W / 2) * 4], nearNoShadow[(H / 2 * W + W / 2) * 4]);
     expect(nearLit > 500, "near view: floor is lit");
     expect(nearDarker > 100, "near view: CSM darkens the shadow blob (cascade 0)");
     expect(farLit > 1000, "far view: floor is lit");
