@@ -1,6 +1,8 @@
 #include "test_framework.hpp"
 #include "tests.hpp"
 
+#include <cmath>
+
 #include <fuhgl/math.hpp>
 #include <fuhgl/render/mesh.hpp>
 
@@ -36,10 +38,10 @@ void runMeshTests() {
             const math::Vec3 ac{c[0] - a[0], c[1] - a[1], c[2] - a[2]};
             CHECK(math::dot(math::normalize(math::cross(ab, ac)), n) > 0.99f);
         }
-        // all 4 corners lie on the face plane: dot(p, n) == dot(h, n)
+        // all 4 corners lie on the face plane: dot(p, n) == |dot(h, n)| (face center = n*h componentwise)
         for (int i = 0; i < 4; ++i) {
             const float* p = b.vertices.data() + static_cast<size_t>(base + i) * MeshData::kFloatsPerVertex;
-            CHECK_NEAR(math::dot(math::Vec3{p[0], p[1], p[2]}, n), math::dot(h, n), 1e-4f);
+            CHECK_NEAR(math::dot(math::Vec3{p[0], p[1], p[2]}, n), std::fabs(math::dot(h, n)), 1e-4f);
         }
     }
 
