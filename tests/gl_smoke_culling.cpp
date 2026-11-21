@@ -114,6 +114,7 @@ int main() {
 
     auto renderAndCount = [&]() {
         culler.cull(cam.viewProj(1.f));
+        const unsigned errCull = static_cast<unsigned>(fuhgl::gl::lastError());
         const int visible = culler.lastVisibleCount();
         unsigned int cmdInstanceCount = 0;
         culler.commandBuffer().getSubData(4, 4, &cmdInstanceCount);
@@ -124,6 +125,8 @@ int main() {
         prog.setUniform("uViewProj", cam.viewProj(1.f));
         culler.draw();
         fuhgl::gl::flush();
+        const unsigned errDraw = static_cast<unsigned>(fuhgl::gl::lastError());
+        std::fprintf(stderr, "gl_smoke_culling: errCull=0x%x errDraw=0x%x\n", errCull, errDraw);
         std::vector<unsigned char> px(static_cast<size_t>(W) * H * 4, 0);
         fuhgl::gl::readPixels(0, 0, W, H, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, px.data());
         int lit = 0;
