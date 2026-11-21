@@ -14,6 +14,7 @@ int main() {
     runLightTests();
     runMeshTests();
     runShadowTests();
+    runTextTests();
     std::fprintf(stderr, "fuhgl_tests: %d checks, %d failures\n", fuhgltest::checks(), fuhgltest::failures());
     return fuhgltest::failures() == 0 ? 0 : 1;
 }

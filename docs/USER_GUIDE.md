@@ -46,6 +46,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Shadow mapping (depth pass + PCF) | `render::ShadowMap`, `render::lightViewProj()`, `SceneView::shadowMap` | [21](tutorials/21-shadows.md) |
 | Default forward renderer | `render::ForwardRenderer` (lights + auto shadows + fog) | [22](tutorials/22-forward-renderer.md) |
 | Default deferred renderer + post FX | `render::DeferredRenderer` (SSAO, HDR, bloom, god rays, parallax/bump, ACES) | [23](tutorials/23-deferred-renderer-postfx.md) |
+| Text & FPS overlay (bitmap font HUD) | `render::TextRenderer`, `render::FpsCounter` | [24](tutorials/24-text-and-fps-overlay.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

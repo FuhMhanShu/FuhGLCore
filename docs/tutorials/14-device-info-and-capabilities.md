@@ -7,7 +7,9 @@ limits and feature flags — via one call: `fuhgl::gl::queryDeviceInfo()`.
 ![capability bars](../images/tutorial-gpuinfo.png)
 
 *(Screenshot rendered headless in CI: `examples/gpuinfo --screenshot` draws the
-key limits as bars — see [tutorial 12](12-headless-rendering-and-screenshots.md).)*
+key limits as bars with text labels via `render::TextRenderer` — see
+[tutorial 12](12-headless-rendering-and-screenshots.md) and
+[tutorial 24](24-text-and-fps-overlay.md).)*
 
 ## Query everything at once
 

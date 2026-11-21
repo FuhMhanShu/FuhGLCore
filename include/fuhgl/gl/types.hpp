@@ -504,6 +504,7 @@ inline constexpr GLenum GL_TEXTURE_BUFFER_SIZE = 0x919C;
 inline constexpr GLenum GL_TEXTURE_BUFFER_OFFSET = 0x919D;
 inline constexpr GLenum GL_TEXTURE_MAX_ANISOTROPY = 0x84FE;
 inline constexpr GLenum GL_TEXTURE_BORDER_COLOR = 0x1004;
+inline constexpr GLenum GL_R8 = 0x8229;
 inline constexpr GLenum GL_RG = 0x8227;
 inline constexpr GLenum GL_BGRA = 0x80E1;
 inline constexpr GLenum GL_SRGB8 = 0x8C41;

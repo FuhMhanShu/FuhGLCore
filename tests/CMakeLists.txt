@@ -10,6 +10,7 @@ add_executable(fuhgl_tests
     test_light.cpp
     test_mesh.cpp
     test_shadow.cpp
+    test_text.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
@@ -72,3 +73,10 @@ add_test(NAME gl_smoke_deferred_fx COMMAND fuhgl_gl_smoke_deferred_fx)
 add_executable(fuhgl_gl_smoke_dsa gl_smoke_dsa.cpp)
 target_link_libraries(fuhgl_gl_smoke_dsa PRIVATE fuhglcore)
 add_test(NAME gl_smoke_dsa COMMAND fuhgl_gl_smoke_dsa)
+
+# Headless test for F19 TextRenderer: renders text into an FBO and verifies that
+# glyph pixels are actually written (bright pixels where text was drawn).
+# Skips cleanly without GL >= 3.3.
+add_executable(fuhgl_gl_smoke_text gl_smoke_text.cpp)
+target_link_libraries(fuhgl_gl_smoke_text PRIVATE fuhglcore)
+add_test(NAME gl_smoke_text COMMAND fuhgl_gl_smoke_text)

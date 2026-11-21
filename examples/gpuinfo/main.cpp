@@ -123,6 +123,30 @@ int main(int argc, char** argv) {
     fuhgl::render::ForwardPipeline forward;
     if (!forward.create()) { std::fprintf(stderr, "gpuinfo: forward pipeline failed\n"); return 1; }
 
+    fuhgl::render::TextRenderer text;
+    if (!text.create()) { std::fprintf(stderr, "gpuinfo: TextRenderer create failed\n"); return 1; }
+
+    // screen-space labels: project each bar's left edge to pixels and draw the legend
+    auto drawLabels = [&]() {
+        const fuhgl::math::Mat4 vp = cam.viewProj(scene.aspect);
+        char line[160];
+        text.begin(scene.width, scene.height);
+        std::snprintf(line, sizeof(line), "%s | GL %d.%d", info.renderer.c_str(),
+                      fuhgl::gl::version().major, fuhgl::gl::version().minor);
+        text.draw(line, 12.f, 10.f, 1.5f, {1.f, 1.f, 1.f, 1.f});
+        for (int i = 0; i < N; ++i) {
+            const float wy = (N - 1 - i) * rowH;
+            const fuhgl::math::Vec4 p = vp * fuhgl::math::Vec4{x0, wy, 0.f, 1.f};
+            if (p.w <= 0.f) continue;
+            const float sx = (p.x / p.w * 0.5f + 0.5f) * scene.width;
+            const float sy = (1.f - (p.y / p.w * 0.5f + 0.5f)) * scene.height;
+            std::snprintf(line, sizeof(line), "%s: %g", bars[i].label, bars[i].value);
+            const fuhgl::math::Vec3 c = bars[i].color;
+            text.draw(line, sx + 6.f, sy - 14.f, 1.25f, {c.x, c.y, c.z, 1.f});
+        }
+        text.end();
+    };
+
     fuhgl::Framebuffer shotTarget;
     fuhgl::Texture shotTex(fuhgl::Texture::Target::Tex2D);
     fuhgl::Renderbuffer shotDepth;
@@ -145,6 +169,8 @@ int main(int argc, char** argv) {
         forward.render(scene);
         fuhgl::gl::flush();
         shotTarget.bind();
+        drawLabels();
+        fuhgl::gl::flush();
         std::vector<unsigned char> px(static_cast<size_t>(args.width) * args.height * 4);
         fuhgl::gl::readPixels(0, 0, args.width, args.height, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, px.data());
         std::vector<unsigned char> flipped(px.size());
@@ -173,6 +199,7 @@ int main(int argc, char** argv) {
         scene.aspect = static_cast<float>(scene.width) / static_cast<float>(scene.height);
         fuhgl::Framebuffer::unbind();
         forward.render(scene);
+        drawLabels();
         window.swapBuffers();
     }
     return 0;

@@ -33,6 +33,7 @@ add_library(fuhglcore STATIC
     src/render/deferred.cpp
     src/render/procedural.cpp
     src/render/solid.cpp
+    src/render/text.cpp
 )
 add_library(FuhGLCore::fuhglcore ALIAS fuhglcore)
 

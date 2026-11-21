@@ -15,3 +15,4 @@
 #include "render/deferred.hpp"
 #include "render/forward_renderer.hpp"
 #include "render/deferred_renderer.hpp"
+#include "render/text.hpp"

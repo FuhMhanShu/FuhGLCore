@@ -12,3 +12,4 @@ void runSolidTests();
 void runLightTests();
 void runMeshTests();
 void runShadowTests();
+void runTextTests();
