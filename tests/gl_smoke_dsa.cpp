@@ -162,16 +162,22 @@ int main() {
         expect(rb[0] == 77 && rb[4 * 4 * 2 * 4] == 0, "glTextureSubImage3D + glGetTextureImage (3D)");
         d.glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &texMS);
         d.glTextureStorage2DMultisample(texMS, 4, GL_RGBA8, 16, 16, GL_TRUE);
+        expectClean("glTextureStorage2DMultisample");
         d.glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, 1, &texMS3);
         d.glTextureStorage3DMultisample(texMS3, 4, GL_RGBA8, 8, 8, 4, GL_TRUE);
+        expectClean("glTextureStorage3DMultisample");
         d.glCreateBuffers(1, &buf);
         d.glNamedBufferStorage(buf, 64, nullptr, GL_DYNAMIC_STORAGE_BIT);
+        expectClean("named buffer for texture buffer");
         d.glCreateTextures(GL_TEXTURE_BUFFER, 1, &texB);
+        expectClean("glCreateTextures(GL_TEXTURE_BUFFER)");
         d.glTextureBuffer(texB, GL_RGBA32F, buf);
+        expectClean("glTextureBuffer");
         GLint tbs = 0;
         d.glGetTextureLevelParameteriv(texB, 0, GL_TEXTURE_BUFFER_SIZE, &tbs);
         expect(tbs == 4, "glTextureBuffer (GL_TEXTURE_BUFFER_SIZE == 4 texels)");
         d.glTextureBufferRange(texB, GL_RGBA32F, buf, 16, 32);
+        expectClean("glTextureBufferRange");
         d.glGetTextureLevelParameteriv(texB, 0, GL_TEXTURE_BUFFER_SIZE, &tbs);
         expect(tbs == 2, "glTextureBufferRange (size == 2 texels)");
         expectClean("3D/MS/buffer-texture group");
@@ -277,6 +283,7 @@ int main() {
         d.glNamedFramebufferDrawBuffer(fboI, GL_COLOR_ATTACHMENT0);
         const GLint iv[4] = {42, 0, 0, 0};
         d.glClearNamedFramebufferiv(fboI, GL_COLOR, 0, iv);
+        expectClean("glClearNamedFramebufferiv call");
         GLuint pxI = 0;
         d.glGetTextureImage(texI, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, 4 * 4 * 4, &pxI);
         expect(pxI == 42, "glClearNamedFramebufferiv (verified via glGetTextureImage)");
@@ -285,6 +292,7 @@ int main() {
         d.glNamedFramebufferDrawBuffer(fboUI, GL_COLOR_ATTACHMENT0);
         const GLuint uiv[4] = {7, 0, 0, 0};
         d.glClearNamedFramebufferuiv(fboUI, GL_COLOR, 0, uiv);
+        expectClean("glClearNamedFramebufferuiv call");
         GLuint pxU[4] = {};
         d.glGetTextureImage(texUI, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 4 * 4 * 16, pxU);
         expect(pxU[0] == 7, "glClearNamedFramebufferuiv (verified via glGetTextureImage)");
@@ -294,6 +302,7 @@ int main() {
         f.glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         f.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rb);
         d.glClearNamedFramebufferfi(fbo, GL_DEPTH_STENCIL, 0, 0.5f, 3);
+        expectClean("glClearNamedFramebufferfi call");
         GLfloat df = 0.f;
         GLint sf = 0;
         f.glReadPixels(0, 0, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &df);
@@ -314,6 +323,7 @@ int main() {
         const GLenum dbs[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
         d.glNamedFramebufferDrawBuffers(fbo, 2, dbs);
         d.glNamedFramebufferDrawBuffer(fbo, GL_COLOR_ATTACHMENT0);
+        expectClean("glNamedFramebufferDrawBuffer(s)");
         // MSAA renderbuffer storage + query + blit to single-sample fbo
         d.glCreateRenderbuffers(1, &rbMS);
         d.glNamedRenderbufferStorageMultisample(rbMS, 4, GL_RGBA8, 16, 16);
@@ -325,6 +335,7 @@ int main() {
         expect(d.glCheckNamedFramebufferStatus(fboMS, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "MSAA fbo complete");
         d.glClearNamedFramebufferfv(fboMS, GL_COLOR, 0, red);
         d.glBlitNamedFramebuffer(fboMS, fbo, 0, 0, 16, 16, 0, 0, 8, 8, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        expectClean("MS clear + blit");
         f.glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
         f.glReadBuffer(GL_COLOR_ATTACHMENT0);
         f.glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, px);
