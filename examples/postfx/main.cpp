@@ -80,9 +80,11 @@ int main(int argc, char** argv) {
         renderer.bloomStrength = 0.f;
         renderer.godRaysEnabled = false;
     }
-    renderer.exposure = 1.1f;
+    renderer.exposure = 1.0f;
     renderer.bloomStrength = args.fx ? 0.8f : 0.f;
     renderer.rayWeight = 0.4f;
+    renderer.pipeline().skyTop = {0.10f, 0.26f, 0.68f};
+    renderer.pipeline().skyBottom = {0.5f, 0.6f, 0.82f};
 
     // parallax/bump brick floor
     const fuhgl::render::procedural::Image heightImg = fuhgl::render::procedural::noise(256, 256, 42u, 5);
@@ -110,8 +112,8 @@ int main(int argc, char** argv) {
     scene.aspect = static_cast<float>(args.width) / static_cast<float>(args.height);
     scene.clearColor = {0.04f, 0.05f, 0.08f};
     scene.ambient = {0.16f, 0.16f, 0.18f};
-    scene.fogColor = {0.45f, 0.55f, 0.75f};
-    scene.fogDensity = 0.02f;
+    scene.fogColor = {0.4f, 0.5f, 0.72f};
+    scene.fogDensity = 0.012f;
     scene.items.push_back({&meshes[0], &floorMat, fuhgl::math::translate({0.f, -0.25f, 0.f})});
     scene.items.push_back({&meshes[1], nullptr, fuhgl::math::translate({-2.0f, 1.5f, -0.6f})});
     scene.items.push_back({&meshes[2], nullptr, fuhgl::math::translate({1.7f, 0.6f, -1.8f}) * fuhgl::math::rotateY(0.6f)});

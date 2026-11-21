@@ -148,42 +148,9 @@ int main() {
             sumOff += noRays[o];
             if (base[o] != noRays[o]) ++anyDiff;
         }
-    const fuhgl::math::Vec3 sunDir = -fuhgl::math::normalize(fuhgl::math::Vec3{-0.3f, -0.08f, 1.f});
-    const fuhgl::math::Vec2 suv = fuhgl::render::sunScreenUV(cam, sunDir, W, H);
-    const int sx = std::min(W - 1, std::max(0, static_cast<int>(suv.x * W)));
-    const int sy = std::min(H - 1, std::max(0, static_cast<int>(suv.y * H)));
-    const size_t so = (static_cast<size_t>(sy) * W + sx) * 4;
-    std::fprintf(stderr, "gl_smoke_deferred_fx: rays top-quarter R sum on=%ld off=%ld anyDiff=%d sunUV=(%.2f,%.2f) sunPx=(%d,%d,%d)\n",
-                 sumOn, sumOff, anyDiff, suv.x, suv.y, base[so], base[so + 1], base[so + 2]);
-    // debug: read the HDR buffer around the sun pixel (RGBA16F -> read as float)
-    {
-        renderer.output().bind();
-        std::vector<float> hdr(static_cast<size_t>(W) * H * 4, 0.f);
-        fuhgl::gl::activeTexture(fuhgl::gl::GL_TEXTURE0);
-        renderer.hdrTexture().bind();
-        fuhgl::gl::functions().glGetTexImage(fuhgl::gl::GL_TEXTURE_2D, 0, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_FLOAT, hdr.data());
-        int maxR = 0, argx = 0, argy = 0;
-        for (int y = sy - 4; y <= sy + 4; ++y)
-            for (int x = sx - 4; x <= sx + 4; ++x) {
-                if (x < 0 || y < 0 || x >= W || y >= H) continue;
-                const int r = static_cast<int>(hdr[(static_cast<size_t>(y) * W + x) * 4] * 255.f);
-                if (r > maxR) { maxR = r; argx = x; argy = y; }
-            }
-        const size_t hp = (static_cast<size_t>(sy) * W + sx) * 4;
-        std::fprintf(stderr, "gl_smoke_deferred_fx: hdr sunPx=(%.2f,%.2f,%.2f) maxR5x5=%d at (%d,%d)\n",
-                     hdr[hp], hdr[hp + 1], hdr[hp + 2], maxR, argx, argy);
-        // read back the lighting program's sun uniforms
-        fuhgl::Program& lp = renderer.pipeline().lightingMaterial().program();
-        float v3[3] = {0, 0, 0}, v1 = 0;
-        fuhgl::gl::functions().glGetUniformfv(lp.id(), lp.uniformLocation("uSunColor"), v3);
-        fuhgl::gl::functions().glGetUniformfv(lp.id(), lp.uniformLocation("uSunDir"), v3);
-        std::fprintf(stderr, "gl_smoke_deferred_fx: uSunDir loc=%d val=(%.3f,%.3f,%.3f)\n",
-                     lp.uniformLocation("uSunDir"), v3[0], v3[1], v3[2]);
-        fuhgl::gl::functions().glGetUniformfv(lp.id(), lp.uniformLocation("uSunColor"), v3);
-        fuhgl::gl::functions().glGetUniformfv(lp.id(), lp.uniformLocation("uSunCos"), &v1);
-        std::fprintf(stderr, "gl_smoke_deferred_fx: uSunColor loc=%d val=(%.3f,%.3f,%.3f) uSunCos=%.6f\n",
-                     lp.uniformLocation("uSunColor"), v3[0], v3[1], v3[2], v1);
-    }
+    std::fprintf(stderr, "gl_smoke_deferred_fx: rays top-quarter R sum on=%ld off=%ld anyDiff=%d\n",
+                 sumOn, sumOff, anyDiff);
+
     expect(sumOn > sumOff + 150, "god rays add light toward the sun");
 
     const std::vector<unsigned char> noParallax = renderImage(&plainMat);
