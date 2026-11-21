@@ -260,10 +260,12 @@ bool sceneSsr(const Args& args) {
     d.renderer.ssrStrength = 1.0f;
     d.renderer.ssrMaxSteps = 48;
     d.renderer.ssrThickness = 0.6f;
-    d.renderer.exposure = 0.85f;      // keep the floor from blowing out to white
-    d.renderer.bloomThreshold = 0.9f;  // only the lamp glows
-    d.renderer.bloomStrength = 0.8f;
-    d.scene.ambient = {0.10f, 0.10f, 0.12f};
+    // dark scene: the lamp's warm reflection band stands out on the dim floor
+    d.renderer.exposure = 1.0f;
+    d.renderer.bloomThreshold = 1.2f;
+    d.renderer.bloomStrength = 0.6f;
+    d.scene.ambient = {0.02f, 0.02f, 0.03f};
+    d.scene.lights[0] = Light::directional({-0.4f, -1.f, -0.25f}, {1.f, 0.96f, 0.88f}, 0.5f);
     // same framing as the gl_smoke_ssr test (proven to show the reflection band)
     d.cam.position = {0.f, 3.f, 7.f};
     d.cam.pitch = -0.45f;
