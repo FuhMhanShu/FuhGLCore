@@ -33,6 +33,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 25 | Wireframe: solids & bounding boxes as line grids | [25-wireframe-solids-and-bounding-boxes.md](25-wireframe-solids-and-bounding-boxes.md) |
 | 26 | Program pipelines, transform feedback, shader binaries, subroutines, GL 4.6 (P3) | [26-program-pipelines-transform-feedback-binaries.md](26-program-pipelines-transform-feedback-binaries.md) |
 | 27 | Program reflection (active uniforms, attributes, uniform blocks, resources) | [27-program-reflection.md](27-program-reflection.md) |
+| 28 | Instancing: per-instance model matrices, one draw call per mesh | [28-instancing.md](28-instancing.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../DEVELOPMENT.md#build-options)).

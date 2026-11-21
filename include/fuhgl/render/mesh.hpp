@@ -23,7 +23,8 @@ struct MeshData {
     std::size_t vertexCount() const { return vertices.size() / kFloatsPerVertex; }
 };
 
-/// @brief Geometry: one VAO with a vertex buffer and an optional index buffer.
+/// @brief Geometry: one VAO with a vertex buffer, an optional index buffer and
+/// optional per-instance model matrices (instanced rendering, F24).
 class Mesh {
 public:
     Mesh();
@@ -46,11 +47,23 @@ public:
     /// @brief Uploads MeshData (standard pos/normal/color/uv layout, attribs 0..3).
     void setMeshData(const MeshData& data, Buffer::Usage usage = Buffer::Usage::StaticDraw);
 
-    /// @brief Binds the VAO and issues the draw call.
+    /// @brief Uploads per-instance model matrices (F24 instancing): a divisor-1
+    /// mat4 attribute at locations 4..7 (64 bytes stride, column-major Mat4).
+    /// After this, draw() issues one instanced draw with `count` instances and the
+    /// effective model matrix is uModel * aInstanceModel (pipelines set uInstanced).
+    void setInstanceData(const math::Mat4* models, gl::GLsizei count,
+                         Buffer::Usage usage = Buffer::Usage::StaticDraw);
+    /// @brief Re-uploads instance matrices (count must equal the one passed to setInstanceData).
+    void updateInstanceData(const math::Mat4* models, gl::GLsizei count);
+    /// @brief Drops instance data: draw() falls back to a single non-instanced draw.
+    void clearInstanceData();
+
+    /// @brief Binds the VAO and issues the draw call (instanced when instance data is set).
     void draw() const;
 
     gl::GLsizei vertexCount() const { return vertexCount_; }
     gl::GLsizei indexCount() const { return indexCount_; }
+    gl::GLsizei instanceCount() const { return instanceCount_; }
     gl::GLuint vaoId() const { return vao_.id(); }
 
 private:
@@ -58,9 +71,11 @@ private:
     std::unique_ptr<Impl> impl_;
     gl::GLsizei vertexCount_ = 0;
     gl::GLsizei indexCount_ = 0;
+    gl::GLsizei instanceCount_ = 0;
     gl::GLenum indexType_ = gl::GL_UNSIGNED_INT;
     Buffer vbo_{Buffer::Target::Array};
     Buffer ibo_{Buffer::Target::ElementArray};
+    Buffer instanceVbo_{Buffer::Target::Array};
     VertexArray vao_;
 };
 

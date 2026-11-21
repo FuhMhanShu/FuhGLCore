@@ -12,10 +12,13 @@ namespace {
 
 constexpr const char* kDepthVert = R"GLSL(#version 330 core
 layout(location = 0) in vec3 aPos;
+layout(location = 4) in mat4 aInstanceModel; // F24 instancing (unused when uInstanced == 0)
 uniform mat4 uModel;
 uniform mat4 uLightVP;
+uniform int uInstanced;
 void main() {
-    gl_Position = uLightVP * uModel * vec4(aPos, 1.0);
+    mat4 model = (uInstanced == 1) ? (uModel * aInstanceModel) : uModel;
+    gl_Position = uLightVP * model * vec4(aPos, 1.0);
 }
 )GLSL";
 
@@ -93,6 +96,7 @@ void ShadowMap::render(const SceneView& scene, const math::Mat4& lightVP) {
     for (const DrawItem& item : scene.items) {
         if (!item.mesh) continue;
         p.setUniform("uModel", item.model);
+        p.setUniform("uInstanced", item.mesh->instanceCount() > 0 ? 1 : 0);
         item.mesh->draw();
     }
 

@@ -21,6 +21,7 @@ inline void bindItem(const Material& defaultMat, const DrawItem& item,
     Program& prog = const_cast<Program&>(mat.program());
     prog.setUniform("uModel", model);
     prog.setUniform("uViewProj", viewProj);
+    prog.setUniform("uInstanced", (item.mesh && item.mesh->instanceCount() > 0) ? 1 : 0); // F24
     if (preset) {
         prog.setUniform("uAlbedo", preset->albedo);
         prog.setUniform("uEmissive", preset->emissive);

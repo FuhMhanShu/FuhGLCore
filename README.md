@@ -66,6 +66,9 @@ no Khronos headers, no vcpkg.
 - **Wireframe overlay** — `render::Wireframe`: solids (triangle edges) and bounding boxes
   (AABB edges) as one batched `GL_LINES` draw — see
   [tutorial 25](docs/tutorials/25-wireframe-solids-and-bounding-boxes.md).
+- **Instancing** — `Mesh::setInstanceData()` puts per-instance model matrices on the GPU
+  (divisor-1 `mat4` attribute); one draw call renders hundreds of copies, animated via
+  `updateInstanceData()` — see [tutorial 28](docs/tutorials/28-instancing.md).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug
