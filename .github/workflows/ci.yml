@@ -67,6 +67,7 @@ jobs:
           FUHGL_BACKEND=surfaceless ./build-egl/examples/deferred --screenshot docs/images/tutorial-deferred.png --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/deferred --screenshot docs/images/tutorial-forward.png --forward --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/gpuinfo --screenshot docs/images/tutorial-gpuinfo.png --width 800 --height 600
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/stream --screenshot docs/images/tutorial-stream.png --width 800 --height 600
 
       - name: Upload Doxygen HTML artifact
         uses: actions/upload-artifact@v4

@@ -20,3 +20,9 @@ add_test(NAME gl_smoke COMMAND fuhgl_gl_smoke)
 add_executable(fuhgl_gl_smoke_deferred gl_smoke_deferred.cpp)
 target_link_libraries(fuhgl_gl_smoke_deferred PRIVATE fuhglcore)
 add_test(NAME gl_smoke_deferred COMMAND fuhgl_gl_smoke_deferred)
+
+# Headless test for the F9 buffer/texture/image extensions (mapRange, copies,
+# compressed textures, image binding, indirect compute, SSBO, VAO 4.3).
+add_executable(fuhgl_gl_smoke_buffers gl_smoke_buffers.cpp)
+target_link_libraries(fuhgl_gl_smoke_buffers PRIVATE fuhglcore)
+add_test(NAME gl_smoke_buffers COMMAND fuhgl_gl_smoke_buffers)

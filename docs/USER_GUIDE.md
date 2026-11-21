@@ -37,6 +37,8 @@ library gives you safe, modern-C++ handles for GL objects:
 | Headless rendering + screenshots | EGL backend, `examples/screenshot` | [12](tutorials/12-headless-rendering-and-screenshots.md) |
 | Render pipelines: forward & deferred | `fuhgl::render::ForwardPipeline`, `DeferredPipeline` | [13](tutorials/13-render-pipelines.md) |
 | Device info & capabilities | `gl::queryDeviceInfo()` | [14](tutorials/14-device-info-and-capabilities.md) |
+| Buffer streaming / copies / readback | `Buffer::mapRange()`, `gl::copyBufferSubData()` | [15](tutorials/15-buffer-streaming-and-copies.md) |
+| Texture upload/readback/compressed, compute images | `Texture::compressedImage2D()`, `gl::bindImageTexture()` | [16](tutorials/16-textures-images-and-compute-io.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

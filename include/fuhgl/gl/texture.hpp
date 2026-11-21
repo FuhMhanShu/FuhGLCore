@@ -3,6 +3,7 @@
 /// @file texture.hpp
 /// @brief RAII wrapper around a GL texture object (2D in v1).
 
+#include "buffer.hpp"
 #include "types.hpp"
 
 #include <memory>
@@ -21,6 +22,7 @@ public:
         CubeArray = gl::GL_TEXTURE_CUBE_MAP_ARRAY,
         Tex2DMultisample = gl::GL_TEXTURE_2D_MULTISAMPLE,
         Tex2DMultisampleArray = gl::GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
+        TexBuffer = gl::GL_TEXTURE_BUFFER,
     };
     /// @brief Cube map face.
     enum class CubeFace : gl::GLenum {
@@ -58,6 +60,38 @@ public:
     /// @brief Updates a sub-rectangle of an existing level.
     void setSubImage2D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset, gl::GLsizei width, gl::GLsizei height,
                        gl::GLenum format, gl::GLenum type, const void* pixels) const;
+    /// @brief Updates a sub-volume of an existing 3D/array level.
+    void setSubImage3D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset, gl::GLint zoffset,
+                       gl::GLsizei width, gl::GLsizei height, gl::GLsizei depth,
+                       gl::GLenum format, gl::GLenum type, const void* pixels) const;
+    /// @brief Copies a rectangle of the current framebuffer into this texture (render-to-texture).
+    void copyTexImage2D(gl::GLint level, gl::GLint internalFormat, gl::GLint x, gl::GLint y,
+                        gl::GLsizei width, gl::GLsizei height, gl::GLint border = 0) const;
+    void copyTexSubImage2D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset,
+                           gl::GLint x, gl::GLint y, gl::GLsizei width, gl::GLsizei height) const;
+    void copyTexSubImage3D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset, gl::GLint zoffset,
+                           gl::GLint x, gl::GLint y, gl::GLsizei width, gl::GLsizei height) const;
+    /// @brief Uploads a compressed image (DXT/BC, ETC, ...) — imageSize = compressed byte count.
+    void compressedImage2D(gl::GLint level, gl::GLint internalFormat, gl::GLsizei width, gl::GLsizei height,
+                           gl::GLsizei imageSize, const void* data, gl::GLint border = 0) const;
+    void compressedImage3D(gl::GLint level, gl::GLint internalFormat, gl::GLsizei width, gl::GLsizei height, gl::GLsizei depth,
+                           gl::GLsizei imageSize, const void* data, gl::GLint border = 0) const;
+    void compressedSubImage2D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset, gl::GLsizei width, gl::GLsizei height,
+                              gl::GLenum format, gl::GLsizei imageSize, const void* data) const;
+    void compressedSubImage3D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset, gl::GLint zoffset,
+                              gl::GLsizei width, gl::GLsizei height, gl::GLsizei depth,
+                              gl::GLenum format, gl::GLsizei imageSize, const void* data) const;
+    /// @brief Buffer texture: views a Buffer's storage as a 1D texture (GL 3.1+).
+    void texBufferImage(gl::GLenum internalFormat, const Buffer& buffer) const;
+    void texBufferRangeImage(gl::GLenum internalFormat, const Buffer& buffer, gl::GLintptr offset, gl::GLsizeiptr size) const;
+    /// @brief Reinterprets another texture as this one (GL 4.3, zero-copy view).
+    void view(Target target, const Texture& source, gl::GLenum internalFormat,
+              gl::GLuint minLevel, gl::GLuint numLevels, gl::GLuint minLayer, gl::GLuint numLayers) const;
+    /// @brief Queries a texture parameter of the bound texture (0 if unsupported).
+    gl::GLint getParameteri(gl::GLenum pname) const;
+    gl::GLfloat getParameterf(gl::GLenum pname) const;
+    /// @brief Queries a level parameter (GL_TEXTURE_WIDTH/HEIGHT/COMPRESSED_IMAGE_SIZE/...).
+    gl::GLint getLevelParameteri(gl::GLenum pname, gl::GLint level) const;
     /// @brief Immutable storage, mip chain included (GL 4.2; falls back to setImage2D with null data).
     void texStorage2D(gl::GLsizei levels, gl::GLint internalFormat, gl::GLsizei width, gl::GLsizei height) const;
     /// @brief Immutable 3D/array storage (GL 4.2).

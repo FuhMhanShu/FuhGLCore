@@ -72,6 +72,89 @@ void Texture::storageMultisample2D(gl::GLsizei samples, gl::GLint internalFormat
         gl::functions().glTexStorage2DMultisample(static_cast<gl::GLenum>(impl_->target), samples, internalFormat,
                                                   width, height, fixedLocations ? gl::GL_TRUE : gl::GL_FALSE);
 }
+void Texture::setSubImage3D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset, gl::GLint zoffset,
+                            gl::GLsizei width, gl::GLsizei height, gl::GLsizei depth,
+                            gl::GLenum format, gl::GLenum type, const void* pixels) const {
+    if (gl::functions().glTexSubImage3D)
+        gl::functions().glTexSubImage3D(static_cast<gl::GLenum>(impl_->target), level, xoffset, yoffset, zoffset,
+                                        width, height, depth, format, type, pixels);
+}
+void Texture::copyTexImage2D(gl::GLint level, gl::GLint internalFormat, gl::GLint x, gl::GLint y,
+                             gl::GLsizei width, gl::GLsizei height, gl::GLint border) const {
+    if (gl::functions().glCopyTexImage2D)
+        gl::functions().glCopyTexImage2D(static_cast<gl::GLenum>(impl_->target), level, internalFormat, x, y,
+                                         width, height, border);
+}
+void Texture::copyTexSubImage2D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset,
+                                gl::GLint x, gl::GLint y, gl::GLsizei width, gl::GLsizei height) const {
+    if (gl::functions().glCopyTexSubImage2D)
+        gl::functions().glCopyTexSubImage2D(static_cast<gl::GLenum>(impl_->target), level, xoffset, yoffset, x, y,
+                                            width, height);
+}
+void Texture::copyTexSubImage3D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset, gl::GLint zoffset,
+                                gl::GLint x, gl::GLint y, gl::GLsizei width, gl::GLsizei height) const {
+    if (gl::functions().glCopyTexSubImage3D)
+        gl::functions().glCopyTexSubImage3D(static_cast<gl::GLenum>(impl_->target), level, xoffset, yoffset, zoffset,
+                                            x, y, width, height);
+}
+void Texture::compressedImage2D(gl::GLint level, gl::GLint internalFormat, gl::GLsizei width, gl::GLsizei height,
+                                gl::GLsizei imageSize, const void* data, gl::GLint border) const {
+    if (gl::functions().glCompressedTexImage2D)
+        gl::functions().glCompressedTexImage2D(static_cast<gl::GLenum>(impl_->target), level, internalFormat, width,
+                                               height, border, imageSize, data);
+}
+void Texture::compressedImage3D(gl::GLint level, gl::GLint internalFormat, gl::GLsizei width, gl::GLsizei height,
+                                gl::GLsizei depth, gl::GLsizei imageSize, const void* data, gl::GLint border) const {
+    if (gl::functions().glCompressedTexImage3D)
+        gl::functions().glCompressedTexImage3D(static_cast<gl::GLenum>(impl_->target), level, internalFormat, width,
+                                               height, depth, border, imageSize, data);
+}
+void Texture::compressedSubImage2D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset, gl::GLsizei width,
+                                   gl::GLsizei height, gl::GLenum format, gl::GLsizei imageSize, const void* data) const {
+    if (gl::functions().glCompressedTexSubImage2D)
+        gl::functions().glCompressedTexSubImage2D(static_cast<gl::GLenum>(impl_->target), level, xoffset, yoffset,
+                                                  width, height, format, imageSize, data);
+}
+void Texture::compressedSubImage3D(gl::GLint level, gl::GLint xoffset, gl::GLint yoffset, gl::GLint zoffset,
+                                   gl::GLsizei width, gl::GLsizei height, gl::GLsizei depth,
+                                   gl::GLenum format, gl::GLsizei imageSize, const void* data) const {
+    if (gl::functions().glCompressedTexSubImage3D)
+        gl::functions().glCompressedTexSubImage3D(static_cast<gl::GLenum>(impl_->target), level, xoffset, yoffset,
+                                                  zoffset, width, height, depth, format, imageSize, data);
+}
+void Texture::texBufferImage(gl::GLenum internalFormat, const Buffer& buffer) const {
+    if (gl::functions().glTexBuffer)
+        gl::functions().glTexBuffer(gl::GL_TEXTURE_BUFFER, internalFormat, buffer.id());
+}
+void Texture::texBufferRangeImage(gl::GLenum internalFormat, const Buffer& buffer, gl::GLintptr offset, gl::GLsizeiptr size) const {
+    if (gl::functions().glTexBufferRange)
+        gl::functions().glTexBufferRange(gl::GL_TEXTURE_BUFFER, internalFormat, buffer.id(), offset, size);
+}
+void Texture::view(Target target, const Texture& source, gl::GLenum internalFormat,
+                   gl::GLuint minLevel, gl::GLuint numLevels, gl::GLuint minLayer, gl::GLuint numLayers) const {
+    if (gl::functions().glTextureView)
+        gl::functions().glTextureView(impl_->id, static_cast<gl::GLenum>(target), source.id(), internalFormat,
+                                      minLevel, numLevels, minLayer, numLayers);
+}
+gl::GLint Texture::getParameteri(gl::GLenum pname) const {
+    gl::GLint v = 0;
+    if (gl::functions().glGetTexParameteriv)
+        gl::functions().glGetTexParameteriv(static_cast<gl::GLenum>(impl_->target), pname, &v);
+    return v;
+}
+gl::GLfloat Texture::getParameterf(gl::GLenum pname) const {
+    gl::GLfloat v = 0.f;
+    if (gl::functions().glGetTexParameterfv)
+        gl::functions().glGetTexParameterfv(static_cast<gl::GLenum>(impl_->target), pname, &v);
+    return v;
+}
+gl::GLint Texture::getLevelParameteri(gl::GLenum pname, gl::GLint level) const {
+    gl::GLint v = 0;
+    if (gl::functions().glGetTexLevelParameteriv)
+        gl::functions().glGetTexLevelParameteriv(static_cast<gl::GLenum>(impl_->target), level, pname, &v);
+    return v;
+}
+
 void Texture::generateMipmap() const { gl::functions().glGenerateMipmap(static_cast<gl::GLenum>(impl_->target)); }
 void Texture::setParameteri(gl::GLenum pname, gl::GLint param) const {
     gl::functions().glTexParameteri(static_cast<gl::GLenum>(impl_->target), pname, param);

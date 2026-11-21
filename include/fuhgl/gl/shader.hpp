@@ -19,6 +19,7 @@ public:
         Vertex = gl::GL_VERTEX_SHADER,
         Fragment = gl::GL_FRAGMENT_SHADER,
         Geometry = gl::GL_GEOMETRY_SHADER,
+        Compute = gl::GL_COMPUTE_SHADER,
     };
 
     Shader();

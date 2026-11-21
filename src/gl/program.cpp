@@ -85,12 +85,41 @@ void Program::setUniform(gl::GLint loc, const math::Mat4& v) const {
 void Program::setUniform(gl::GLint loc, gl::GLsizei count, const int* values) const {
     gl::functions().glUniform1iv(loc, count, values);
 }
+void Program::setUniform(gl::GLint loc, gl::GLuint v) const {
+    if (gl::functions().glUniform1ui) gl::functions().glUniform1ui(loc, v);
+}
+void Program::setUniform(gl::GLint loc, gl::GLsizei count, const gl::GLuint* values) const {
+    if (gl::functions().glUniform1uiv) gl::functions().glUniform1uiv(loc, count, values);
+}
+
+gl::GLint Program::getUniformi(const char* name) const {
+    gl::GLint v = 0;
+    if (gl::functions().glGetUniformiv) gl::functions().glGetUniformiv(impl_->id, uniformLocation(name), &v);
+    return v;
+}
+gl::GLfloat Program::getUniformf(const char* name) const {
+    gl::GLfloat v = 0.f;
+    if (gl::functions().glGetUniformfv) gl::functions().glGetUniformfv(impl_->id, uniformLocation(name), &v);
+    return v;
+}
+gl::GLuint Program::getUniformu(const char* name) const {
+    gl::GLuint v = 0;
+    if (gl::functions().glGetUniformuiv) gl::functions().glGetUniformuiv(impl_->id, uniformLocation(name), &v);
+    return v;
+}
 
 void Program::bindUniformBlock(const char* blockName, gl::GLuint binding) const {
     const auto& f = gl::functions();
     if (!f.glGetUniformBlockIndex || !f.glUniformBlockBinding) return;
     const gl::GLuint idx = f.glGetUniformBlockIndex(impl_->id, blockName);
     if (idx != gl::GL_INVALID_INDEX) f.glUniformBlockBinding(impl_->id, idx, binding);
+}
+
+void Program::bindShaderStorageBlock(const char* blockName, gl::GLuint binding) const {
+    const auto& f = gl::functions();
+    if (!f.glGetShaderStorageBlockIndex || !f.glShaderStorageBlockBinding) return;
+    const gl::GLuint idx = f.glGetShaderStorageBlockIndex(impl_->id, blockName);
+    if (idx != gl::GL_INVALID_INDEX) f.glShaderStorageBlockBinding(impl_->id, idx, binding);
 }
 
 gl::GLuint Program::id() const { return impl_->id; }

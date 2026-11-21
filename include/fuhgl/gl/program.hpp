@@ -48,6 +48,8 @@ public:
     void setUniform(gl::GLint location, const math::Mat3& v) const;
     void setUniform(gl::GLint location, const math::Mat4& v) const;
     void setUniform(gl::GLint location, gl::GLsizei count, const int* values) const;
+    void setUniform(gl::GLint location, gl::GLuint v) const;
+    void setUniform(gl::GLint location, gl::GLsizei count, const gl::GLuint* values) const;
     /// @brief Convenience overloads: look up the name and set the value.
     void setUniform(const char* name, const math::Mat4& v) const { setUniform(uniformLocation(name), v); }
     void setUniform(const char* name, const math::Mat3& v) const { setUniform(uniformLocation(name), v); }
@@ -56,9 +58,17 @@ public:
     void setUniform(const char* name, const math::Vec2& v) const { setUniform(uniformLocation(name), v); }
     void setUniform(const char* name, float v) const { setUniform(uniformLocation(name), v); }
     void setUniform(const char* name, int v) const { setUniform(uniformLocation(name), v); }
+    void setUniform(const char* name, unsigned v) const { setUniform(uniformLocation(name), v); }
+
+    /// @brief Reads back a uniform value from the program object (glGetUniform*, no use() needed).
+    gl::GLint getUniformi(const char* name) const;
+    gl::GLfloat getUniformf(const char* name) const;
+    gl::GLuint getUniformu(const char* name) const;
 
     /// @brief Binds a uniform block (by name) to an indexed binding point (e.g. 0).
     void bindUniformBlock(const char* blockName, gl::GLuint binding) const;
+    /// @brief Binds a shader storage block (by name) to an indexed binding point (GL 4.3+, SSBO).
+    void bindShaderStorageBlock(const char* blockName, gl::GLuint binding) const;
 
     gl::GLuint id() const;
     explicit operator bool() const { return id() != 0; }
