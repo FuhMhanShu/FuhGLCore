@@ -16,7 +16,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 08 | Uniform buffer objects | [08-uniform-buffers.md](08-uniform-buffers.md) |
 | 09 | Compute shaders | [09-compute-shaders.md](09-compute-shaders.md) |
 | 10 | Timer queries and fence syncs | [10-queries-and-sync.md](10-queries-and-sync.md) |
-| 11 | GL 4.5 DSA fast path | [11-dsa.md](11-dsa.md) |
+| 11 | GL 4.5 DSA fast path (full 72-entry table) | [11-dsa.md](11-dsa.md) |
 | 12 | Headless rendering and screenshots (EGL surfaceless) | [12-headless-rendering-and-screenshots.md](12-headless-rendering-and-screenshots.md) |
 | 13 | Render pipelines: forward & deferred | [13-render-pipelines.md](13-render-pipelines.md) |
 | 14 | Device info & capabilities (GPU, extensions, limits) | [14-device-info-and-capabilities.md](14-device-info-and-capabilities.md) |

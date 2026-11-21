@@ -496,6 +496,39 @@ inline constexpr GLenum GL_COLOR_ATTACHMENT2 = 0x8CE2;
 inline constexpr GLenum GL_COLOR_ATTACHMENT3 = 0x8CE3;
 inline constexpr GLenum GL_RGB16F = 0x881B;
 
+// --- DSA (GL 4.5) / buffer storage / queries / formats ---------------------------
+inline constexpr GLbitfield GL_DYNAMIC_STORAGE_BIT = 0x0100;
+inline constexpr GLbitfield GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT = 0x00000200;
+inline constexpr GLenum GL_BUFFER_STORAGE_FLAGS = 0x8220;
+inline constexpr GLenum GL_TEXTURE_BUFFER_SIZE = 0x919C;
+inline constexpr GLenum GL_TEXTURE_BUFFER_OFFSET = 0x919D;
+inline constexpr GLenum GL_TEXTURE_MAX_ANISOTROPY = 0x84FE;
+inline constexpr GLenum GL_TEXTURE_BORDER_COLOR = 0x1004;
+inline constexpr GLenum GL_RG = 0x8227;
+inline constexpr GLenum GL_BGRA = 0x80E1;
+inline constexpr GLenum GL_SRGB8 = 0x8C41;
+inline constexpr GLenum GL_SRGB8_ALPHA8 = 0x8C43;
+inline constexpr GLenum GL_DEPTH_COMPONENT16 = 0x81A5;
+inline constexpr GLenum GL_DEPTH_COMPONENT32 = 0x81A7;
+inline constexpr GLenum GL_UNSIGNED_INT_24_8_REV = 0x8367;
+inline constexpr GLenum GL_RGBA16 = 0x805B;
+inline constexpr GLenum GL_TEXTURE_MIN_LOD = 0x813A;
+inline constexpr GLenum GL_TEXTURE_MAX_LOD = 0x813B;
+inline constexpr GLenum GL_TEXTURE_LOD_BIAS = 0x8501;
+inline constexpr GLenum GL_SAMPLES_PASSED = 0x8914;
+inline constexpr GLenum GL_ANY_SAMPLES_PASSED = 0x8C2F;
+inline constexpr GLenum GL_QUERY_RESULT_NO_WAIT = 0x9194;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER = 0x8C8E;
+inline constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_DIVISOR = 0x88FE;
+inline constexpr GLenum GL_RENDERBUFFER_SAMPLES = 0x8CAB;
+inline constexpr GLenum GL_ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
+inline constexpr GLenum GL_SAMPLER_BINDING = 0x8919;
+inline constexpr GLenum GL_R32F = 0x822E;
+inline constexpr GLenum GL_R32UI = 0x8236;
+inline constexpr GLenum GL_RGBA32UI = 0x8D70;
+inline constexpr GLenum GL_RED_INTEGER = 0x8D94;
+inline constexpr GLenum GL_RGBA_INTEGER = 0x8D99;
+
 /// @brief Signature of the GL debug message callback (GLDEBUGPROC).
 using GLDEBUGPROC = void (*)(GLenum source, GLenum type, GLuint id, GLenum severity,
                              GLsizei length, const GLchar* message, const void* userParam);

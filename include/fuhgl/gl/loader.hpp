@@ -342,12 +342,75 @@ struct DsaFunctions {
     void (*glCreateRenderbuffers)(GLsizei n, GLuint* renderbuffers);
     void (*glNamedRenderbufferStorage)(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
     void (*glBlitNamedFramebuffer)(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+    // buffers (P2): immutable storage + mapping + copies + clears + queries
+    void (*glNamedBufferStorage)(GLuint buffer, GLsizeiptr size, const void* data, GLbitfield flags);
+    void* (*glMapNamedBuffer)(GLuint buffer, GLenum access);
+    void* (*glMapNamedBufferRange)(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
+    GLboolean (*glUnmapNamedBuffer)(GLuint buffer);
+    void (*glFlushMappedNamedBufferRange)(GLuint buffer, GLintptr offset, GLsizeiptr length);
+    void (*glCopyNamedBufferSubData)(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+    void (*glClearNamedBufferSubData)(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void* data);
+    void (*glInvalidateNamedBufferData)(GLuint buffer);
+    void (*glInvalidateNamedBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr length);
+    void (*glGetNamedBufferParameteriv)(GLuint buffer, GLenum pname, GLint* params);
+    void (*glGetNamedBufferParameteri64v)(GLuint buffer, GLenum pname, GLint64* params);
+    void (*glGetNamedBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr size, void* data);
+    // transform feedback (P2)
+    void (*glCreateTransformFeedbacks)(GLsizei n, GLuint* ids);
+    // framebuffers (P2): draw/read buffers, typed clears, texture layers
+    void (*glNamedFramebufferDrawBuffer)(GLuint framebuffer, GLenum buf);
+    void (*glNamedFramebufferDrawBuffers)(GLuint framebuffer, GLsizei n, const GLenum* bufs);
+    void (*glNamedFramebufferReadBuffer)(GLuint framebuffer, GLenum src);
+    void (*glClearNamedFramebufferiv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint* value);
+    void (*glClearNamedFramebufferuiv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint* value);
+    void (*glClearNamedFramebufferfv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat* value);
+    void (*glClearNamedFramebufferfi)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
+    void (*glNamedFramebufferTextureLayer)(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
+    // renderbuffers (P2): multisample storage + params
+    void (*glNamedRenderbufferStorageMultisample)(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+    void (*glGetNamedRenderbufferParameteriv)(GLuint renderbuffer, GLenum pname, GLint* params);
+    // textures (P2): params, 3D/compressed/copy uploads, mipmaps, MS storage, readback, buffer textures
+    void (*glTextureParameteri)(GLuint texture, GLenum pname, GLint param);
+    void (*glTextureParameterf)(GLuint texture, GLenum pname, GLfloat param);
+    void (*glTextureParameterfv)(GLuint texture, GLenum pname, const GLfloat* params);
+    void (*glTextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* pixels);
+    void (*glCompressedTextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void* data);
+    void (*glCompressedTextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void* data);
+    void (*glCopyTextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+    void (*glCopyTextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+    void (*glGenerateTextureMipmap)(GLuint texture);
+    void (*glTextureStorage2DMultisample)(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
+    void (*glTextureStorage3DMultisample)(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
+    void (*glGetTextureImage)(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void* pixels);
+    void (*glGetCompressedTextureImage)(GLuint texture, GLint level, GLsizei bufSize, void* pixels);
+    void (*glGetTextureLevelParameteriv)(GLuint texture, GLint level, GLenum pname, GLint* params);
+    void (*glTextureBuffer)(GLuint texture, GLenum internalformat, GLuint buffer);
+    void (*glTextureBufferRange)(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+    // vertex arrays (P2): attrib binding, integer/double formats, divisors, queries
+    void (*glVertexArrayAttribBinding)(GLuint vaobj, GLuint attribindex, GLuint bindingindex);
+    void (*glVertexArrayAttribIFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+    void (*glVertexArrayAttribLFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+    void (*glVertexArrayBindingDivisor)(GLuint vaobj, GLuint bindingindex, GLuint divisor);
+    void (*glGetVertexArrayiv)(GLuint vaobj, GLenum pname, GLint* param);
+    void (*glGetVertexArrayIndexediv)(GLuint vaobj, GLuint index, GLenum pname, GLint* param);
+    void (*glGetVertexArrayIndexed64iv)(GLuint vaobj, GLuint index, GLenum pname, GLint64* param);
+    // samplers (P2): float params + range binding
+    void (*glSamplerParameterf)(GLuint sampler, GLenum pname, GLfloat param);
+    void (*glSamplerParameterfv)(GLuint sampler, GLenum pname, const GLfloat* params);
+    void (*glBindSamplers)(GLuint first, GLsizei count, const GLuint* samplers);
+    // queries (P2): DSA creation (glBeginQuery/glGetQueryObjectui64v live in the curated table)
+    void (*glCreateQueries)(GLenum target, GLsizei n, GLuint* ids);
 };
 
 /// @brief DSA entry points; all null if unavailable (use hasDsa() first).
 const DsaFunctions& dsa();
 /// @brief True when the current context is GL >= 4.5 and DSA pointers were found.
 bool hasDsa();
+
+/// @brief Names of all entries in the DSA table (for diagnostics/tests).
+const char* const* dsaFunctionNames();
+/// @brief Number of entries in the DSA table.
+std::size_t dsaFunctionNameCount();
 
 /// @brief Load all functions in the curated table. Requires a *current* OpenGL context.
 /// @return true if the table was filled (individual entries may still be null on old drivers).

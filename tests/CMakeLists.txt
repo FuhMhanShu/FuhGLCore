@@ -66,3 +66,9 @@ add_test(NAME gl_smoke_forward COMMAND fuhgl_gl_smoke_forward)
 add_executable(fuhgl_gl_smoke_deferred_fx gl_smoke_deferred_fx.cpp)
 target_link_libraries(fuhgl_gl_smoke_deferred_fx PRIVATE fuhglcore)
 add_test(NAME gl_smoke_deferred_fx COMMAND fuhgl_gl_smoke_deferred_fx)
+
+# Headless test for P2 (complete GL 4.5 DSA table): named buffers/textures/samplers/
+# VAOs/FBOs/renderbuffers/queries/TFs with readback verification. Skips without GL 4.5.
+add_executable(fuhgl_gl_smoke_dsa gl_smoke_dsa.cpp)
+target_link_libraries(fuhgl_gl_smoke_dsa PRIVATE fuhglcore)
+add_test(NAME gl_smoke_dsa COMMAND fuhgl_gl_smoke_dsa)

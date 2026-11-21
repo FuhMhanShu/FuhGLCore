@@ -205,6 +205,33 @@ const DsaEntry kDsaEntries[] = {
     FUHGL_DSA(glVertexArrayVertexBuffer), FUHGL_DSA(glVertexArrayElementBuffer),
     FUHGL_DSA(glCreateFramebuffers), FUHGL_DSA(glNamedFramebufferTexture), FUHGL_DSA(glCheckNamedFramebufferStatus),
     FUHGL_DSA(glCreateRenderbuffers), FUHGL_DSA(glNamedRenderbufferStorage), FUHGL_DSA(glBlitNamedFramebuffer),
+    // P2: buffers
+    FUHGL_DSA(glNamedBufferStorage), FUHGL_DSA(glMapNamedBuffer), FUHGL_DSA(glMapNamedBufferRange),
+    FUHGL_DSA(glUnmapNamedBuffer), FUHGL_DSA(glFlushMappedNamedBufferRange), FUHGL_DSA(glCopyNamedBufferSubData),
+    FUHGL_DSA(glClearNamedBufferSubData), FUHGL_DSA(glInvalidateNamedBufferData), FUHGL_DSA(glInvalidateNamedBufferSubData),
+    FUHGL_DSA(glGetNamedBufferParameteriv), FUHGL_DSA(glGetNamedBufferParameteri64v), FUHGL_DSA(glGetNamedBufferSubData),
+    // P2: transform feedback
+    FUHGL_DSA(glCreateTransformFeedbacks),
+    // P2: framebuffers
+    FUHGL_DSA(glNamedFramebufferDrawBuffer), FUHGL_DSA(glNamedFramebufferDrawBuffers), FUHGL_DSA(glNamedFramebufferReadBuffer),
+    FUHGL_DSA(glClearNamedFramebufferiv), FUHGL_DSA(glClearNamedFramebufferuiv), FUHGL_DSA(glClearNamedFramebufferfv),
+    FUHGL_DSA(glClearNamedFramebufferfi), FUHGL_DSA(glNamedFramebufferTextureLayer),
+    // P2: renderbuffers
+    FUHGL_DSA(glNamedRenderbufferStorageMultisample), FUHGL_DSA(glGetNamedRenderbufferParameteriv),
+    // P2: textures
+    FUHGL_DSA(glTextureParameteri), FUHGL_DSA(glTextureParameterf), FUHGL_DSA(glTextureParameterfv),
+    FUHGL_DSA(glTextureSubImage3D), FUHGL_DSA(glCompressedTextureSubImage2D), FUHGL_DSA(glCompressedTextureSubImage3D),
+    FUHGL_DSA(glCopyTextureSubImage2D), FUHGL_DSA(glCopyTextureSubImage3D), FUHGL_DSA(glGenerateTextureMipmap),
+    FUHGL_DSA(glTextureStorage2DMultisample), FUHGL_DSA(glTextureStorage3DMultisample),
+    FUHGL_DSA(glGetTextureImage), FUHGL_DSA(glGetCompressedTextureImage), FUHGL_DSA(glGetTextureLevelParameteriv),
+    FUHGL_DSA(glTextureBuffer), FUHGL_DSA(glTextureBufferRange),
+    // P2: vertex arrays
+    FUHGL_DSA(glVertexArrayAttribBinding), FUHGL_DSA(glVertexArrayAttribIFormat), FUHGL_DSA(glVertexArrayAttribLFormat),
+    FUHGL_DSA(glVertexArrayBindingDivisor), FUHGL_DSA(glGetVertexArrayiv), FUHGL_DSA(glGetVertexArrayIndexediv),
+    FUHGL_DSA(glGetVertexArrayIndexed64iv),
+    // P2: samplers + queries
+    FUHGL_DSA(glSamplerParameterf), FUHGL_DSA(glSamplerParameterfv), FUHGL_DSA(glBindSamplers),
+    FUHGL_DSA(glCreateQueries),
 };
 #undef FUHGL_DSA
 
@@ -302,5 +329,17 @@ const char* const* functionNames() {
 }
 
 std::size_t functionNameCount() { return std::size(kEntries); }
+
+const char* const* dsaFunctionNames() {
+    static const char* names[sizeof(kDsaEntries) / sizeof(kDsaEntries[0])];
+    static bool filled = false;
+    if (!filled) {
+        for (std::size_t i = 0; i < std::size(kDsaEntries); ++i) names[i] = kDsaEntries[i].name;
+        filled = true;
+    }
+    return names;
+}
+
+std::size_t dsaFunctionNameCount() { return std::size(kDsaEntries); }
 
 } // namespace fuhgl::gl
