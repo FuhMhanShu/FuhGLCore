@@ -213,11 +213,17 @@ CubemapData readCubemap(const Texture& cube) {
     CubemapData out;
     if (!cube.id()) return out;
     cube.bind();
-    out.size = cube.getLevelParameteri(gl::GL_TEXTURE_WIDTH, 0);
+    // query via a face target: some drivers return 0 for GL_TEXTURE_CUBE_MAP level queries
+    gl::GLint size = 0, internal = 0;
+    if (gl::functions().glGetTexLevelParameteriv) {
+        gl::functions().glGetTexLevelParameteriv(gl::GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl::GL_TEXTURE_WIDTH, &size);
+        gl::functions().glGetTexLevelParameteriv(gl::GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl::GL_TEXTURE_INTERNAL_FORMAT,
+                                                  &internal);
+    }
+    out.size = size;
     if (out.size <= 0) return CubemapData{};
-    const gl::GLint internal = cube.getLevelParameteri(gl::GL_TEXTURE_INTERNAL_FORMAT, 0);
     const bool isFloat = (internal == gl::GL_RGB16F || internal == gl::GL_RGB32F || internal == gl::GL_RGBA16F ||
-                          internal == gl::GL_RGBA32F);
+                          internal == gl::GL_RGBA32F || internal == gl::GL_RG16F || internal == gl::GL_RG32F);
     for (int f = 0; f < 6; ++f) {
         const std::size_t n = static_cast<std::size_t>(out.size) * out.size;
         out.face[f].assign(n * 4, 0.f);
