@@ -51,6 +51,8 @@ public:
     void setUniform(gl::GLint location, gl::GLsizei count, const int* values) const;
     void setUniform(gl::GLint location, gl::GLuint v) const;
     void setUniform(gl::GLint location, gl::GLsizei count, const gl::GLuint* values) const;
+    void setUniform(gl::GLint location, gl::GLsizei count, const float* values) const;
+    void setUniform(gl::GLint location, gl::GLsizei count, const math::Mat4* values) const;
     /// @brief Convenience overloads: look up the name and set the value.
     void setUniform(const char* name, const math::Mat4& v) const { setUniform(uniformLocation(name), v); }
     void setUniform(const char* name, const math::Mat3& v) const { setUniform(uniformLocation(name), v); }
@@ -60,6 +62,8 @@ public:
     void setUniform(const char* name, float v) const { setUniform(uniformLocation(name), v); }
     void setUniform(const char* name, int v) const { setUniform(uniformLocation(name), v); }
     void setUniform(const char* name, unsigned v) const { setUniform(uniformLocation(name), v); }
+    void setUniform(const char* name, gl::GLsizei count, const float* values) const { setUniform(uniformLocation(name), count, values); }
+    void setUniform(const char* name, gl::GLsizei count, const math::Mat4* values) const { setUniform(uniformLocation(name), count, values); }
 
     /// @brief Reads back a uniform value from the program object (glGetUniform*, no use() needed).
     gl::GLint getUniformi(const char* name) const;

@@ -50,6 +50,16 @@ All notable changes to FuhGLCore are documented here. The format follows
   `pbrAmbient()` in GLSL. Tests: `test_environment.cpp` (unit), `gl_smoke_pbr.cpp`
   (gl_context); tutorials 31 + 32 (en + de).
 
+### Added
+- F30 — cascaded shadow maps: `render::CascadeShadowMap` (depth texture array, one layer
+  per cascade via `glFramebufferTextureLayer`), `cascadeSplits()` (practical log+uniform
+  split) + `cascadeViewProj()` (per-slice fitted ortho box for directional lights);
+  `SceneView::cascades`; pipelines sample `sampler2DArray` with per-cascade PCF and
+  view-depth cascade selection; `ForwardRenderer`/`DeferredRenderer::enableCsmShadows()`
+  + `setShadowZRange()`. New `Program::setUniform` overloads (`float[]`, `Mat4[]`) and
+  loader entry `glUniform1fv`. Tests: `test_shadow.cpp` (unit) + `gl_smoke_csm.cpp`
+  (gl_context); tutorial 33 (en + de).
+
 ## [0.1.0] — initial release
 
 Zero-dependency C++17 OpenGL wrapper + built-in render layer. Highlights:

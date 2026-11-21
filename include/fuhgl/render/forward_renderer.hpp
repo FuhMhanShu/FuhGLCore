@@ -64,6 +64,16 @@ public:
     /// @brief Scene bounds the shadow map covers (center + radius); default origin/10.
     void setShadowSceneBounds(const math::Vec3& center, float radius) { shadowCenter_ = center; shadowRadius_ = radius; }
     void setShadowStrength(float s) { shadowStrength_ = s; }
+    /// @brief Camera depth range the cascades cover (F30); default 0.5 .. 200.
+    void setShadowZRange(float zn, float zf) { shadowZNear_ = zn; shadowZFar_ = zf; }
+
+    // --- cascaded shadow maps (F30) ---------------------------------------------------
+    /// @brief CSM instead of the single ShadowMap: one depth-array layer per cascade,
+    /// re-rendered from the first directional light every frame.
+    void enableCsmShadows(int mapSize = 2048, int cascades = 4);
+    void disableCsmShadows() { csmEnabled_ = false; }
+    bool csmShadowsEnabled() const { return csmEnabled_; }
+    CascadeShadowMap* cascadeShadowMap() { return csmEnabled_ ? &csm_ : nullptr; }
 
     // --- rendering -------------------------------------------------------------------
     /// @brief Renders one frame: shadow depth pass (when enabled, from the first
@@ -80,6 +90,7 @@ private:
     std::unique_ptr<Impl> impl_;
     ForwardPipeline pipeline_;
     ShadowMap shadowMap_;
+    CascadeShadowMap csm_;
     Framebuffer target_;
     Texture targetTex_{Texture::Target::Tex2D};
     Renderbuffer targetDepth_;
@@ -90,6 +101,9 @@ private:
     float fogDensity_ = 0.f;
     const Environment* env_ = nullptr;
     bool shadows_ = false;
+    bool csmEnabled_ = false;
+    int csmCascades_ = 4;
+    float shadowZNear_ = 0.5f, shadowZFar_ = 200.f;
     int shadowSize_ = 2048;
     math::Vec3 shadowCenter_{0.f, 0.f, 0.f};
     float shadowRadius_ = 10.f;

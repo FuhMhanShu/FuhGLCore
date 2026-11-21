@@ -85,6 +85,9 @@ Rays, Nebel) — siehe `examples/showcase` und
 - **Shadow Mapping** — `render::ShadowMap` (reiner Depth-Pass aus Sicht der Lichtquelle)
   + `lightViewProj()`-Helfer + PCF-Sampling in den Pipelines über `SceneView::shadowMap` —
   siehe [Tutorial 21](docs/de/tutorials/21-shadows.md).
+- **Cascaded Shadow Maps (CSM)** — `render::CascadeShadowMap` (Depth-Textur-Array, eine Ebene
+  pro Kaskade, passend pro Kamera-Frustum-Slice) über `ForwardRenderer::enableCsmShadows()` /
+  `SceneView::cascades` — siehe [Tutorial 33](docs/de/tutorials/33-cascaded-shadow-maps.md).
 - **PBR-Materialien** — Metallic-Roughness-Shading (Cook-Torrance GGX) in beiden Pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, im Deferred-Pfad pro Pixel in einem
   5. G-Buffer-Attachment gespeichert — siehe [Tutorial 31](docs/de/tutorials/31-pbr-materials.md).

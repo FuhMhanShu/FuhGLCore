@@ -92,6 +92,15 @@ void Program::setUniform(gl::GLint loc, gl::GLsizei count, const gl::GLuint* val
     if (gl::functions().glUniform1uiv) gl::functions().glUniform1uiv(loc, count, values);
 }
 
+void Program::setUniform(gl::GLint loc, gl::GLsizei count, const float* values) const {
+    if (gl::functions().glUniform1fv) gl::functions().glUniform1fv(loc, count, values);
+}
+
+void Program::setUniform(gl::GLint loc, gl::GLsizei count, const math::Mat4* values) const {
+    if (gl::functions().glUniformMatrix4fv && values)
+        gl::functions().glUniformMatrix4fv(loc, count, gl::GL_FALSE, values[0].data());
+}
+
 gl::GLint Program::getUniformi(const char* name) const {
     gl::GLint v = 0;
     if (gl::functions().glGetUniformiv) gl::functions().glGetUniformiv(impl_->id, uniformLocation(name), &v);

@@ -74,4 +74,49 @@ void runShadowTests() {
     const math::Vec2 uvCenter = sunScreenUV(cam, {0.f, 0.f, -1.f}, 100, 100);
     CHECK_NEAR(uvCenter.x, 0.5f, 1e-3f);
     CHECK_NEAR(uvCenter.y, 0.5f, 1e-3f);
+
+    // --- F30: cascadeSplits -------------------------------------------------------------
+    const auto splits = cascadeSplits(0.5f, 200.f, 4, 0.5f);
+    CHECK_NEAR(splits[0], 0.5f, 1e-5f);
+    CHECK_NEAR(splits[4], 200.f, 1e-2f);
+    for (int i = 1; i <= 4; ++i) CHECK(splits[i] > splits[i - 1]); // strictly ascending
+    const auto su = cascadeSplits(1.f, 9.f, 4, 0.f); // lambda 0 = uniform
+    CHECK_NEAR(su[1], 3.f, 1e-4f);
+    CHECK_NEAR(su[2], 5.f, 1e-4f);
+    CHECK_NEAR(su[3], 7.f, 1e-4f);
+    const auto slog = cascadeSplits(1.f, 16.f, 4, 1.f); // lambda 1 = pure log
+    CHECK_NEAR(slog[1], 2.f, 1e-3f);
+    CHECK_NEAR(slog[2], 4.f, 1e-3f);
+    CHECK_NEAR(slog[3], 8.f, 1e-3f);
+    CHECK_NEAR(cascadeSplits(1.f, 10.f, 99)[kMaxCascades], 10.f, 1e-4f); // count clamped
+
+    // --- F30: cascadeViewProj covers its own frustum slice ------------------------------
+    fuhgl::FirstPersonCamera cam2; // at origin, looking down -Z
+    cam2.position = {0.f, 0.f, 0.f};
+    cam2.yaw = 0.f;
+    cam2.pitch = 0.f;
+    const Light dl3 = Light::directional({0.3f, -1.f, 0.2f}, {1.f, 1.f, 1.f}, 2.f);
+    const auto sp = cascadeSplits(0.5f, 100.f, 4);
+    const math::Mat4 camProj = cam2.projection(1.f);
+    const float tanHalfFovY = 1.f / camProj(1, 1);
+    for (int i = 0; i < 4; ++i) {
+        const math::Mat4 vp = cascadeViewProj(dl3, cam2, 1.f, sp[i], sp[i + 1], {0.f, 0.f, 0.f}, 50.f);
+        // slice corners (on the camera frustum slice) map inside the cascade's ortho box
+        for (float d : {sp[i], sp[i + 1]})
+            for (float sx : {-1.f, 1.f})
+                for (float sy : {-1.f, 1.f}) {
+                    const math::Vec3 n = projectNdc(vp, {sx * tanHalfFovY * d, sy * tanHalfFovY * d, -d});
+                    CHECK(n.x >= -1.02f && n.x <= 1.02f && n.y >= -1.02f && n.y <= 1.02f);
+                    CHECK(std::isfinite(n.x) && std::isfinite(n.y) && std::isfinite(n.z));
+                }
+        // a point on the camera axis at the slice's mid depth is inside [0,1]^3
+        const float d = 0.5f * (sp[i] + sp[i + 1]);
+        const math::Vec3 n = projectNdc(vp, {0.f, 0.f, -d});
+        CHECK(n.x >= -0.02f && n.x <= 1.02f && n.y >= -0.02f && n.y <= 1.02f && n.z >= -1.02f && n.z <= 1.02f);
+    }
+    // spot light falls back to the full-range VP (finite, no crash)
+    const Light spot2 = Light::spot({0.f, 5.f, 0.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 30.f, 0.5f, 0.8f);
+    const math::Vec3 ns = projectNdc(cascadeViewProj(spot2, cam2, 1.f, 1.f, 10.f, {0.f, 0.f, 0.f}, 5.f),
+                                      {0.f, 0.f, -5.f});
+    CHECK(std::isfinite(ns.x) && std::isfinite(ns.y) && std::isfinite(ns.z));
 }

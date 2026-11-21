@@ -131,10 +131,35 @@ void ForwardPipeline::render(const SceneView& scene) {
     gl::clear(gl::ClearBit::Color | gl::ClearBit::Depth);
 
     const math::Mat4 viewProj = scene.camera->viewProj(scene.aspect);
-    // shadow map on kTextureUnitShadowMap (dummy 1x1 so the sampler stays bound)
-    const gl::GLuint shadowTexId = scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id();
+    // shadow map on kTextureUnitShadowMap (dummy 1x1 so the sampler stays bound);
+    // F30: a CascadeShadowMap binds a GL_TEXTURE_2D_ARRAY on the same unit instead
+    const bool csm = scene.cascades && scene.cascades->cascadeCount() > 0;
     gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMap);
-    gl::functions().glBindTexture(gl::GL_TEXTURE_2D, shadowTexId);
+    if (csm)
+        gl::functions().glBindTexture(gl::GL_TEXTURE_2D_ARRAY, scene.cascades->textureId());
+    else
+        gl::functions().glBindTexture(gl::GL_TEXTURE_2D,
+                                      scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id());
+    auto setShadowUniforms = [&](Program& prog) {
+        prog.setUniform("uView", scene.camera->view());
+        if (csm) {
+            prog.setUniform(prog.uniformLocation("uShadowMode"), 1);
+            prog.setUniform(prog.uniformLocation("uShadowMapArray"), kTextureUnitShadowMap);
+            prog.setUniform(prog.uniformLocation("uCascadeCount"), scene.cascades->cascadeCount());
+            prog.setUniform(prog.uniformLocation("uCascadeSplits"), scene.cascades->cascadeCount() + 1,
+                            scene.cascades->splits().data());
+            prog.setUniform(prog.uniformLocation("uLightVPs"), scene.cascades->cascadeCount(),
+                            &scene.cascades->cascadeVP(0));
+            prog.setUniform(prog.uniformLocation("uShadowEnabled"), 1);
+        } else {
+            prog.setUniform(prog.uniformLocation("uShadowMode"), 0);
+            prog.setUniform(prog.uniformLocation("uShadowEnabled"), scene.shadowMap ? 1 : 0);
+            prog.setUniform(prog.uniformLocation("uShadowMap"), kTextureUnitShadowMap);
+            prog.setUniform("uLightVP", scene.lightVP);
+        }
+        prog.setUniform(prog.uniformLocation("uShadowLightIndex"), scene.shadowLightIndex);
+        prog.setUniform("uShadowStrength", scene.shadowStrength);
+    };
     // F29: bind the IBL textures (units 7/8/9) when an environment is set
     if (scene.env && scene.env->irradianceMap().id()) {
         gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitIrradiance);
@@ -153,11 +178,7 @@ void ForwardPipeline::render(const SceneView& scene) {
         prog.setUniform("uCamPos", scene.camera->eye());
         prog.setUniform("uAmbient", scene.ambient);
         prog.setUniform(prog.uniformLocation("uLightCount"), n);
-        prog.setUniform(prog.uniformLocation("uShadowEnabled"), scene.shadowMap ? 1 : 0);
-        prog.setUniform(prog.uniformLocation("uShadowMap"), kTextureUnitShadowMap);
-        prog.setUniform("uLightVP", scene.lightVP);
-        prog.setUniform(prog.uniformLocation("uShadowLightIndex"), scene.shadowLightIndex);
-        prog.setUniform("uShadowStrength", scene.shadowStrength);
+        setShadowUniforms(prog);
         prog.setUniform("uFogColor", scene.fogColor);
         prog.setUniform("uFogDensity", scene.fogDensity);
         // F29: IBL environment (sampler uniforms; texture bindings are global state below)

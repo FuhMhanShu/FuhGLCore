@@ -132,29 +132,60 @@ vec3 shade(vec3 albedo, float metallic, float roughness, float ao, vec3 N, vec3 
 // F15: uniforms + PCF shadow sampling against the shadow map on texture unit uShadowMap.
 // Assemble as: ... + kLightingUniforms + kShadowUniforms + kShadowFunc + kLightingLoop + ...
 constexpr const char* kShadowUniforms = R"GLSL(
-uniform sampler2D uShadowMap;
-uniform mat4 uLightVP;
+uniform sampler2D uShadowMap;            // single map (F15)
+uniform sampler2DArray uShadowMapArray;  // CSM depth array (F30)
+uniform mat4 uLightVP;                   // single-map VP
+uniform mat4 uLightVPs[8];               // CSM: per-cascade VPs
+uniform mat4 uView;                      // camera view (CSM view-space depth)
 uniform int uShadowEnabled;
 uniform int uShadowLightIndex;
 uniform float uShadowStrength;
+uniform int uShadowMode;                 // 0 = single 2D map, 1 = CSM array
+uniform int uCascadeCount;
+uniform float uCascadeSplits[9];         // count+1 view-space far planes, ascending
 )GLSL";
 
 constexpr const char* kShadowFunc = R"GLSL(
 // 3x3 PCF (on top of the LINEAR-filtered depth texture) with slope-scaled bias.
 // Returns 1.0 = fully lit, 0.0 = fully shadowed.
-float shadowFactor(vec3 worldPos, vec3 N, vec3 L) {
-    vec4 lp = uLightVP * vec4(worldPos, 1.0);
-    vec3 p = lp.xyz / lp.w * 0.5 + 0.5;
-    if (p.z > 1.0 || p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0) return 1.0;
-    float bias = max(0.0015 * (1.0 - dot(N, L)), 0.0004);
-    vec2 texel = 1.0 / vec2(textureSize(uShadowMap, 0));
+float pcf2D(vec2 uv, float z, float bias, sampler2D map) {
+    vec2 texel = 1.0 / vec2(textureSize(map, 0));
     float sum = 0.0;
     for (int x = -1; x <= 1; ++x)
         for (int y = -1; y <= 1; ++y) {
-            float d = texture(uShadowMap, p.xy + vec2(float(x), float(y)) * texel).r;
-            sum += (p.z - bias <= d) ? 1.0 : 0.0;
+            float d = texture(map, uv + vec2(float(x), float(y)) * texel).r;
+            sum += (z - bias <= d) ? 1.0 : 0.0;
         }
     return sum / 9.0;
+}
+float pcfArray(vec2 uv, float z, float bias, int layer) {
+    vec2 texel = 1.0 / vec2(textureSize(uShadowMapArray, 0).xy);
+    float sum = 0.0;
+    for (int x = -1; x <= 1; ++x)
+        for (int y = -1; y <= 1; ++y) {
+            float d = texture(uShadowMapArray, vec3(uv + vec2(float(x), float(y)) * texel, float(layer))).r;
+            sum += (z - bias <= d) ? 1.0 : 0.0;
+        }
+    return sum / 9.0;
+}
+float shadowFactor(vec3 worldPos, vec3 N, vec3 L) {
+    float bias = max(0.0015 * (1.0 - dot(N, L)), 0.0004);
+    if (uShadowMode == 1) {
+        // CSM (F30): pick the cascade by view-space depth, sample its array layer
+        float viewDepth = -(uView * vec4(worldPos, 1.0)).z;
+        int cascade = uCascadeCount - 1;
+        for (int i = 0; i < uCascadeCount; ++i) {
+            if (viewDepth <= uCascadeSplits[i + 1]) { cascade = i; break; }
+        }
+        vec4 lp = uLightVPs[cascade] * vec4(worldPos, 1.0);
+        vec3 p = lp.xyz / lp.w * 0.5 + 0.5;
+        if (p.z > 1.0 || p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0) return 1.0;
+        return pcfArray(p.xy, p.z, bias, cascade);
+    }
+    vec4 lp = uLightVP * vec4(worldPos, 1.0);
+    vec3 p = lp.xyz / lp.w * 0.5 + 0.5;
+    if (p.z > 1.0 || p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0) return 1.0;
+    return pcf2D(p.xy, p.z, bias, uShadowMap);
 }
 )GLSL";
 

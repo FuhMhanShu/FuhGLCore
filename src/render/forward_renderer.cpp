@@ -67,6 +67,16 @@ void ForwardRenderer::enableShadows(int mapSize) {
     }
 }
 
+void ForwardRenderer::enableCsmShadows(int mapSize, int cascades) {
+    shadowSize_ = mapSize;
+    csmCascades_ = cascades;
+    csmEnabled_ = true;
+    if (gl::isInitialized() && csm_.cascadeCount() <= 0 && !csm_.create(mapSize, cascades)) {
+        std::fprintf(stderr, "ForwardRenderer: CSM create failed\n");
+        csmEnabled_ = false;
+    }
+}
+
 void ForwardRenderer::render(const Camera& camera, const std::vector<DrawItem>& items, int width, int height) {
     SceneView scene;
     scene.camera = &camera;
@@ -81,8 +91,19 @@ void ForwardRenderer::render(const Camera& camera, const std::vector<DrawItem>& 
     scene.lights = lights_;
     scene.env = env_; // F29
 
-    // shadow depth pass from the first directional/spot light
-    if (shadows_ && shadowMap_.size() > 0) {
+    // shadow depth pass from the first directional/spot light (single map) or
+    // first directional light (CSM, F30)
+    if (csmEnabled_ && csm_.cascadeCount() > 0) {
+        for (size_t i = 0; i < lights_.size(); ++i) {
+            if (lights_[i].type == LightType::Directional) {
+                csm_.render(scene, camera, lights_[i], shadowCenter_, shadowRadius_, shadowZNear_, shadowZFar_);
+                scene.cascades = &csm_;
+                scene.shadowLightIndex = static_cast<int>(i);
+                scene.shadowStrength = shadowStrength_;
+                break;
+            }
+        }
+    } else if (shadows_ && shadowMap_.size() > 0) {
         for (size_t i = 0; i < lights_.size(); ++i) {
             if (lights_[i].type == LightType::Directional || lights_[i].type == LightType::Spot) {
                 scene.lightVP = lightViewProj(lights_[i], shadowCenter_, shadowRadius_);

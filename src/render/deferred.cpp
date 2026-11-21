@@ -425,13 +425,31 @@ void DeferredPipeline::renderLighting(const SceneView& scene, Framebuffer* targe
     lp.setUniform(lp.uniformLocation("uLightCount"), n);
     lp.setUniform("uSkyTop", skyTop);
     lp.setUniform("uSkyBottom", skyBottom);
-    // shadow map on unit kTextureUnitShadowMap (dummy 1x1 when disabled)
-    const gl::GLuint shadowTexId = scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id();
+    // shadow map on unit kTextureUnitShadowMap (dummy 1x1 when disabled);
+    // F30: a CascadeShadowMap binds a GL_TEXTURE_2D_ARRAY on the same unit instead
+    const bool csm = scene.cascades && scene.cascades->cascadeCount() > 0;
     gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMap);
-    gl::functions().glBindTexture(gl::GL_TEXTURE_2D, shadowTexId);
-    lp.setUniform(lp.uniformLocation("uShadowEnabled"), scene.shadowMap ? 1 : 0);
-    lp.setUniform(lp.uniformLocation("uShadowMap"), kTextureUnitShadowMap);
-    lp.setUniform("uLightVP", scene.lightVP);
+    if (csm)
+        gl::functions().glBindTexture(gl::GL_TEXTURE_2D_ARRAY, scene.cascades->textureId());
+    else
+        gl::functions().glBindTexture(gl::GL_TEXTURE_2D,
+                                      scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id());
+    lp.setUniform("uView", scene.camera->view());
+    if (csm) {
+        lp.setUniform(lp.uniformLocation("uShadowMode"), 1);
+        lp.setUniform(lp.uniformLocation("uShadowMapArray"), kTextureUnitShadowMap);
+        lp.setUniform(lp.uniformLocation("uCascadeCount"), scene.cascades->cascadeCount());
+        lp.setUniform(lp.uniformLocation("uCascadeSplits"), scene.cascades->cascadeCount() + 1,
+                      scene.cascades->splits().data());
+        lp.setUniform(lp.uniformLocation("uLightVPs"), scene.cascades->cascadeCount(),
+                      &scene.cascades->cascadeVP(0));
+        lp.setUniform(lp.uniformLocation("uShadowEnabled"), 1);
+    } else {
+        lp.setUniform(lp.uniformLocation("uShadowMode"), 0);
+        lp.setUniform(lp.uniformLocation("uShadowEnabled"), scene.shadowMap ? 1 : 0);
+        lp.setUniform(lp.uniformLocation("uShadowMap"), kTextureUnitShadowMap);
+        lp.setUniform("uLightVP", scene.lightVP);
+    }
     lp.setUniform(lp.uniformLocation("uShadowLightIndex"), scene.shadowLightIndex);
     lp.setUniform("uShadowStrength", scene.shadowStrength);
     lp.setUniform("uFogColor", scene.fogColor);

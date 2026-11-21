@@ -248,6 +248,15 @@ void DeferredRenderer::resize(int width, int height) {
     create(width, height, msaa_);
 }
 
+void DeferredRenderer::enableCsmShadows(int mapSize, int cascades) {
+    shadowSize_ = mapSize;
+    csmEnabled_ = true;
+    if (gl::isInitialized() && csm_.cascadeCount() <= 0 && !csm_.create(mapSize, cascades)) {
+        std::fprintf(stderr, "DeferredRenderer: CSM create failed\n");
+        csmEnabled_ = false;
+    }
+}
+
 void DeferredRenderer::enableShadows(int mapSize) {
     shadowSize_ = mapSize;
     shadows_ = true;
@@ -401,8 +410,18 @@ void DeferredRenderer::render(const SceneView& scene) {
     if (!scene.camera || width_ <= 0) return;
     SceneView s = scene;
 
-    // shadow depth pass from the first directional/spot light
-    if (shadows_ && shadowMap_.size() > 0) {
+    // shadow depth pass: CSM (F30, first directional light) or single map (first directional/spot)
+    if (csmEnabled_ && csm_.cascadeCount() > 0) {
+        for (size_t i = 0; i < s.lights.size(); ++i) {
+            if (s.lights[i].type == LightType::Directional && s.camera) {
+                csm_.render(s, *s.camera, s.lights[i], shadowCenter_, shadowRadius_, shadowZNear_, shadowZFar_);
+                s.cascades = &csm_;
+                s.shadowLightIndex = static_cast<int>(i);
+                s.shadowStrength = shadowStrength_;
+                break;
+            }
+        }
+    } else if (shadows_ && shadowMap_.size() > 0) {
         for (size_t i = 0; i < s.lights.size(); ++i) {
             if (s.lights[i].type == LightType::Directional || s.lights[i].type == LightType::Spot) {
                 s.lightVP = lightViewProj(s.lights[i], shadowCenter_, shadowRadius_);

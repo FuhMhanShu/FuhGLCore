@@ -70,6 +70,13 @@ public:
     ShadowMap* shadowMap() { return shadows_ ? &shadowMap_ : nullptr; }
     void setShadowSceneBounds(const math::Vec3& center, float radius) { shadowCenter_ = center; shadowRadius_ = radius; }
     void setShadowStrength(float s) { shadowStrength_ = s; }
+    /// @brief Camera depth range the cascades cover (F30); default 0.5 .. 200.
+    void setShadowZRange(float zn, float zf) { shadowZNear_ = zn; shadowZFar_ = zf; }
+    /// @brief CSM instead of the single ShadowMap (F30): one depth-array layer per cascade.
+    void enableCsmShadows(int mapSize = 2048, int cascades = 4);
+    void disableCsmShadows() { csmEnabled_ = false; }
+    bool csmShadowsEnabled() const { return csmEnabled_; }
+    CascadeShadowMap* cascadeShadowMap() { return csmEnabled_ ? &csm_ : nullptr; }
 
 private:
     struct Impl;
@@ -86,9 +93,12 @@ private:
 
     DeferredPipeline pipeline_;
     ShadowMap shadowMap_;
+    CascadeShadowMap csm_;
     int width_ = 0, height_ = 0, msaa_ = 0;
 
     bool shadows_ = false;
+    bool csmEnabled_ = false;
+    float shadowZNear_ = 0.5f, shadowZFar_ = 200.f;
     int shadowSize_ = 2048;
     math::Vec3 shadowCenter_{0.f, 0.f, 0.f};
     float shadowRadius_ = 10.f;

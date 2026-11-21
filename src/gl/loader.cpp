@@ -99,7 +99,7 @@ const Entry kEntries[] = {
     FUHGL_ENTRY(glGetProgramiv), FUHGL_ENTRY(glGetProgramInfoLog), FUHGL_ENTRY(glUseProgram),
     FUHGL_ENTRY(glDeleteProgram), FUHGL_ENTRY(glGetUniformLocation), FUHGL_ENTRY(glGetAttribLocation),
     FUHGL_ENTRY(glBindAttribLocation), FUHGL_ENTRY(glUniform1i), FUHGL_ENTRY(glUniform1f),
-    FUHGL_ENTRY(glUniform2f), FUHGL_ENTRY(glUniform3f), FUHGL_ENTRY(glUniform4f), FUHGL_ENTRY(glUniform1iv),
+    FUHGL_ENTRY(glUniform2f), FUHGL_ENTRY(glUniform3f), FUHGL_ENTRY(glUniform4f), FUHGL_ENTRY(glUniform1iv), FUHGL_ENTRY(glUniform1fv),
     FUHGL_ENTRY(glUniformMatrix3fv), FUHGL_ENTRY(glUniformMatrix4fv), FUHGL_ENTRY(glUniformBlockBinding),
     FUHGL_ENTRY(glGetUniformBlockIndex),
     FUHGL_ENTRY(glGetUniformiv), FUHGL_ENTRY(glGetUniformfv), FUHGL_ENTRY(glGetUniformuiv),

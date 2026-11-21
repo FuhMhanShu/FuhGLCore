@@ -40,6 +40,7 @@ Screenshots in `docs/images/` werden headless von der CI (`docs`-Job) gerendert
 | 30 | Quaternionen & geseedetes Noise (Perlin / fBm) in `fuhgl::math` | [30-math-quaternions-noise.md](30-math-quaternions-noise.md) |
 | 31 | PBR-Materialien: Metallic-Roughness (Cook-Torrance GGX) in beiden Pipelines | [31-pbr-materials.md](31-pbr-materials.md) |
 | 32 | IBL: Irradiance- + vorgefilterte Env-Cubemap + BRDF-LUT aus beliebiger Cubemap | [32-ibl-environment.md](32-ibl-environment.md) |
+| 33 | Cascaded Shadow Maps (CSM): Depth-Textur-Array, eine Ebene pro Kaskade | [33-cascaded-shadow-maps.md](33-cascaded-shadow-maps.md) |
 
 Voraussetzung für alle: Bibliothek bauen und `FuhGLCore::fuhglcore` linken
 (siehe [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

@@ -79,6 +79,9 @@ fog) — see `examples/showcase` and [tutorial 29](docs/en/tutorials/29-showcase
 - **Shadow mapping** — `render::ShadowMap` (depth-only pass from the light's POV) +
   `lightViewProj()` helpers + PCF sampling in the pipelines via `SceneView::shadowMap` —
   see [tutorial 21](docs/en/tutorials/21-shadows.md).
+- **Cascaded shadow maps (CSM)** — `render::CascadeShadowMap` (depth texture array, one layer
+  per cascade, fitted per camera-frustum slice) via `ForwardRenderer::enableCsmShadows()` /
+  `SceneView::cascades` — see [tutorial 33](docs/en/tutorials/33-cascaded-shadow-maps.md).
 - **PBR materials** — metallic-roughness shading (Cook-Torrance GGX) in both pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, stored per pixel in a 5th G-buffer
   attachment in the deferred path — see [tutorial 31](docs/en/tutorials/31-pbr-materials.md).
