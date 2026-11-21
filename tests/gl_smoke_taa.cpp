@@ -122,8 +122,14 @@ int main() {
         raws.push_back(readHdr("ssr"));
         accs.push_back(readHdr("taa"));
         if (i > 0)
-            std::fprintf(stderr, "gl_smoke_taa: frame %d dRaw=%.6f dAcc=%.6f\n", i,
-                         meanAbsDiff(raws[i], raws[i - 1]), meanAbsDiff(accs[i], accs[i - 1]));
+            std::fprintf(stderr, "gl_smoke_taa: frame %d dRaw=%.6f dAcc=%.6f lumRaw=%.4f lumAcc=%.4f\n", i,
+                         meanAbsDiff(raws[i], raws[i - 1]), meanAbsDiff(accs[i], accs[i - 1]),
+                         meanAbs(raws[i]), meanAbs(accs[i]));
+        if (i <= 3) {
+            const size_t c = (static_cast<size_t>(H / 2) * W + W / 2) * 4;
+            std::fprintf(stderr, "gl_smoke_taa: frame %d center raw=(%.4f,%.4f,%.4f) acc=(%.4f,%.4f,%.4f)\n", i,
+                         raws[i][c], raws[i][c + 1], raws[i][c + 2], accs[i][c], accs[i][c + 1], accs[i][c + 2]);
+        }
     }
 
     const double dRaw = meanAbsDiff(raws[0], raws[1]);
