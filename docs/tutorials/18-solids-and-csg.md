@@ -43,6 +43,26 @@ scene.items.push_back({&mesh, &material, model});
 Operators on `SolidPtr`: `a | b` (union), `a & b` (intersection), `a - b` (difference).
 The AABB of a CSG node is derived automatically (difference is bounded by `a`).
 
+## CSG in pictures
+
+All rendered headless in CI by `examples/solids --screenshot ... --csg <mode>`:
+
+**Union** — `makeCube({0.85,0.85,0.85}) | makeSphere(0.8)`:
+
+![CSG union](../images/tutorial-csg-union.png)
+
+**Difference** — `makeCube({1,1,1}) - makeSphere(0.75)` (voronoi-textured):
+
+![CSG difference](../images/tutorial-csg-difference.png)
+
+**Intersection** — `makeSphere(0.95) & makeCube({0.8,0.8,0.8})`:
+
+![CSG intersection](../images/tutorial-csg-intersection.png)
+
+**Bounding volumes** of the difference part — solid, low-poly octahedron, bounding sphere, AABB box:
+
+![bounding volumes](../images/tutorial-csg-bounds.png)
+
 ## How meshing works
 
 `buildMeshData(resolution)` samples the `inside()` field on a voxel grid
