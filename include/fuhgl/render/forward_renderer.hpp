@@ -7,7 +7,7 @@
 /// directional/spot light every frame.
 
 #include "light.hpp"
-#include "pipeline.hpp"
+#include "forward_pipeline.hpp"
 #include "shadow.hpp"
 
 #include "../gl/framebuffer.hpp"
@@ -22,6 +22,9 @@ namespace fuhgl::render {
 /// @brief Default forward renderer: `render(camera, items, w, h)` does everything —
 /// shadow depth pass (if enabled), then the lit forward pass into the own target
 /// (create(w, h)) or the currently bound framebuffer (create()).
+/// Role vs. render::ForwardPipeline: the *Renderer* owns target + shadows + scene
+/// settings and needs one call per frame; the *Pipeline* is the low-level building
+/// block underneath (own header: forward_pipeline.hpp).
 class ForwardRenderer {
 public:
     ForwardRenderer();

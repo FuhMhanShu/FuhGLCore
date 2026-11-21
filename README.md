@@ -4,6 +4,11 @@ A lightweight OpenGL wrapper for C++17 with **zero third-party dependencies** â€
 only the C++ standard library and platform system APIs. No GLAD/GLEW, no GLFW/SDL,
 no Khronos headers, no vcpkg.
 
+The name "Core" refers to the zero-dependency GL/window/math core; the built-in
+render layer on top (`fuhgl/render.hpp` â€” pipelines, default renderers, post FX,
+solids/CSG, text, wireframe, instancing) is a small module in the same library, not a
+separate engine project.
+
 ![showcase day](docs/images/readme-showcase-day.png)
 ![showcase sunset](docs/images/readme-showcase-sunset.png)
 

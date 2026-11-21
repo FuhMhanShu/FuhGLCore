@@ -1,4 +1,4 @@
-#include "fuhgl/render/pipeline.hpp"
+#include "fuhgl/render/forward_pipeline.hpp"
 #include "fuhgl/render/shadow.hpp"
 #include "lighting_glsl.hpp"
 #include "pipeline_internal.hpp"
@@ -63,14 +63,15 @@ void main() {
 
 } // namespace
 
-struct ForwardPipeline::Impl {};
-
-ForwardPipeline::ForwardPipeline() : impl_(std::make_unique<Impl>()) {}
+ForwardPipeline::ForwardPipeline() = default;
 ForwardPipeline::~ForwardPipeline() = default;
 ForwardPipeline::ForwardPipeline(ForwardPipeline&&) noexcept = default;
 ForwardPipeline& ForwardPipeline::operator=(ForwardPipeline&&) noexcept = default;
 
-bool ForwardPipeline::create() {
+bool ForwardPipeline::create(int width, int height) {
+    (void)width;  // forward pipeline renders into the bound FB / setTarget() FBO;
+    (void)height; // size only matters for pipelines with owned targets (deferred)
+
     if (!defaultMaterial_.create()) return false;
     Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
     if (!vs.compile(kForwardVert)) return false;
