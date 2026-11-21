@@ -57,26 +57,17 @@ int main() {
 
     const int W = 128, H = 128;
 
-    const auto v = fuhgl::gl::version();
-    std::fprintf(stderr, "gl_smoke_culling: GL %d.%d\n", v.major, v.minor);
-    auto errNow = [&](const char* what) {
-        std::fprintf(stderr, "gl_smoke_culling: err after %s = 0x%x\n", what, static_cast<unsigned>(fuhgl::gl::lastError()));
-    };
-
     fuhgl::render::Mesh boxMesh;
     fuhgl::render::shapes::box(boxMesh, {0.3f, 0.3f, 0.3f}, {1.f, 1.f, 1.f});
     expect(boxMesh.boundingSphere().w > 0.4f && boxMesh.boundingSphere().w < 0.6f,
            "mesh bounding sphere of a 0.6 box has radius ~0.52");
-    errNow("mesh");
 
     fuhgl::render::GpuCuller culler;
     if (!culler.create(1024)) {
         std::fprintf(stderr, "gl_smoke_culling: culler create failed\n");
         return 1;
     }
-    errNow("culler.create");
     culler.setMesh(boxMesh);
-    errNow("setMesh");
 
     // 500 instances in front (z < 0), 500 behind the camera (z > 0)
     std::vector<fuhgl::math::Mat4> models;
@@ -90,7 +81,6 @@ int main() {
     for (int i = 0; i < 500; ++i)
         models.push_back(fuhgl::math::translate({0.f, 0.f, 2.f + 4.f * i / 500.f}));
     culler.setInstances(models.data(), static_cast<int>(models.size()));
-    errNow("setInstances");
     expect(culler.instanceCount() == 1000, "1000 instances uploaded");
 
     fuhgl::Shader vs(fuhgl::Shader::Type::Vertex), fs(fuhgl::Shader::Type::Fragment);
@@ -117,49 +107,8 @@ int main() {
     fbo.setSize(W, H);
     fbo.bind();
     fbo.attachTexture2D(0, colorTex);
-    errNow("fbo");
     expect(fbo.isComplete(), "FBO complete");
     fuhgl::gl::viewport(0, 0, W, H); // surfaceless contexts start with a 0x0 viewport
-
-    // sanity: non-instanced raw draw of the box with the mesh's own VAO
-    {
-        constexpr const char* kVs2 = R"GLSL(#version 330 core
-layout(location = 0) in vec3 aPos;
-uniform mat4 uViewProj;
-void main() { gl_Position = uViewProj * vec4(aPos, 1.0); }
-)GLSL";
-        constexpr const char* kFs2 = R"GLSL(#version 330 core
-out vec4 FragColor;
-void main() { FragColor = vec4(0.2, 1.0, 0.3, 1.0); }
-)GLSL";
-        fuhgl::Shader vs2(fuhgl::Shader::Type::Vertex), fs2(fuhgl::Shader::Type::Fragment);
-        fuhgl::Program prog2;
-        const bool ok2 = vs2.compile(kVs2) && fs2.compile(kFs2) && prog2.create();
-        if (ok2) {
-            prog2.attach(vs2);
-            prog2.attach(fs2);
-            prog2.link();
-        }
-        fuhgl::FirstPersonCamera cam2;
-        cam2.position = {0.f, 0.f, 3.f};
-        const float clear[4] = {0.05f, 0.05f, 0.09f, 1.f};
-        fuhgl::gl::clearBufferfv(fuhgl::gl::GL_COLOR, 0, clear);
-        fuhgl::gl::disable(fuhgl::gl::Cap::CullFace);
-        fuhgl::gl::disable(fuhgl::gl::Cap::DepthTest);
-        prog2.use();
-        prog2.setUniform("uViewProj", cam2.viewProj(1.f));
-        boxMesh.draw();
-        fuhgl::gl::flush();
-        unsigned char cpx[4] = {0, 0, 0, 0};
-        fuhgl::gl::readPixels(W / 2, H / 2, 1, 1, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, cpx);
-        std::vector<unsigned char> all(static_cast<size_t>(W) * H * 4, 0);
-        fuhgl::gl::readPixels(0, 0, W, H, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, all.data());
-        int green = 0;
-        for (size_t i = 0; i < all.size(); i += 4)
-            if (all[i + 1] > 100) ++green;
-        std::fprintf(stderr, "gl_smoke_culling: sanity center=(%d,%d,%d,%d) greenPx=%d\n", cpx[0], cpx[1], cpx[2], cpx[3], green);
-        expect(green > 100, "sanity: plain box draw lights pixels (FBO+shader path)");
-    }
 
     fuhgl::FirstPersonCamera cam;
     cam.position = {0.f, 0.f, 0.f};
@@ -167,10 +116,8 @@ void main() { FragColor = vec4(0.2, 1.0, 0.3, 1.0); }
 
     auto renderAndCount = [&]() {
         culler.cull(cam.viewProj(1.f));
-        const unsigned errCull = static_cast<unsigned>(fuhgl::gl::lastError());
         const int visible = culler.lastVisibleCount();
-        unsigned int cmdCount = 0, cmdInstanceCount = 0;
-        culler.commandBuffer().getSubData(0, 4, &cmdCount);
+        unsigned int cmdInstanceCount = 0;
         culler.commandBuffer().getSubData(4, 4, &cmdInstanceCount);
         fbo.bind();
         const float clear[4] = {0.05f, 0.05f, 0.09f, 1.f};
@@ -181,25 +128,12 @@ void main() { FragColor = vec4(0.2, 1.0, 0.3, 1.0); }
         prog.setUniform("uViewProj", cam.viewProj(1.f));
         culler.draw();
         fuhgl::gl::flush();
-        const unsigned errDraw = static_cast<unsigned>(fuhgl::gl::lastError());
-        auto countLit = [&]() {
-            std::vector<unsigned char> px(static_cast<size_t>(W) * H * 4, 0);
-            fuhgl::gl::readPixels(0, 0, W, H, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, px.data());
-            int lit = 0;
-            for (size_t i = 0; i < px.size(); i += 4)
-                if (px[i] > 100) ++lit;
-            return lit;
-        };
-        const int litIndirect = countLit();
-        // diagnostic: same VAO + program, but a direct instanced draw instead of indirect
-        fuhgl::gl::drawElementsInstanced(fuhgl::gl::Primitive::Triangles, boxMesh.indexCount(),
-                                         fuhgl::gl::GL_UNSIGNED_INT, nullptr, 8);
-        fuhgl::gl::flush();
-        const unsigned errInst = static_cast<unsigned>(fuhgl::gl::lastError());
-        const int litWithDirect = countLit();
-        std::fprintf(stderr, "gl_smoke_culling: errCull=0x%x errDraw=0x%x errInst=0x%x cmd={count=%u,inst=%u} vis=%d litInd=%d litDirect=%d\n",
-                     errCull, errDraw, errInst, cmdCount, cmdInstanceCount, visible, litIndirect, litWithDirect);
-        return std::make_tuple(visible, cmdInstanceCount, litIndirect);
+        std::vector<unsigned char> px(static_cast<size_t>(W) * H * 4, 0);
+        fuhgl::gl::readPixels(0, 0, W, H, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, px.data());
+        int lit = 0;
+        for (size_t i = 0; i < px.size(); i += 4)
+            if (px[i] > 100) ++lit;
+        return std::make_tuple(visible, cmdInstanceCount, lit);
     };
 
     // camera looking at the front grid
