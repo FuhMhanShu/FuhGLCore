@@ -61,7 +61,7 @@ const Texture* RenderGraph::PassContext::texture(std::string_view name) const {
 }
 
 void RenderGraph::PassContext::bindInput(int unit, std::string_view name) const {
-    const Texture* t = graph.texture(name);
+    const Texture* t = texture(name); // feedback inputs resolve to the scratch copy
     if (!t) return;
     gl::activeTexture(gl::GL_TEXTURE0 + unit);
     gl::functions().glBindTexture(static_cast<gl::GLenum>(t->target()), t->id());
