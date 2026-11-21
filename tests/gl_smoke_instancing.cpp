@@ -32,12 +32,12 @@ int main() {
 
     fuhgl::Window window;
     if (!window.create("gl_smoke_instancing", 64, 64)) {
-        std::fprintf(stderr, "gl_smoke_instancing: no GL context — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_instancing: no GL context — SKIP\n");
+        return 77;
     }
     if (!fuhgl::gl::version().atLeast(3, 3)) {
-        std::fprintf(stderr, "gl_smoke_instancing: context below GL 3.3 — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_instancing: context below GL 3.3 — SKIP\n");
+        return 77;
     }
 
     const int W = 256, H = 256;

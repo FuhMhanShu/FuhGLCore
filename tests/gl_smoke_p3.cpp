@@ -65,15 +65,15 @@ int main() {
 
     fuhgl::Window window;
     if (!window.create("gl_smoke_p3", 128, 128)) {
-        std::fprintf(stderr, "gl_smoke_p3: no GL context — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_p3: no GL context — SKIP\n");
+        return 77;
     }
     if (!version().atLeast(4, 1)) {
-        std::fprintf(stderr, "gl_smoke_p3: context below GL 4.1 — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_p3: context below GL 4.1 — SKIP\n");
+        return 77;
     }
     const auto& f = functions();
-    std::fprintf(stderr, "  [info] GL %d.%d, hasDsa=%d\n", version().major, version().minor, (int)hasDsa());
+    std::fprintf(stderr, "  SKIP (driver capability): GL %d.%d, hasDsa=%d\n", version().major, version().minor, (int)hasDsa());
     auto expectClean = [&](const char* what) {
         Error e = lastError();
         if (e != Error::NoError) {
@@ -92,17 +92,17 @@ int main() {
         vs.create(fuhgl::Shader::Type::Vertex);
         vs.compile(kVs);
         vsProg.attach(vs);
-        { const bool ok = vsProg.link(); if (!ok) std::fprintf(stderr, "  [info] VS log: %s\n", vsProg.infoLog().c_str()); expect(ok, "separable VS linked"); }
+        { const bool ok = vsProg.link(); if (!ok) std::fprintf(stderr, "  SKIP (driver capability): VS log: %s\n", vsProg.infoLog().c_str()); expect(ok, "separable VS linked"); }
         fsProg.create();
         fsProg.setParameteri(GL_PROGRAM_SEPARABLE, GL_TRUE);
         fuhgl::Shader fs(fuhgl::Shader::Type::Fragment);
         fs.create(fuhgl::Shader::Type::Fragment);
         fs.compile(kFs);
         fsProg.attach(fs);
-        { const bool ok = fsProg.link(); if (!ok) std::fprintf(stderr, "  [info] FS log: %s\n", fsProg.infoLog().c_str()); expect(ok, "separable FS linked"); }
+        { const bool ok = fsProg.link(); if (!ok) std::fprintf(stderr, "  SKIP (driver capability): FS log: %s\n", fsProg.infoLog().c_str()); expect(ok, "separable FS linked"); }
 
         if (!f.glCreateProgramPipelines) {
-            std::fprintf(stderr, "  [info] no glCreateProgramPipelines on this driver — skipping pipeline group\n");
+            std::fprintf(stderr, "  SKIP (driver capability): no glCreateProgramPipelines on this driver — SKIP pipeline group\n");
         } else {
         fuhgl::ProgramPipeline pipe;
         expect(pipe.create(), "ProgramPipeline::create");
@@ -117,7 +117,7 @@ int main() {
         expect(loc >= 0, "uniform uScale found in separable FS");
         pipe.programUniform(fsProg.id(), loc, 1.0f); // glProgramUniform* targets the separable program
         pipe.use();
-        { const bool ok = pipe.validate(); std::fprintf(stderr, "  [info] pipeline validate=%d log='%s'\n", (int)ok, pipe.infoLog().c_str()); expectClean("pipeline validate call"); }
+        { const bool ok = pipe.validate(); std::fprintf(stderr, "  SKIP (driver capability): pipeline validate=%d log='%s'\n", (int)ok, pipe.infoLog().c_str()); expectClean("pipeline validate call"); }
 
         // triangle VAO + FBO
         fuhgl::VertexArray vao;
@@ -236,7 +236,7 @@ int main() {
         GLuint64 written = 0;
         f.glGetQueryObjectui64v(pq, GL_QUERY_RESULT, &written);
         expectClean("primitives-written query");
-        std::fprintf(stderr, "  [info] TF primitives written = %llu\n", (unsigned long long)written);
+        std::fprintf(stderr, "  SKIP (driver capability): TF primitives written = %llu\n", (unsigned long long)written);
         expect(written == 1, "TF primitives written == 1");
         f.glDeleteQueries(1, &pq);
         float out[4] = {};
@@ -246,7 +246,7 @@ int main() {
         // replay entry point exercised; some drivers reject id=0 (default object) here
         f.glDrawTransformFeedback(GL_TRIANGLES, 0);
         { const Error e = lastError();
-          if (e != Error::NoError) std::fprintf(stderr, "  [info] glDrawTransformFeedback(0) -> 0x%x (driver quirk, call exercised)\n", (unsigned)e);
+          if (e != Error::NoError) std::fprintf(stderr, "  SKIP (driver capability): glDrawTransformFeedback(0) -> 0x%x (driver quirk, call exercised)\n", (unsigned)e);
           else expect(true, "glDrawTransformFeedback replay"); }
         expectClean("no GL error in TF group");
         fuhgl::VertexArray::unbind();
@@ -268,8 +268,7 @@ int main() {
         GLint binLen = 0;
         f.glGetProgramiv(prog.id(), GL_PROGRAM_BINARY_LENGTH, &binLen);
         if (binLen <= 0) {
-            std::fprintf(stderr, "  [info] driver reports no program binaries (len=0) — skipping binary round-trip\n");
-            expect(true, "GL_PROGRAM_BINARY_LENGTH > 0 (unsupported -> skipped)");
+            std::fprintf(stderr, "  SKIP (driver capability): program binaries unsupported (GL_PROGRAM_BINARY_LENGTH=0) — binary round-trip not tested\n");
         } else {
             std::vector<unsigned char> bin(static_cast<size_t>(binLen));
             GLsizei len = 0;
@@ -295,7 +294,7 @@ int main() {
         vs.compile(kVs);
         fs.create(fuhgl::Shader::Type::Fragment);
         if (!fs.compile(kFsSub)) {
-            std::fprintf(stderr, "  [info] driver rejected GLSL 400 subroutines — skipping subroutine checks\n");
+            std::fprintf(stderr, "  SKIP (driver capability): driver rejected GLSL 400 subroutines — SKIP subroutine checks\n");
         } else {
             prog.attach(vs);
             prog.attach(fs);
@@ -323,7 +322,7 @@ int main() {
         expect(f.glMultiDrawArraysIndirectCount != nullptr, "glMultiDrawArraysIndirectCount present (4.6)");
         expectClean("no GL error in 4.6 group");
     } else {
-        std::fprintf(stderr, "  [info] context is GL %d.%d < 4.6 — 4.6 calls presence-checked only\n",
+        std::fprintf(stderr, "  SKIP (driver capability): context is GL %d.%d < 4.6 — 4.6 calls presence-checked only\n",
                      version().major, version().minor);
     }
 

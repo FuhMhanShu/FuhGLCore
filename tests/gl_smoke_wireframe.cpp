@@ -30,12 +30,12 @@ int main() {
 
     fuhgl::Window window;
     if (!window.create("gl_smoke_wireframe", 256, 256)) {
-        std::fprintf(stderr, "gl_smoke_wireframe: no GL context — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_wireframe: no GL context — SKIP\n");
+        return 77;
     }
     if (!version().atLeast(3, 3)) {
-        std::fprintf(stderr, "gl_smoke_wireframe: context below GL 3.3 — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_wireframe: context below GL 3.3 — SKIP\n");
+        return 77;
     }
     const auto& f = functions();
 

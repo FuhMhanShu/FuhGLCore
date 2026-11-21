@@ -21,17 +21,20 @@ jobs:
       - name: Build
         run: cmake --build build --config Release -j
 
-      - name: Test (headless unit tests; no GL context required)
-        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Unit tests (label "unit" — no GL context required)
+        run: ctest --test-dir build -C Release --output-on-failure -L unit
 
-      - name: EGL backend build + headless GL smoke test (Linux only)
+      - name: GL-context smoke tests (label "gl_context" — reported as Skipped without a context, must pass where one exists)
+        run: ctest --test-dir build -C Release --output-on-failure -L gl_context
+
+      - name: EGL backend build + headless GL smoke tests (Linux only, real GL via llvmpipe — no skips allowed here)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update && sudo apt-get install -y libegl1 libegl-mesa0 libgl1-mesa-dri
           cmake -S . -B build-egl -DFUHGL_LINUX_BACKEND=EGL -DCMAKE_BUILD_TYPE=Release
           cmake --build build-egl --config Release -j
-          cd build-egl && FUHGL_DEBUG=1 FUHGL_BACKEND=surfaceless ctest -C Release -R "gl_smoke|fuhgl_tests" --output-on-failure
-          FUHGL_DEBUG=1 FUHGL_BACKEND=surfaceless ctest -C Release -R "gl_smoke" -V 2>&1 | grep -E "gl_smoke:|debug" || true
+          cd build-egl && FUHGL_DEBUG=1 FUHGL_BACKEND=surfaceless ctest -C Release -L "unit|gl_context" --output-on-failure
+          FUHGL_DEBUG=1 FUHGL_BACKEND=surfaceless ctest -C Release -L gl_context -V 2>&1 | grep -E "gl_smoke:|SKIP|debug" || true
 
       - name: Smoke-run example under Xvfb (Linux only)
         if: runner.os == 'Linux'
@@ -39,8 +42,8 @@ jobs:
           sudo apt-get update && sudo apt-get install -y xvfb mesa-utils libgl1-mesa-dri libglu1-mesa
           rc=0
           timeout 10 xvfb-run -a ./build/examples/triangle || rc=$?
-          # 124 = ran until timeout (window stayed open, good), 0 = clean exit, 1 = clean headless-failure message
-          if [ $rc -ne 0 ] && [ $rc -ne 124 ] && [ $rc -ne 1 ]; then exit 1; fi
+          # 124 = ran until timeout (window stayed open — good), 0 = clean exit; anything else fails the job
+          if [ $rc -ne 0 ] && [ $rc -ne 124 ]; then exit 1; fi
 
   docs:
     # Doxygen HTML + tutorial screenshots as CI artifacts.

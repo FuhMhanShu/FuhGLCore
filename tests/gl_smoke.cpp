@@ -33,13 +33,13 @@ int main() {
 
     fuhgl::Window window;
     if (!window.create("gl_smoke", 64, 64)) {
-        std::fprintf(stderr, "gl_smoke: no GL context available (headless without EGL) — skipping\n");
-        return 0; // skip, not a failure
+        std::fprintf(stderr, "gl_smoke: no GL context available (headless without EGL) — SKIP\n");
+        return 77; // skip, not a failure
     }
     std::fprintf(stderr, "gl_smoke: GL %d.%d\n", fuhgl::gl::version().major, fuhgl::gl::version().minor);
     if (!fuhgl::gl::version().atLeast(3, 3)) {
-        std::fprintf(stderr, "gl_smoke: context is below GL 3.3 (legacy fallback) — skipping\n");
-        return 0; // skip, not a failure
+        std::fprintf(stderr, "gl_smoke: context is below GL 3.3 (legacy fallback) — SKIP\n");
+        return 77; // skip, not a failure
     }
 
     // device info / capabilities of the real context

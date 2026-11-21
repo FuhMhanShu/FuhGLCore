@@ -106,3 +106,16 @@ add_test(NAME gl_smoke_reflection COMMAND fuhgl_gl_smoke_reflection)
 add_executable(fuhgl_gl_smoke_instancing gl_smoke_instancing.cpp)
 target_link_libraries(fuhgl_gl_smoke_instancing PRIVATE fuhglcore)
 add_test(NAME gl_smoke_instancing COMMAND fuhgl_gl_smoke_instancing)
+
+# --- test semantics (F26) ---------------------------------------------------------------
+# "unit": pure CPU tests, no GL context required.
+# "gl_context": needs a GL context; the test exits with code 77 ("Skipped" via
+# SKIP_RETURN_CODE) when no context / required GL version is available — a skip is
+# always visible in ctest output, never a silent pass. Real assertion failures
+# (exit 1) always fail the job.
+set_tests_properties(fuhgl_tests PROPERTIES LABELS "unit")
+set_tests_properties(
+    gl_smoke gl_smoke_deferred gl_smoke_buffers gl_smoke_solids gl_smoke_state gl_smoke_lights
+    gl_smoke_shadows gl_smoke_forward gl_smoke_deferred_fx gl_smoke_dsa gl_smoke_text
+    gl_smoke_wireframe gl_smoke_p3 gl_smoke_reflection gl_smoke_instancing
+    PROPERTIES LABELS "gl_context" SKIP_RETURN_CODE 77)

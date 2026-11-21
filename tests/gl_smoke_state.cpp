@@ -54,12 +54,12 @@ int main() {
 
     fuhgl::Window window;
     if (!window.create("gl_smoke_state", 64, 64)) {
-        std::fprintf(stderr, "gl_smoke_state: no GL context — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_state: no GL context — SKIP\n");
+        return 77;
     }
     if (!fuhgl::gl::version().atLeast(3, 3)) {
-        std::fprintf(stderr, "gl_smoke_state: context below GL 3.3 — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_state: context below GL 3.3 — SKIP\n");
+        return 77;
     }
     std::fprintf(stderr, "gl_smoke_state: GL %d.%d\n", fuhgl::gl::version().major, fuhgl::gl::version().minor);
 
@@ -77,10 +77,10 @@ int main() {
     expect(fuhgl::gl::isBuffer(buf.id()), "isBuffer(vbo)");
     expect(fuhgl::gl::isTexture(tex.id()), "isTexture");
     if (fuhgl::gl::functions().glIsVertexArray)
-        std::fprintf(stderr, "  [info] isVertexArray(valid VAO) = %d (some glvnd/EGL + macOS drivers misreport 3.0-class isXxx)\n",
+        std::fprintf(stderr, "  SKIP (driver capability): isVertexArray(valid VAO) = %d (some glvnd/EGL + macOS drivers misreport 3.0-class isXxx)\n",
                      fuhgl::gl::isVertexArray(vao.id()) ? 1 : 0);
     if (fuhgl::gl::functions().glIsFramebuffer)
-        std::fprintf(stderr, "  [info] isFramebuffer(valid FBO) = %d (some glvnd/EGL + macOS drivers misreport 3.0-class isXxx)\n",
+        std::fprintf(stderr, "  SKIP (driver capability): isFramebuffer(valid FBO) = %d (some glvnd/EGL + macOS drivers misreport 3.0-class isXxx)\n",
                      fuhgl::gl::isFramebuffer(fbo.id()) ? 1 : 0);
     GLint bound = 0;
     vao.bind();
@@ -104,7 +104,7 @@ int main() {
         fuhgl::gl::functions().glGetIntegeri_v(fuhgl::gl::GL_VIEWPORT, 0, vp);
         expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "getIntegeri_v(GL_VIEWPORT,0) legal");
     } else {
-        std::fprintf(stderr, "  [skip] glGetIntegeri_v (needs GL 4.1)\n");
+        std::fprintf(stderr, "  SKIP (driver capability): glGetIntegeri_v (needs GL 4.1)\n");
     }
     while (fuhgl::gl::lastError() != fuhgl::gl::Error::NoError) {}
 
@@ -328,7 +328,7 @@ int main() {
         fuhgl::gl::debugMessageControlAll(false);
         expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "debug group/insert/control legal");
     } else {
-        std::fprintf(stderr, "  [skip] no KHR_debug on this context\n");
+        std::fprintf(stderr, "  SKIP (driver capability): no KHR_debug on this context\n");
     }
 
     // --- queries / sync -------------------------------------------------------------------------
