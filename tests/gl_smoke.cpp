@@ -42,6 +42,24 @@ int main() {
         return 0; // skip, not a failure
     }
 
+    // device info / capabilities of the real context
+    const fuhgl::gl::DeviceInfo info = fuhgl::gl::queryDeviceInfo();
+    std::fprintf(stderr, "gl_smoke: %s | %s | GLSL %s | %zu extensions\n", info.vendor.c_str(),
+                 info.renderer.c_str(), info.glslVersion.c_str(), info.extensions.size());
+    bool infoOk = !info.vendor.empty() && !info.renderer.empty() && !info.versionString.empty();
+    infoOk = infoOk && info.version.atLeast(3, 3);
+    infoOk = infoOk && !info.extensions.empty() && info.hasExtension(info.extensions.front().c_str());
+    infoOk = infoOk && info.limits.maxTextureSize2D >= 1024;
+    infoOk = infoOk && info.limits.maxVertexAttribs >= 16;
+    infoOk = infoOk && info.limits.maxDrawBuffers >= 8 && info.limits.maxColorAttachments >= 8; // GL 3.3 guarantees
+    infoOk = infoOk && info.limits.maxSamples > 0 && info.limits.maxUniformBufferBindings > 0;
+    infoOk = infoOk && info.features.dsa == fuhgl::gl::hasDsa();
+    infoOk = infoOk && !info.report().empty();
+    if (!infoOk) {
+        std::fprintf(stderr, "gl_smoke: FAIL — device info query returned implausible values\n%s", info.report().c_str());
+        return 1;
+    }
+
     fuhgl::Shader vs(fuhgl::Shader::Type::Vertex), fs(fuhgl::Shader::Type::Fragment);
     if (!vs.compile(kVs) || !fs.compile(kFs)) {
         std::fprintf(stderr, "gl_smoke: shader compile failed: %s %s\n", vs.infoLog().c_str(), fs.infoLog().c_str());

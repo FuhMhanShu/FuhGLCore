@@ -171,6 +171,38 @@ inline constexpr GLenum GL_EXTENSIONS = 0x1F03;
 inline constexpr GLenum GL_MAX_TEXTURE_SIZE = 0x0D33;
 inline constexpr GLenum GL_VIEWPORT = 0x0BA2;
 inline constexpr GLenum GL_NUM_EXTENSIONS = 0x821D;
+inline constexpr GLenum GL_MAJOR_VERSION = 0x821B;
+inline constexpr GLenum GL_MINOR_VERSION = 0x821C;
+inline constexpr GLenum GL_CONTEXT_PROFILE_MASK = 0x9126;
+inline constexpr GLenum GL_CONTEXT_CORE_PROFILE_BIT = 0x00000001;
+
+// --- limits / capabilities (queried via glGetIntegerv / glGetInteger64v) --------
+inline constexpr GLenum GL_MAX_3D_TEXTURE_SIZE = 0x8073;
+inline constexpr GLenum GL_MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
+inline constexpr GLenum GL_MAX_ARRAY_TEXTURE_LAYERS = 0x88FF;
+inline constexpr GLenum GL_MAX_RENDERBUFFER_SIZE = 0x84E8;
+inline constexpr GLenum GL_MAX_VIEWPORT_DIMS = 0x0D3A;
+inline constexpr GLenum GL_MAX_VERTEX_ATTRIBS = 0x8869;
+inline constexpr GLenum GL_MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
+inline constexpr GLenum GL_MAX_VARYING_VECTORS = 0x8DFC;
+inline constexpr GLenum GL_MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
+inline constexpr GLenum GL_MAX_TEXTURE_IMAGE_UNITS = 0x8872;
+inline constexpr GLenum GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+inline constexpr GLenum GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
+inline constexpr GLenum GL_MAX_DRAW_BUFFERS = 0x8824;
+inline constexpr GLenum GL_MAX_COLOR_ATTACHMENTS = 0x8CDF;
+inline constexpr GLenum GL_MAX_UNIFORM_BUFFER_BINDINGS = 0x8A2F;
+inline constexpr GLenum GL_MAX_UNIFORM_BUFFER_SIZE = 0x8A30;
+inline constexpr GLenum GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS = 0x90DD;
+inline constexpr GLenum GL_MAX_SHADER_STORAGE_BUFFER_SIZE = 0x90D5;
+inline constexpr GLenum GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS = 0x90EB;
+inline constexpr GLenum GL_MAX_COMPUTE_WORK_GROUP_COUNT = 0x91BE;
+inline constexpr GLenum GL_MAX_COMPUTE_WORK_GROUP_SIZE = 0x91BF;
+inline constexpr GLenum GL_MAX_ELEMENTS_VERTICES = 0x8D6A;
+inline constexpr GLenum GL_MAX_ELEMENTS_INDICES = 0x8D6B;
+inline constexpr GLenum GL_MAX_VERTEX_OUTPUT_COMPONENTS = 0x9122;
+inline constexpr GLenum GL_MAX_FRAGMENT_INPUT_COMPONENTS = 0x9125;
+inline constexpr GLenum GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 
 // --- debug (GL 4.3 / KHR_debug) -------------------------------------------------
 inline constexpr GLenum GL_DEBUG_SOURCE_API = 0x8246;

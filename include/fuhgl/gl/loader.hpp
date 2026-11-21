@@ -33,6 +33,7 @@ struct Functions {
     const GLubyte* (*glGetString)(GLenum name);
     const GLubyte* (*glGetStringi)(GLenum name, GLuint index);
     void (*glGetIntegerv)(GLenum pname, GLint* data);
+    void (*glGetInteger64v)(GLenum pname, GLint64* data);
     // state
     void (*glEnable)(GLenum cap);
     void (*glDisable)(GLenum cap);

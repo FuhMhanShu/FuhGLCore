@@ -11,6 +11,7 @@ endif()
 add_library(fuhglcore STATIC
     src/gl/loader.cpp
     src/gl/error.cpp
+    src/gl/info.cpp
     src/gl/shader.cpp
     src/gl/program.cpp
     src/gl/buffer.cpp

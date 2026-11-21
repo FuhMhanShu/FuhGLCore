@@ -28,6 +28,9 @@ no Khronos headers, no vcpkg.
 - **Render pipelines** — `fuhgl::render`: `ForwardPipeline` and `DeferredPipeline`
   (G-buffer + lighting pass, optional MSAA) driven by a plain `SceneView`
   (see [tutorial 13](docs/tutorials/13-render-pipelines.md)).
+- **Device info & capabilities** — `gl::queryDeviceInfo()`: GPU vendor/renderer, GL/GLSL
+  version, extension list, implementation limits and feature flags (DSA, compute, …),
+  plus a printable report (see [tutorial 14](docs/tutorials/14-device-info-and-capabilities.md)).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug
