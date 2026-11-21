@@ -65,11 +65,10 @@ int main() {
     pipeline.setTarget(&target);
 
     fuhgl::render::Mesh box;
-    fuhgl::render::shapes::box(box, {3.f, 0.5f, 3.f}, {0.9f, 0.9f, 0.9f});
+    fuhgl::render::shapes::box(box, {1.f, 1.f, 1.f}, {0.9f, 0.9f, 0.9f});
 
     fuhgl::FirstPersonCamera cam;
-    cam.position = {0.f, 5.f, 0.f};
-    cam.pitch = -1.45f; // look almost straight down onto the box top (exactly -90° would make lookAt's up vector degenerate)
+    cam.position = {0.f, 0.5f, 6.f}; // look at the box's +Z front face (center of the frame)
 
     auto renderCenter = [&](const fuhgl::render::Light& light) {
         fuhgl::render::SceneView scene;
@@ -89,19 +88,19 @@ int main() {
         return px[0];
     };
 
-    const unsigned char cDirDown = renderCenter(fuhgl::render::Light::directional({0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 2.f));
+    const unsigned char cDirFront = renderCenter(fuhgl::render::Light::directional({0.f, 0.f, -1.f}, {1.f, 1.f, 1.f}, 2.f));
     const unsigned char cDirSide = renderCenter(fuhgl::render::Light::directional({1.f, 0.f, 0.f}, {1.f, 1.f, 1.f}, 2.f));
-    const unsigned char cSpotDown = renderCenter(fuhgl::render::Light::spot({0.f, 3.f, 0.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 50.f, 0.5f, 0.8f));
-    const unsigned char cSpotAway = renderCenter(fuhgl::render::Light::spot({0.f, 3.f, 0.f}, {0.f, 1.f, 0.f}, {1.f, 1.f, 1.f}, 50.f, 0.5f, 0.8f));
-    const unsigned char cPoint = renderCenter(fuhgl::render::Light::point({0.f, 3.f, 0.f}, {1.f, 1.f, 1.f}, 50.f));
-    std::fprintf(stderr, "gl_smoke_lights: dirDown=%d dirSide=%d spotDown=%d spotAway=%d point=%d\n",
-                 cDirDown, cDirSide, cSpotDown, cSpotAway, cPoint);
+    const unsigned char cSpotFront = renderCenter(fuhgl::render::Light::spot({0.f, 0.5f, 4.f}, {0.f, 0.f, -1.f}, {1.f, 1.f, 1.f}, 50.f, 0.5f, 0.8f));
+    const unsigned char cSpotAway = renderCenter(fuhgl::render::Light::spot({0.f, 0.5f, 4.f}, {0.f, 0.f, 1.f}, {1.f, 1.f, 1.f}, 50.f, 0.5f, 0.8f));
+    const unsigned char cPoint = renderCenter(fuhgl::render::Light::point({0.f, 0.5f, 4.f}, {1.f, 1.f, 1.f}, 50.f));
+    std::fprintf(stderr, "gl_smoke_lights: dirFront=%d dirSide=%d spotFront=%d spotAway=%d point=%d\n",
+                 cDirFront, cDirSide, cSpotFront, cSpotAway, cPoint);
 
-    expect(cDirDown > 200, "directional light straight down lights the top face");
-    expect(cDirSide < 60, "horizontal directional light leaves only ambient");
-    expect(cSpotDown > 200, "spot aimed down lights the center");
+    expect(cDirFront > 200, "directional light from the camera lights the front face");
+    expect(cDirSide < 60, "directional light from the side leaves only ambient on the front face");
+    expect(cSpotFront > 200, "spot aimed at the front face lights the center");
     expect(cSpotAway < 60, "spot aimed away: center outside the cone stays dark");
-    expect(cPoint > 200, "point light above lights the center");
+    expect(cPoint > 200, "point light in front of the box lights the center");
     expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
 
     if (g_failures) {
