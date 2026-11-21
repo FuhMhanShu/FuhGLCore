@@ -69,6 +69,7 @@ public:
     void setParameterf(gl::GLenum pname, gl::GLfloat param) const;
 
     gl::GLuint id() const;
+    Target target() const;
     explicit operator bool() const { return id() != 0; }
 
 private:

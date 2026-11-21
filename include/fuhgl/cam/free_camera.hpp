@@ -42,6 +42,7 @@ public:
     math::Mat4 projection(float aspect) const override {
         return math::perspective(fovY, aspect, nearPlane, farPlane);
     }
+    math::Vec3 eye() const override { return position; }
 
     void onMouseMove(double dx, double dy) override {
         yaw += static_cast<float>(dx) * lookSpeed;

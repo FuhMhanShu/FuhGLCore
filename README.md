@@ -25,6 +25,9 @@ no Khronos headers, no vcpkg.
 - **Skybox** — cubemap skybox with the far-plane depth trick, from 6 images or procedural.
 - **Extras** — compute shaders, timer queries/fences, indirect draws, MSAA resolve,
   dependency-free GLSL `#include "..."`.
+- **Render pipelines** — `fuhgl::render`: `ForwardPipeline` and `DeferredPipeline`
+  (G-buffer + lighting pass, optional MSAA) driven by a plain `SceneView`
+  (see [tutorial 13](docs/tutorials/13-render-pipelines.md)).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug

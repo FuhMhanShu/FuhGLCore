@@ -22,6 +22,10 @@ add_library(fuhglcore STATIC
     src/gl/sampler.cpp
     src/gl/sync.cpp
     src/skybox.cpp
+    src/render/mesh.cpp
+    src/render/material.cpp
+    src/render/forward.cpp
+    src/render/deferred.cpp
 )
 add_library(FuhGLCore::fuhglcore ALIAS fuhglcore)
 

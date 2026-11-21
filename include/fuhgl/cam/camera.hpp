@@ -25,6 +25,8 @@ public:
     virtual math::Mat4 projection(float aspect) const = 0;
     /// @brief Combined view-projection matrix (handy for frustum extraction / UBO upload).
     math::Mat4 viewProj(float aspect) const { return projection(aspect) * view(); }
+    /// @brief World-space eye position (used e.g. by lighting passes).
+    virtual math::Vec3 eye() const = 0;
     /// @brief Advance the camera by dt seconds using currently pressed keys.
     virtual void update(float dt) = 0;
 

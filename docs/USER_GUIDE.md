@@ -35,6 +35,9 @@ library gives you safe, modern-C++ handles for GL objects:
 | GPU timing / fences | `Query`, `Fence` | [10](tutorials/10-queries-and-sync.md) |
 | GL 4.5 DSA fast path | `gl::dsa()`, `gl::hasDsa()` | [11](tutorials/11-dsa.md) |
 | Headless rendering + screenshots | EGL backend, `examples/screenshot` | [12](tutorials/12-headless-rendering-and-screenshots.md) |
+| Render pipelines: forward & deferred | `fuhgl::render::ForwardPipeline`, `DeferredPipeline` | [13](tutorials/13-render-pipelines.md) |
+
+![deferred rendering](images/tutorial-deferred.png)
 
 ![isometric skybox](images/tutorial-isometric-skybox.png)
 

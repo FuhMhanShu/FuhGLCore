@@ -81,5 +81,6 @@ void Texture::setParameterf(gl::GLenum pname, gl::GLfloat param) const {
 }
 
 gl::GLuint Texture::id() const { return impl_->id; }
+Texture::Target Texture::target() const { return impl_->target; }
 
 } // namespace fuhgl

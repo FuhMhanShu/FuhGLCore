@@ -30,8 +30,8 @@ jobs:
           sudo apt-get update && sudo apt-get install -y libegl1 libegl-mesa0 libgl1-mesa-dri
           cmake -S . -B build-egl -DFUHGL_LINUX_BACKEND=EGL -DCMAKE_BUILD_TYPE=Release
           cmake --build build-egl --config Release -j
-          cd build-egl && FUHGL_BACKEND=surfaceless ctest -C Release -R "gl_smoke|fuhgl_tests" --output-on-failure
-          FUHGL_BACKEND=surfaceless ctest -C Release -R "gl_smoke" -V 2>&1 | grep -E "gl_smoke:" || true
+          cd build-egl && FUHGL_DEBUG=1 FUHGL_BACKEND=surfaceless ctest -C Release -R "gl_smoke|fuhgl_tests" --output-on-failure
+          FUHGL_DEBUG=1 FUHGL_BACKEND=surfaceless ctest -C Release -R "gl_smoke" -V 2>&1 | grep -E "gl_smoke:|debug" || true
 
       - name: Smoke-run example under Xvfb (Linux only)
         if: runner.os == 'Linux'
@@ -64,6 +64,8 @@ jobs:
           mkdir -p docs/images
           FUHGL_BACKEND=surfaceless ./build-egl/examples/screenshot --out docs/images/tutorial-first-triangle.png --camera fp --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/screenshot --out docs/images/tutorial-isometric-skybox.png --camera iso --width 800 --height 600
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/deferred --screenshot docs/images/tutorial-deferred.png --width 800 --height 600
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/deferred --screenshot docs/images/tutorial-forward.png --forward --width 800 --height 600
 
       - name: Upload Doxygen HTML artifact
         uses: actions/upload-artifact@v4

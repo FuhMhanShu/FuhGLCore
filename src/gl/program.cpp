@@ -86,6 +86,13 @@ void Program::setUniform(gl::GLint loc, gl::GLsizei count, const int* values) co
     gl::functions().glUniform1iv(loc, count, values);
 }
 
+void Program::bindUniformBlock(const char* blockName, gl::GLuint binding) const {
+    const auto& f = gl::functions();
+    if (!f.glGetUniformBlockIndex || !f.glUniformBlockBinding) return;
+    const gl::GLuint idx = f.glGetUniformBlockIndex(impl_->id, blockName);
+    if (idx != gl::GL_INVALID_INDEX) f.glUniformBlockBinding(impl_->id, idx, binding);
+}
+
 gl::GLuint Program::id() const { return impl_->id; }
 
 } // namespace fuhgl

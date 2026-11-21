@@ -5,6 +5,7 @@ namespace fuhgl {
 
 struct Framebuffer::Impl {
     gl::GLuint id = 0;
+    int width = 0, height = 0;
 };
 
 Framebuffer::Framebuffer() : impl_(std::make_unique<Impl>()) {}
@@ -35,6 +36,10 @@ void Framebuffer::attachTexture2D(Attachment attachment, const Texture& texture,
     gl::functions().glFramebufferTexture2D(gl::GL_FRAMEBUFFER, static_cast<gl::GLenum>(attachment),
                                            gl::GL_TEXTURE_2D, texture.id(), level);
 }
+void Framebuffer::attachTexture2D(unsigned int colorIndex, const Texture& texture, gl::GLint level) const {
+    gl::functions().glFramebufferTexture2D(gl::GL_FRAMEBUFFER, gl::GL_COLOR_ATTACHMENT0 + colorIndex,
+                                           gl::GL_TEXTURE_2D, texture.id(), level);
+}
 void Framebuffer::attachRenderbuffer(Attachment attachment, const Renderbuffer& rb) const {
     gl::functions().glFramebufferRenderbuffer(gl::GL_FRAMEBUFFER, static_cast<gl::GLenum>(attachment),
                                               gl::GL_RENDERBUFFER, rb.id());
@@ -55,6 +60,22 @@ void Framebuffer::blitTo(Framebuffer& dst, gl::GLint srcW, gl::GLint srcH, gl::G
     f.glBindFramebuffer(gl::GL_DRAW_FRAMEBUFFER, 0);
 }
 
+void Framebuffer::blitToDefault(const Framebuffer& src, gl::GLint dstW, gl::GLint dstH,
+                                gl::GLbitfield mask, bool linearFilter) {
+    const auto& f = gl::functions();
+    f.glBindFramebuffer(gl::GL_READ_FRAMEBUFFER, src.impl_->id);
+    f.glBindFramebuffer(gl::GL_DRAW_FRAMEBUFFER, 0);
+    const gl::GLint sw = src.impl_->width > 0 ? src.impl_->width : dstW;
+    const gl::GLint sh = src.impl_->height > 0 ? src.impl_->height : dstH;
+    f.glBlitFramebuffer(0, 0, sw, sh, 0, 0, dstW, dstH, mask,
+                        linearFilter ? gl::GL_LINEAR : gl::GL_NEAREST);
+    f.glBindFramebuffer(gl::GL_READ_FRAMEBUFFER, 0);
+    f.glBindFramebuffer(gl::GL_DRAW_FRAMEBUFFER, 0);
+}
+
 gl::GLuint Framebuffer::id() const { return impl_->id; }
+void Framebuffer::setSize(int w, int h) { impl_->width = w; impl_->height = h; }
+int Framebuffer::width() const { return impl_->width; }
+int Framebuffer::height() const { return impl_->height; }
 
 } // namespace fuhgl

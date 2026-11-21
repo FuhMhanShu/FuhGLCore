@@ -11,13 +11,16 @@ include/fuhgl/          public API (headers)
   gl/                   GL types, loader, error, state, RAII wrappers, sampler, sync, ubo
   math/                 vec / mat / func / frustum (header-only)
   cam/                  camera controllers (header-only)
+  render/               render pipelines: scene/mesh/material/forward/deferred
   window.hpp            native window API (PIMPL)
   skybox.hpp            skybox renderer
 src/gl/                 loader + wrapper implementations (PIMPL targets)
 src/platform/           window backends: window_x11.cpp, window_win32.cpp,
                         window_cocoa.mm, window_egl.cpp, window_unsupported.cpp
 src/skybox.cpp
-examples/               triangle (windowed demo), screenshot (headless PNG renderer)
+src/render/             mesh/material/forward/deferred pipeline implementations
+examples/               triangle (windowed demo), screenshot (headless PNG renderer),
+                        deferred (forward/deferred demo, headless --screenshot mode)
 tests/                  unit tests (own mini runner, no framework) + gl_smoke
 cmake/                  package config template
 docs/                   USER_GUIDE.md, DEVELOPMENT.md, REQUIREMENTS.md, tutorials/,
