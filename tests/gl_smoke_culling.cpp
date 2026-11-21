@@ -119,6 +119,7 @@ int main() {
     fbo.attachTexture2D(0, colorTex);
     errNow("fbo");
     expect(fbo.isComplete(), "FBO complete");
+    fuhgl::gl::viewport(0, 0, W, H); // surfaceless contexts start with a 0x0 viewport
 
     // sanity: non-instanced raw draw of the box with the mesh's own VAO
     {
