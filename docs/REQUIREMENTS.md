@@ -1,6 +1,6 @@
 # FuhGLCore — Requirements
 
-Status: final (agreed with maintainer). Language of this document: German.
+Status: final (agreed with maintainer). Language of this document: English.
 Code, comments and API docs are English.
 
 ## 1. Goal
@@ -13,21 +13,33 @@ APIs). It provides:
 - thin RAII wrappers for GL objects (PIMPL idiom),
 - a native window + OpenGL context per platform (no GLFW/SDL in the library),
 - a small header-only math module (vectors/matrices, column-major, OpenGL layout),
-- camera controllers (first person, free 6-DOF, isometric).
+- camera controllers (first person, free 6-DOF, isometric),
+- a built-in render layer on top of the core (see §3, F12–F25): forward + deferred
+  pipelines and ready-to-use default renderers (lights, shadow mapping, SSAO, HDR,
+  bloom, god rays, parallax/bump mapping, fog), procedural textures & materials,
+  CSG solids, text/FPS overlay, wireframe overlay and instancing.
+
+The name "Core" refers to the zero-dependency GL/window/math core; the render layer
+is a deliberately small, optional-on-top module (include `fuhgl/render.hpp`) — not a
+separate engine project.
 
 ## 2. Non-goals
 
 - No widget/GUI toolkit, no scene graph, no asset loading, no audio.
-- No Wayland in v1 (Linux v1 = X11/GLX; Wayland/EGL may follow as an optional
-  module loaded via `dlopen`).
+- Linux default window backend is X11/GLX. An **experimental** EGL backend (incl.
+  Wayland surfaces and headless `surfaceless`) exists as a build option
+  (`-DFUHGL_LINUX_BACKEND=EGL`, used by CI for headless rendering) — it is not part
+  of the v1 stability promise.
 - No math library dependency (no glm) — math is implemented in-house.
-- No exceptions in the API; failures are reported via `bool` / info-log strings.
+- No exceptions are thrown by the API for domain errors; failures are reported via
+  `bool` / info-log strings. (The C++ standard library itself may still throw, e.g.
+  `std::bad_alloc` on allocation failure — the library code never throws.)
 
 ## 3. Functional requirements
 
 | ID | Requirement | Details |
 |----|-------------|---------|
-| F1 | Function loader | `fuhgl::gl::init()` after a current context; curated core table GL 1.0–4.6 loaded by name; `fuhgl::gl::procAddress(name)` for anything else; version/extension parsing |
+| F1 | Function loader | `fuhgl::gl::init()` after a current context; curated core table GL 1.0–4.6 loaded by name (platform-dependent: macOS caps at GL 4.1, Windows/Linux up to 4.6); `fuhgl::gl::procAddress(name)` for anything else; version/extension parsing |
 | F2 | Error handling | `glGetError` wrapper, debug output (GL 4.3 / `KHR_debug`) with user callback, debug assert macro; **no exceptions** |
 | F3 | RAII GL wrappers | `Shader`, `Program` (uniform location cache + typed setters), `Buffer` (VBO/IBO/UBO/SSBO, map/subdata), `VertexArray`, `Texture` (2D), `Framebuffer`, `Renderbuffer`; PIMPL, movable, non-copyable |
 | F4 | State helpers | thin free functions: viewport, clear, blend, depth, scissor, draw calls — no global state manager |
@@ -53,6 +65,7 @@ APIs). It provides:
 | F24 | Instanced rendering (per-instance model matrices) | `Mesh::setInstanceData(models, count, usage)` uploads a divisor-1 mat4 attribute (locations 4..7, 64B stride) into the mesh VAO; `Mesh::updateInstanceData()` re-uploads via `glBufferSubData`; `Mesh::clearInstanceData()` disables attribs 4..7; `Mesh::instanceCount()`; `Mesh::draw()` auto-issues `glDrawElementsInstanced`/`glDrawArraysInstanced` when instances are set (functions already loaded since F13); builtin pipeline shaders (forward VS, deferred G-buffer VS, shadow depth VS) declare `layout(location=4) in mat4 aInstanceModel` + `uniform int uInstanced` and use `uModel * aInstanceModel` when set (set automatically in `detail::bindItem` and the shadow pass from `instanceCount()` — no separate program variants; uninstanced draws unaffected); example `examples/instancing` (324 trees + 96 rocks in 2 draw calls, animated via `updateInstanceData`, + CI screenshot `tutorial-instancing.png`); test: `gl_smoke_instancing.cpp` (3-instance box pixel probes, update/clear behavior, GL-error checked); tutorial 28 |
 
 | F25 | README showcase images (DeferredRenderer landscape) | new example `examples/showcase`: small landscape (textured ground with repeated procedural noise UVs, 12 CSG trees, 8 CSG rocks, 1 CSG monolith — one mesh each, placed via model matrices) rendered with `render::DeferredRenderer` + `enableShadows(2048)` + SSAO + HDR sun disk + bloom + crepuscular god rays + fog + gradient sky + TextRenderer HUD; `--mode day|sunset` (sun lowered into the frustum for god rays); two CI screenshot lines produce `docs/images/readme-showcase-day.png` + `readme-showcase-sunset.png` (960x540), referenced at the top of `README.md`; tutorial 29; no new library code, no new tests (covered by existing gl_smoke_deferred_fx) |
+| F26 | Review hygiene (docs/CI/API consistency, no functional changes) | (a) test semantics: ctest labels `unit` (no GL) vs `gl_context`, `SKIP_RETURN_CODE 77` → context-less runs report "Skipped" instead of silently passing, driver-capability gaps print `SKIP (driver capability): …`, ci.yml runs the two label sets as separate named steps and the Xvfb smoke accepts only rc 0/124; (b) REQUIREMENTS aligned with reality: document language line fixed (English), §1 goal includes the render layer, EGL/Wayland declared experimental build option, exception claim präzisiert, F1 notes macOS 4.1 cap; (c) structure/naming: `ForwardPipeline` moved to its own header `render/forward_pipeline.hpp` (pipeline.hpp = base class only), Pipeline-vs-Renderer roles documented in render headers, "Core" naming explained in README; (d) API: central texture-unit constants `render::kTextureUnit*` replacing magic numbers, `ForwardPipeline::create(w,h)` signature aligned with `DeferredPipeline` (size optional, only used for owned targets), empty `ForwardPipeline::Impl` PIMPL removed (plain handle-owning class), README loader claim qualified per-platform; (e) release hygiene: `CHANGELOG.md` started, tag `v0.1.0`, repo-description typo fixed |
 
 ## 4. Non-functional requirements
 
