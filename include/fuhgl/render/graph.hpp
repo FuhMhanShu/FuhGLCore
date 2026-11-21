@@ -6,7 +6,9 @@
 /// plus a callback); compile() resolves the execution order (topological sort with
 /// cycle detection) and creates one FBO per pass; execute() runs the enabled passes
 /// in order. A pass may declare `feedback = true` to also read its own output
-/// (previous frame) — used for temporal accumulation (TAA, F32).
+/// (previous frame) — used for temporal accumulation (TAA, F32); the previous
+/// content is copied into a hidden scratch texture before the pass runs, so a
+/// pass never samples the texture it renders into (undefined behavior in GL).
 ///
 /// The pure dependency resolution `resolvePassOrder()` is header-only and unit-testable
 /// without a GL context.

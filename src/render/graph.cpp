@@ -2,6 +2,7 @@
 
 #include "fuhgl/gl/state.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <unordered_map>
 
@@ -23,6 +24,15 @@ struct RenderGraph::Impl {
         bool feedback = false;
         bool enabled = true;
         Framebuffer fbo;
+        // feedback inputs (read + write the same resource): the previous content is
+        // copied into a hidden scratch resource before the pass runs, so the pass
+        // never samples the texture it renders into (that would be undefined in GL)
+        struct Feedback {
+            std::string input;
+            int scratch = -1; // hidden resource index
+            Framebuffer srcFbo, dstFbo;
+        };
+        std::vector<Feedback> feedbacks;
     };
     std::vector<Resource> resources;
     std::vector<Pass> passes;
@@ -40,7 +50,15 @@ struct RenderGraph::Impl {
     }
 };
 
-const Texture* RenderGraph::PassContext::texture(std::string_view name) const { return graph.texture(name); }
+const Texture* RenderGraph::PassContext::texture(std::string_view name) const {
+    const Impl::Pass& p = graph.impl_->passes[pass];
+    for (const auto& fb : p.feedbacks)
+        if (fb.input == name) {
+            const Impl::Resource& sc = graph.impl_->resources[fb.scratch];
+            return sc.owned.id() ? &sc.owned : nullptr;
+        }
+    return graph.texture(name);
+}
 
 void RenderGraph::PassContext::bindInput(int unit, std::string_view name) const {
     const Texture* t = graph.texture(name);
@@ -131,6 +149,30 @@ bool RenderGraph::compile() {
         std::fprintf(stderr, "RenderGraph: dependency cycle detected\n");
         return false;
     }
+    // hidden scratch resources for feedback inputs (resource read + written by one pass)
+    for (Impl::Pass& p : impl_->passes) {
+        p.feedbacks.clear();
+        for (const std::string& in : p.inputs) {
+            if (std::find(p.outputs.begin(), p.outputs.end(), in) == p.outputs.end()) continue;
+            const int ri = impl_->findResource(in);
+            const Impl::Resource& r = impl_->resources[ri];
+            if (r.external) {
+                std::fprintf(stderr, "RenderGraph: feedback on external resource '%s' unsupported\n", in.c_str());
+                return false;
+            }
+            Impl::Resource sc;
+            sc.name = "__scratch_" + p.name + "_" + in;
+            sc.w = r.w;
+            sc.h = r.h;
+            sc.internal = r.internal;
+            impl_->resIndex[sc.name] = static_cast<int>(impl_->resources.size());
+            impl_->resources.push_back(std::move(sc));
+            Impl::Pass::Feedback fb;
+            fb.input = in;
+            fb.scratch = static_cast<int>(impl_->resources.size()) - 1;
+            p.feedbacks.push_back(std::move(fb));
+        }
+    }
     // allocate owned resources
     for (Impl::Resource& r : impl_->resources) {
         if (r.external) continue;
@@ -170,6 +212,24 @@ bool RenderGraph::compile() {
         }
         Framebuffer::unbind();
     }
+    // blit FBOs for the feedback scratches (resource -> scratch before the pass runs)
+    for (Impl::Pass& p : impl_->passes) {
+        for (Impl::Pass::Feedback& fb : p.feedbacks) {
+            const Impl::Resource& src = impl_->resources[impl_->findResource(fb.input)];
+            const Impl::Resource& sc = impl_->resources[fb.scratch];
+            fb.srcFbo = Framebuffer();
+            fb.srcFbo.create();
+            fb.srcFbo.bind();
+            fb.srcFbo.attachTexture2D(0, src.owned);
+            fb.srcFbo.setSize(src.w, src.h);
+            fb.dstFbo = Framebuffer();
+            fb.dstFbo.create();
+            fb.dstFbo.bind();
+            fb.dstFbo.attachTexture2D(0, sc.owned);
+            fb.dstFbo.setSize(sc.w, sc.h);
+            Framebuffer::unbind();
+        }
+    }
     return true;
 }
 
@@ -177,6 +237,11 @@ void RenderGraph::execute() {
     for (int pi : order_) {
         Impl::Pass& p = impl_->passes[pi];
         if (!p.enabled || !p.fn) continue;
+        // snapshot feedback inputs into their scratch (read-write on one texture is UB)
+        for (Impl::Pass::Feedback& fb : p.feedbacks) {
+            const Impl::Resource& sc = impl_->resources[fb.scratch];
+            fb.srcFbo.blitTo(fb.dstFbo, sc.w, sc.h, sc.w, sc.h, gl::GL_COLOR_BUFFER_BIT, false);
+        }
         if (p.outputs.empty()) {
             // pass without render targets: the callback binds its own target (e.g. the
             // pipeline output) — run it with the graph base size
