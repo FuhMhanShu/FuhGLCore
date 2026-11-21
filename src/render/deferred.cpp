@@ -41,15 +41,53 @@ uniform vec3 uAlbedo;
 uniform vec3 uEmissive;
 uniform int uUseTex;
 uniform sampler2D uMatTex;
+uniform vec3 uCamPos;
+uniform int uUseNormalMap;
+uniform sampler2D uNormalTex;
+uniform int uUseHeightMap;
+uniform sampler2D uHeightTex;
+uniform float uParallaxScale;
+uniform int uParallaxLayers;
 layout(location = 0) out vec4 oAlbedo;
 layout(location = 1) out vec4 oNormal;
 layout(location = 2) out vec4 oPosition;
 layout(location = 3) out vec4 oEmissive;
 void main() {
+    vec2 uv = vUV;
+    vec3 N = normalize(vNormal);
+    // tangent frame from screen-space derivatives (no tangent attribute needed)
+    vec3 dp1 = dFdx(vWorldPos);
+    vec3 dp2 = dFdy(vWorldPos);
+    vec2 duv1 = dFdx(vUV);
+    vec2 duv2 = dFdy(vUV);
+    vec3 T = normalize(dp1 * duv2.y - dp2 * duv1.y);
+    vec3 B = normalize(-dp1 * duv2.x + dp2 * duv1.x);
+    if (uUseHeightMap == 1) {
+        // parallax occlusion mapping: march the view ray through the height layers
+        vec3 V = normalize(uCamPos - vWorldPos);
+        vec3 viewTS = vec3(dot(T, V), dot(B, V), dot(N, V));
+        vec2 p = viewTS.xy / max(viewTS.z, 0.05) * uParallaxScale;
+        float layers = float(max(uParallaxLayers, 1));
+        vec2 duv = p / layers;
+        float layerDepth = 0.0;
+        vec2 curUV = uv;
+        float h = texture(uHeightTex, curUV).r;
+        for (int i = 0; i < 64 && float(i) < layers; ++i) {
+            if (layerDepth >= h) break;
+            curUV -= duv;
+            layerDepth += 1.0 / layers;
+            h = texture(uHeightTex, curUV).r;
+        }
+        uv = curUV;
+    }
     vec3 albedo = uAlbedo * vColor;
-    if (uUseTex == 1) albedo *= texture(uMatTex, vUV).rgb;
+    if (uUseTex == 1) albedo *= texture(uMatTex, uv).rgb;
+    if (uUseNormalMap == 1) {
+        vec3 nTS = texture(uNormalTex, uv).rgb * 2.0 - 1.0;
+        N = normalize(T * nTS.x + B * nTS.y + N * nTS.z);
+    }
     oAlbedo = vec4(albedo, 1.0);
-    oNormal = vec4(normalize(vNormal) * 0.5 + 0.5, 1.0);
+    oNormal = vec4(N * 0.5 + 0.5, 1.0);
     oPosition = vec4(vWorldPos, 1.0); // alpha = 1 marks "geometry present"
     oEmissive = vec4(uEmissive, 1.0);
 }
@@ -75,6 +113,13 @@ uniform vec3 uSkyTop;
 uniform vec3 uSkyBottom;
 uniform vec3 uFogColor;
 uniform float uFogDensity;
+uniform sampler2D uAO;
+uniform int uUseAO;
+uniform float uAOStrength;
+uniform vec3 uSunDir;
+uniform vec3 uSunColor;
+uniform float uSunCos;
+uniform mat4 uInvViewProj;
 )GLSL";
 
 constexpr const char* kLightFragTail = R"GLSL(
@@ -82,8 +127,13 @@ out vec4 FragColor;
 void main() {
     vec4 pos = texture(uPosition, vUV);
     if (pos.a < 0.5) {
-        // background: procedural sky gradient
-        FragColor = vec4(mix(uSkyBottom, uSkyTop, vUV.y), 1.0);
+        // background: sky gradient + HDR sun disk (god-ray/bloom source)
+        vec4 fp = uInvViewProj * vec4(vUV * 2.0 - 1.0, 1.0, 1.0); // far-plane point (needs w division!)
+        vec3 ray = normalize(fp.xyz / fp.w - uCamPos);
+        vec3 sky = mix(uSkyBottom, uSkyTop, clamp(vUV.y, 0.0, 1.0));
+        float s = dot(ray, uSunDir);
+        sky += uSunColor * smoothstep(uSunCos, 1.0, s);
+        FragColor = vec4(sky, 1.0);
         return;
     }
     vec3 worldPos = pos.rgb;
@@ -92,6 +142,7 @@ void main() {
     vec3 emissive = texture(uEmissive, vUV).rgb;
     vec3 V = normalize(uCamPos - worldPos);
     vec3 lit = shade(albedo, N, worldPos, V) + emissive;
+    if (uUseAO == 1) lit *= mix(1.0, texture(uAO, vUV).r, clamp(uAOStrength, 0.0, 2.0));
     if (uFogDensity > 0.0) {
         float d = length(worldPos - uCamPos);
         lit = mix(lit, uFogColor, 1.0 - exp(-uFogDensity * d));
@@ -246,7 +297,7 @@ void DeferredPipeline::resize(int width, int height) {
     create(width, height, msaa_);
 }
 
-void DeferredPipeline::render(const SceneView& scene) {
+void DeferredPipeline::renderGBuffer(const SceneView& scene) {
     if (!scene.camera || width_ <= 0) return;
     auto& f = gl::functions();
 
@@ -282,6 +333,10 @@ void DeferredPipeline::render(const SceneView& scene) {
     for (const DrawItem& item : scene.items) {
         if (!item.mesh) continue;
         detail::bindItem(defaultMaterial_, item, item.model, viewProj);
+        Program& prog = const_cast<Program&>(
+            (item.material && item.material->builtinShader) ? defaultMaterial_.program()
+                                                            : (item.material ? *item.material : defaultMaterial_).program());
+        prog.setUniform("uCamPos", scene.camera->eye());
         item.mesh->draw();
     }
 
@@ -291,7 +346,6 @@ void DeferredPipeline::render(const SceneView& scene) {
             const gl::GLenum att = gl::GL_COLOR_ATTACHMENT0 + i;
             f.glReadBuffer(att);
             const gl::GLenum dst[1] = {att};
-            // bind resolve as draw fb, gbuffer as read fb
             f.glBindFramebuffer(gl::GL_READ_FRAMEBUFFER, gbuffer_.id());
             f.glBindFramebuffer(gl::GL_DRAW_FRAMEBUFFER, resolve_.id());
             gl::drawBuffers(1, dst);
@@ -305,16 +359,26 @@ void DeferredPipeline::render(const SceneView& scene) {
         lightingMaterial_.setTexture(2, texResolvePosition_);
         lightingMaterial_.setTexture(3, texResolveEmissive_);
     }
+}
+
+void DeferredPipeline::renderLighting(const SceneView& scene, Framebuffer* target) {
+    if (!scene.camera || width_ <= 0) return;
 
     // --- pass 2: lighting (fullscreen) ---
-    output_.bind();
+    Framebuffer& out = target ? *target : output_;
+    out.bind();
     const gl::GLenum outBuf[1] = {gl::GL_COLOR_ATTACHMENT0};
     gl::drawBuffers(1, outBuf);
     gl::viewport(0, 0, width_, height_);
     const float outClear[4] = {scene.clearColor.x, scene.clearColor.y, scene.clearColor.z, 1.f};
     gl::clearBufferfv(gl::GL_COLOR, 0, outClear);
 
-    lightingMaterial_.bind(); // binds program + gbuffer textures (units 0..2)
+    LightBlock block{};
+    const int n = packLightBlock(scene.lights, block);
+    lightsUbo_.upload(block);
+    lightsUbo_.bindBase(0);
+
+    lightingMaterial_.bind(); // binds program + gbuffer textures (units 0..3)
     Program& lp = lightingMaterial_.program();
     lp.setUniform(lp.uniformLocation("uAlbedo"), 0);
     lp.setUniform(lp.uniformLocation("uNormal"), 1);
@@ -336,10 +400,30 @@ void DeferredPipeline::render(const SceneView& scene) {
     lp.setUniform("uShadowStrength", scene.shadowStrength);
     lp.setUniform("uFogColor", scene.fogColor);
     lp.setUniform("uFogDensity", scene.fogDensity);
+    // SSAO map on unit 5 (F17)
+    if (aoTexture && aoTexture->id()) {
+        gl::activeTexture(gl::GL_TEXTURE0 + 5);
+        gl::functions().glBindTexture(gl::GL_TEXTURE_2D, aoTexture->id());
+        lp.setUniform(lp.uniformLocation("uUseAO"), 1);
+        lp.setUniform(lp.uniformLocation("uAO"), 5);
+        lp.setUniform("uAOStrength", aoStrength);
+    } else {
+        lp.setUniform(lp.uniformLocation("uUseAO"), 0);
+    }
+    // sky sun disk (HDR source for bloom/god rays) + inverse VP for background rays
+    lp.setUniform("uSunDir", scene.sunDirection);
+    lp.setUniform("uSunColor", scene.sunColor);
+    lp.setUniform("uSunCos", scene.sunCos);
+    lp.setUniform("uInvViewProj", scene.camera->viewProj(scene.aspect).inverse());
     fullscreenVao_.bind();
     gl::drawArrays(gl::Primitive::Triangles, 0, 3);
 
     Framebuffer::unbind();
+}
+
+void DeferredPipeline::render(const SceneView& scene) {
+    renderGBuffer(scene);
+    renderLighting(scene);
 }
 
 } // namespace fuhgl::render

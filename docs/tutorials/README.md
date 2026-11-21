@@ -28,6 +28,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 20 | Lights: directional, point & spot | [20-lights.md](20-lights.md) |
 | 21 | Shadow mapping (depth pass + PCF) | [21-shadows.md](21-shadows.md) |
 | 22 | Default forward renderer (lights + shadows + fog) | [22-forward-renderer.md](22-forward-renderer.md) |
+| 23 | Default deferred renderer + post FX (SSAO, HDR, bloom, god rays, parallax/bump) | [23-deferred-renderer-postfx.md](23-deferred-renderer-postfx.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../DEVELOPMENT.md#build-options)).

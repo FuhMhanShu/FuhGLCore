@@ -45,6 +45,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Lights: directional / point / spot | `render::Light::directional/point/spot()`, `SceneView::lights` | [20](tutorials/20-lights.md) |
 | Shadow mapping (depth pass + PCF) | `render::ShadowMap`, `render::lightViewProj()`, `SceneView::shadowMap` | [21](tutorials/21-shadows.md) |
 | Default forward renderer | `render::ForwardRenderer` (lights + auto shadows + fog) | [22](tutorials/22-forward-renderer.md) |
+| Default deferred renderer + post FX | `render::DeferredRenderer` (SSAO, HDR, bloom, god rays, parallax/bump, ACES) | [23](tutorials/23-deferred-renderer-postfx.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

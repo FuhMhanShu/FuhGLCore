@@ -36,4 +36,11 @@ Image voronoi(int w, int h, int cells, unsigned seed,
 /// Requires a current GL context (call after Window::create).
 Texture makeTexture(const Image& img, bool mipmaps = true);
 
+/// @brief Derives a tangent-space normal map (RGBA8, rgb = normal*0.5+0.5) from a grayscale
+/// height Image (uses its red channel). `strength` scales the height gradient. CPU-side, deterministic.
+Image normalFromHeight(const Image& height, float strength = 1.f);
+
+/// @brief Convenience: normal map as a ready-to-bind texture (mipmapped, linear).
+Texture makeNormalMap(const Image& height, float strength = 1.f);
+
 } // namespace fuhgl::render::procedural

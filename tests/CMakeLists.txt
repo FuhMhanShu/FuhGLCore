@@ -60,3 +60,9 @@ add_test(NAME gl_smoke_shadows COMMAND fuhgl_gl_smoke_shadows)
 add_executable(fuhgl_gl_smoke_forward gl_smoke_forward.cpp)
 target_link_libraries(fuhgl_gl_smoke_forward PRIVATE fuhglcore)
 add_test(NAME gl_smoke_forward COMMAND fuhgl_gl_smoke_forward)
+
+# Headless test for F17 DeferredRenderer: SSAO / bloom / god rays / parallax each
+# verified by toggling the effect and comparing pixels. Skips without GL >= 3.3.
+add_executable(fuhgl_gl_smoke_deferred_fx gl_smoke_deferred_fx.cpp)
+target_link_libraries(fuhgl_gl_smoke_deferred_fx PRIVATE fuhglcore)
+add_test(NAME gl_smoke_deferred_fx COMMAND fuhgl_gl_smoke_deferred_fx)

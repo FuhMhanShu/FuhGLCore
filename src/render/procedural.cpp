@@ -182,4 +182,33 @@ Texture makeTexture(const Image& img, bool mipmaps) {
     return tex;
 }
 
+Image normalFromHeight(const Image& height, float strength) {
+    Image out;
+    out.width = height.width;
+    out.height = height.height;
+    out.rgba.resize(height.rgba.size());
+    auto hAt = [&](int x, int y) {
+        x = (x % height.width + height.width) % height.width;
+        y = (y % height.height + height.height) % height.height;
+        return height.at(x, y)[0] / 255.f;
+    };
+    for (int y = 0; y < height.height; ++y)
+        for (int x = 0; x < height.width; ++x) {
+            const float dx = (hAt(x + 1, y) - hAt(x - 1, y)) * strength;
+            const float dy = (hAt(x, y + 1) - hAt(x, y - 1)) * strength;
+            // normal = normalize(-dx, -dy, 1) in tangent space (u = +x, v = +y)
+            const float inv = 1.f / std::sqrt(dx * dx + dy * dy + 1.f);
+            unsigned char* o = out.at(x, y);
+            o[0] = static_cast<unsigned char>((dx * -inv * 0.5f + 0.5f) * 255.f);
+            o[1] = static_cast<unsigned char>((dy * -inv * 0.5f + 0.5f) * 255.f);
+            o[2] = static_cast<unsigned char>((inv * 0.5f + 0.5f) * 255.f);
+            o[3] = 255;
+        }
+    return out;
+}
+
+Texture makeNormalMap(const Image& height, float strength) {
+    return makeTexture(normalFromHeight(height, strength));
+}
+
 } // namespace fuhgl::render::procedural

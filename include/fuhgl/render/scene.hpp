@@ -42,6 +42,10 @@ struct SceneView {
     // --- distance fog (F16) ----------------------------------------------------------
     math::Vec3 fogColor{0.05f, 0.05f, 0.08f};
     float fogDensity = 0.f;                ///< 0 = off; visibility = exp(-density * distance)
+    // --- sky sun disk / god-ray source (F17, deferred lighting pass) -------------------
+    math::Vec3 sunDirection{0.f, 1.f, 0.f}; ///< direction TO the sun (from the first directional light)
+    math::Vec3 sunColor{0.f, 0.f, 0.f};     ///< 0 = no sun disk (HDR brightness for bloom/rays)
+    float sunCos = 0.99995f;                ///< cos of the sun's angular radius
 };
 
 /// @brief Vertex attribute layout for Mesh::setData.
