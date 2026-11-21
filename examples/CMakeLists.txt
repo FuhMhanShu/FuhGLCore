@@ -27,3 +27,6 @@ target_link_libraries(forward PRIVATE fuhglcore)
 
 add_executable(postfx postfx/main.cpp)
 target_link_libraries(postfx PRIVATE fuhglcore)
+
+add_executable(text text/main.cpp)
+target_link_libraries(text PRIVATE fuhglcore)

@@ -5,7 +5,7 @@ the scene depth from a light's point of view (depth-only pass), helpers to build
 light view-projection matrix, and PCF shadow sampling wired into the pipelines'
 built-in lighting shaders.
 
-![shadows](images/tutorial-shadows.png)
+![shadows](../images/tutorial-shadows.png)
 
 ## The pieces
 

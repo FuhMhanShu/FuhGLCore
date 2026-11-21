@@ -5,7 +5,7 @@ post chain: **SSAO**, **HDR** lighting, **bloom**, **crepuscular (god) rays**, A
 mapping, plus **parallax occlusion** and **bump/normal mapping** in the G-buffer pass
 and **PCF shadows** from tutorial 21.
 
-![deferred + post FX](images/tutorial-deferred-fx.png)
+![deferred + post FX](../images/tutorial-deferred-fx.png)
 *Full chain (SSAO + shadows + bloom + god rays + parallax floor). Compare `--no-fx`:
 `tutorial-deferred-fx-nofx.png`.*
 
