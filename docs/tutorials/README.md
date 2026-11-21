@@ -25,6 +25,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 17 | Procedural textures & predefined materials | [17-procedural-textures-and-materials.md](17-procedural-textures-and-materials.md) |
 | 18 | Solids & CSG (cube/sphere/cylinder/torus, union/difference/intersection) | [18-solids-and-csg.md](18-solids-and-csg.md) |
 | 19 | GL state, draw batching, debug labels & image ops | [19-state-batching-and-debug.md](19-state-batching-and-debug.md) |
+| 20 | Lights: directional, point & spot | [20-lights.md](20-lights.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../DEVELOPMENT.md#build-options)).

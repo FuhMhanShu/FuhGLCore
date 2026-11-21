@@ -59,13 +59,16 @@ void Mesh::draw() const {
 
 namespace shapes {
 
-void box(Mesh& mesh, const math::Vec3& h, const math::Vec3& color) {
+MeshData boxData(const math::Vec3& h, const math::Vec3& color) {
     // 6 faces, 4 verts each. Standard layout: pos(3) normal(3) color(3) uv(2).
     // Axis vectors have one +/-1 component, so component-wise multiply with h
     // yields the right extent per axis.
     const math::Vec3 n[6] = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
     const math::Vec3 u[6] = {{0,0,1},{0,0,1},{1,0,0},{1,0,0},{1,0,0},{1,0,0}};
     const math::Vec3 v[6] = {{0,1,0},{0,1,0},{0,0,1},{0,0,1},{0,1,0},{0,1,0}};
+    // faces whose (u,v) frame winds the quad against its normal need reversed indices,
+    // otherwise they are back-facing (culled) when viewed from outside (+X, +Y, -Z)
+    const bool flip[6] = {true, false, true, false, false, true};
     MeshData data;
     data.vertices.reserve(24 * MeshData::kFloatsPerVertex);
     for (int f = 0; f < 6; ++f) {
@@ -79,12 +82,15 @@ void box(Mesh& mesh, const math::Vec3& h, const math::Vec3& color) {
                 p.x, p.y, p.z, n[f].x, n[f].y, n[f].z, color.x, color.y, color.z, uv[0], uv[1]};
             data.vertices.insert(data.vertices.end(), vert, vert + MeshData::kFloatsPerVertex);
         }
-        data.indices.insert(data.indices.end(), {base, base + 1, base + 2, base, base + 2, base + 3});
+        if (flip[f])
+            data.indices.insert(data.indices.end(), {base, base + 2, base + 1, base, base + 3, base + 2});
+        else
+            data.indices.insert(data.indices.end(), {base, base + 1, base + 2, base, base + 2, base + 3});
     }
-    mesh.setMeshData(data);
+    return data;
 }
 
-void quad(Mesh& mesh, float halfSize, const math::Vec3& color) {
+MeshData quadData(float halfSize, const math::Vec3& color) {
     MeshData data;
     const float verts[4 * MeshData::kFloatsPerVertex] = {
         -halfSize, -halfSize, 0,  0, 0, 1,  color.x, color.y, color.z,  0, 0,
@@ -94,7 +100,15 @@ void quad(Mesh& mesh, float halfSize, const math::Vec3& color) {
     };
     data.vertices.assign(verts, verts + 4 * MeshData::kFloatsPerVertex);
     data.indices = {0, 1, 2, 0, 2, 3};
-    mesh.setMeshData(data);
+    return data;
+}
+
+void box(Mesh& mesh, const math::Vec3& h, const math::Vec3& color) {
+    mesh.setMeshData(boxData(h, color));
+}
+
+void quad(Mesh& mesh, float halfSize, const math::Vec3& color) {
+    mesh.setMeshData(quadData(halfSize, color));
 }
 
 } // namespace shapes

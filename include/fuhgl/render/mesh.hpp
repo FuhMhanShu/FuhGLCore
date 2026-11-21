@@ -66,12 +66,17 @@ private:
 
 namespace shapes {
 
-/// @brief Fills a Mesh with an axis-aligned box (standard layout, 24 vertices, 36 indices,
-/// per-face planar UVs).
+/// @brief Box geometry as MeshData (standard layout, 24 vertices, 36 indices,
+/// per-face planar UVs, CCW winding against the outward normal on all 6 faces).
+MeshData boxData(const math::Vec3& halfExtents, const math::Vec3& color);
+
+/// @brief Quad geometry in the XY plane as MeshData (4 vertices, 6 indices, UVs 0..1).
+MeshData quadData(float halfSize, const math::Vec3& color);
+
+/// @brief Fills a Mesh with an axis-aligned box (see boxData).
 void box(Mesh& mesh, const math::Vec3& halfExtents, const math::Vec3& color);
 
-/// @brief Fills a Mesh with a quad in the XY plane (standard layout, 4 vertices, 6 indices,
-/// UVs 0..1).
+/// @brief Fills a Mesh with a quad in the XY plane (see quadData).
 void quad(Mesh& mesh, float halfSize, const math::Vec3& color);
 
 } // namespace shapes

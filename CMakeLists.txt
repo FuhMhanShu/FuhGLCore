@@ -25,6 +25,7 @@ add_library(fuhglcore STATIC
     src/skybox.cpp
     src/render/mesh.cpp
     src/render/material.cpp
+    src/render/light.cpp
     src/render/forward.cpp
     src/render/deferred.cpp
     src/render/procedural.cpp

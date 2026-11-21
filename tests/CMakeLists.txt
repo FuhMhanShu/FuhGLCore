@@ -7,6 +7,8 @@ add_executable(fuhgl_tests
     test_shader_includes.cpp
     test_info.cpp
     test_solids.cpp
+    test_light.cpp
+    test_mesh.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
@@ -39,3 +41,9 @@ add_test(NAME gl_smoke_solids COMMAND fuhgl_gl_smoke_solids)
 add_executable(fuhgl_gl_smoke_state gl_smoke_state.cpp)
 target_link_libraries(fuhgl_gl_smoke_state PRIVATE fuhglcore)
 add_test(NAME gl_smoke_state COMMAND fuhgl_gl_smoke_state)
+
+# Headless test for F14 light types: forward-renders a box top with directional /
+# spot / point lights and verifies the center pixel brightness per light type.
+add_executable(fuhgl_gl_smoke_lights gl_smoke_lights.cpp)
+target_link_libraries(fuhgl_gl_smoke_lights PRIVATE fuhglcore)
+add_test(NAME gl_smoke_lights COMMAND fuhgl_gl_smoke_lights)

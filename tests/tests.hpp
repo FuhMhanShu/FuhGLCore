@@ -9,3 +9,5 @@ void runFrustumTests();
 void runShaderIncludeTests();
 void runInfoTests();
 void runSolidTests();
+void runLightTests();
+void runMeshTests();
