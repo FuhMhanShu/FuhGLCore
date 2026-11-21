@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace fuhgl {
 
@@ -74,6 +75,39 @@ public:
     void bindUniformBlock(const char* blockName, gl::GLuint binding) const;
     /// @brief Binds a shader storage block (by name) to an indexed binding point (GL 4.3+, SSBO).
     void bindShaderStorageBlock(const char* blockName, gl::GLuint binding) const;
+
+    // --- reflection (F22): query the linked program's interface (glGetActive*/Resource*) ---
+    /// @brief One active uniform: name, type, size, block index (-1 = default block), offset, strides.
+    struct UniformInfo {
+        std::string name;
+        gl::GLenum type = 0;
+        gl::GLint size = 0;
+        gl::GLint blockIndex = -1;
+        gl::GLint offset = 0;
+        gl::GLint arrayStride = 0;
+    };
+    /// @brief One active vertex attribute: name, type, size, location (glGetAttribLocation).
+    struct AttributeInfo {
+        std::string name;
+        gl::GLenum type = 0;
+        gl::GLint size = 0;
+        gl::GLint location = -1;
+    };
+    /// @brief One active uniform block: name, index, data size, binding, active uniform indices.
+    struct UniformBlockInfo {
+        std::string name;
+        gl::GLuint index = 0;
+        gl::GLint dataSize = 0;
+        gl::GLint binding = 0;
+        gl::GLint activeUniforms = 0;
+        std::vector<gl::GLuint> uniformIndices;
+    };
+    /// @brief All active uniforms of the linked program (empty if not linked / no reflection).
+    std::vector<UniformInfo> activeUniforms() const;
+    /// @brief All active vertex attributes of the linked program.
+    std::vector<AttributeInfo> activeAttributes() const;
+    /// @brief All active uniform blocks of the linked program.
+    std::vector<UniformBlockInfo> uniformBlocks() const;
 
     gl::GLuint id() const;
     explicit operator bool() const { return id() != 0; }

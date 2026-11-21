@@ -583,6 +583,62 @@ inline constexpr GLenum GL_POLYGON_OFFSET_CLAMP = 0x8E1B;
 inline constexpr GLenum GL_QUERY_BUFFER_BINDING = 0x9193;
 inline constexpr GLbitfield GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT = 0x00000004;
 
+// --- F22: reflection (active uniforms/attributes, uniform blocks, program resources) --
+inline constexpr GLenum GL_ACTIVE_UNIFORM_MAX_LENGTH = 0x8B87;
+inline constexpr GLenum GL_ACTIVE_ATTRIBUTES = 0x8B89;
+inline constexpr GLenum GL_ACTIVE_ATTRIBUTE_MAX_LENGTH = 0x8B8A;
+inline constexpr GLenum GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH = 0x8A35;
+inline constexpr GLenum GL_ACTIVE_UNIFORM_BLOCKS = 0x8A36;
+inline constexpr GLenum GL_UNIFORM_TYPE = 0x8A37;
+inline constexpr GLenum GL_UNIFORM_SIZE = 0x8A38;
+inline constexpr GLenum GL_UNIFORM_NAME_LENGTH = 0x8A39;
+inline constexpr GLenum GL_UNIFORM_BLOCK_INDEX = 0x8A3A;
+inline constexpr GLenum GL_UNIFORM_OFFSET = 0x8A3B;
+inline constexpr GLenum GL_UNIFORM_ARRAY_STRIDE = 0x8A3C;
+inline constexpr GLenum GL_UNIFORM_MATRIX_STRIDE = 0x8A3D;
+inline constexpr GLenum GL_UNIFORM_IS_ROW_MAJOR = 0x8A3E;
+inline constexpr GLenum GL_UNIFORM_BLOCK_BINDING = 0x8A3F;
+inline constexpr GLenum GL_UNIFORM_BLOCK_DATA_SIZE = 0x8A40;
+inline constexpr GLenum GL_UNIFORM_BLOCK_NAME_LENGTH = 0x8A41;
+inline constexpr GLenum GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS = 0x8A42;
+inline constexpr GLenum GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES = 0x8A43;
+inline constexpr GLenum GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER = 0x8A44;
+inline constexpr GLenum GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER = 0x8A45;
+// program interfaces (GL 4.3) and resource properties
+inline constexpr GLenum GL_UNIFORM = 0x92E1;
+inline constexpr GLenum GL_UNIFORM_BLOCK = 0x92E2;
+inline constexpr GLenum GL_PROGRAM_INPUT = 0x92E3;
+inline constexpr GLenum GL_PROGRAM_OUTPUT = 0x92E4;
+inline constexpr GLenum GL_BUFFER_VARIABLE = 0x92E5;
+inline constexpr GLenum GL_SHADER_STORAGE_BLOCK = 0x92E6;
+inline constexpr GLenum GL_ATOMIC_COUNTER_BUFFER = 0x92C0;
+inline constexpr GLenum GL_ACTIVE_RESOURCES = 0x92F5;
+inline constexpr GLenum GL_MAX_NAME_LENGTH = 0x92F6;
+inline constexpr GLenum GL_MAX_NUM_ACTIVE_VARIABLES = 0x92F7;
+inline constexpr GLenum GL_MAX_NUM_COMPATIBLE_SUBROUTINES = 0x92F8;
+inline constexpr GLenum GL_RES_NAME_LENGTH = 0x92F9;
+inline constexpr GLenum GL_RES_TYPE = 0x92FA;
+inline constexpr GLenum GL_RES_ARRAY_SIZE = 0x92FB;
+inline constexpr GLenum GL_RES_OFFSET = 0x92FC;
+inline constexpr GLenum GL_RES_BLOCK_INDEX = 0x92FD;
+inline constexpr GLenum GL_RES_ARRAY_STRIDE = 0x92FE;
+inline constexpr GLenum GL_RES_MATRIX_STRIDE = 0x92FF;
+inline constexpr GLenum GL_RES_IS_ROW_MAJOR = 0x9300;
+inline constexpr GLenum GL_RES_NUM_ACTIVE_VARIABLES = 0x9304;
+inline constexpr GLenum GL_RES_ACTIVE_VARIABLES = 0x9305;
+inline constexpr GLenum GL_RES_REFERENCED_BY_VERTEX_SHADER = 0x9306;
+inline constexpr GLenum GL_RES_REFERENCED_BY_FRAGMENT_SHADER = 0x9307;
+// shader variable types (reflection results)
+inline constexpr GLenum GL_FLOAT_VEC2 = 0x8B50;
+inline constexpr GLenum GL_FLOAT_VEC3 = 0x8B51;
+inline constexpr GLenum GL_FLOAT_VEC4 = 0x8B52;
+inline constexpr GLenum GL_INT_VEC2 = 0x8B53;
+inline constexpr GLenum GL_INT_VEC3 = 0x8B54;
+inline constexpr GLenum GL_INT_VEC4 = 0x8B55;
+inline constexpr GLenum GL_BOOL = 0x8B56;
+inline constexpr GLenum GL_BOOL_VEC2 = 0x8B57;
+inline constexpr GLenum GL_FLOAT_MAT4 = 0x8B5C;
+
 /// @brief Signature of the GL debug message callback (GLDEBUGPROC).
 using GLDEBUGPROC = void (*)(GLenum source, GLenum type, GLuint id, GLenum severity,
                              GLsizei length, const GLchar* message, const void* userParam);

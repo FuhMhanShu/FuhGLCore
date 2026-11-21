@@ -95,3 +95,9 @@ add_test(NAME gl_smoke_wireframe COMMAND fuhgl_gl_smoke_wireframe)
 add_executable(fuhgl_gl_smoke_p3 gl_smoke_p3.cpp)
 target_link_libraries(fuhgl_gl_smoke_p3 PRIVATE fuhglcore)
 add_test(NAME gl_smoke_p3 COMMAND fuhgl_gl_smoke_p3)
+
+# Headless test for F22 reflection: links a program with UBO + uniforms + attribs and
+# verifies Program::activeUniforms()/activeAttributes()/uniformBlocks(). Skips < GL 3.3.
+add_executable(fuhgl_gl_smoke_reflection gl_smoke_reflection.cpp)
+target_link_libraries(fuhgl_gl_smoke_reflection PRIVATE fuhglcore)
+add_test(NAME gl_smoke_reflection COMMAND fuhgl_gl_smoke_reflection)

@@ -130,6 +130,15 @@ void runLoaderTests() {
     };
     for (const char* fn : f21) CHECK(names.count(fn) == 1);
 
+    // F22 reflection entries must be in the table
+    const char* f22[] = {
+        "glGetActiveAttrib", "glGetActiveUniform", "glGetActiveUniformName", "glGetActiveUniformsiv",
+        "glGetActiveUniformBlockiv", "glGetActiveUniformBlockName", "glGetUniformIndices",
+        "glGetProgramInterfaceiv", "glGetProgramResourceiv", "glGetProgramResourceName",
+        "glGetProgramResourceIndex", "glGetAttachedShaders",
+    };
+    for (const char* fn : f22) CHECK(names.count(fn) == 1);
+
     // procAddress contract: nullptr in -> nullptr out. (We must NOT assert nullptr
     // for unknown names: Mesa's glXGetProcAddress returns no-op stubs for those.)
     CHECK(procAddress(nullptr) == nullptr);
