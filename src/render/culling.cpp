@@ -93,6 +93,13 @@ bool GpuCuller::create(int maxInstances) {
     prog_.bindShaderStorageBlock("Items", 0);
     prog_.bindShaderStorageBlock("Models", 1);
     prog_.bindShaderStorageBlock("Cmd", 2);
+    {
+        const auto& f = gl::functions();
+        for (const char* b : {"Items", "Models", "Cmd"})
+            std::fprintf(stderr, "GpuCuller::create: block '%s' index=%u err=0x%x\n", b,
+                         f.glGetShaderStorageBlockIndex ? f.glGetShaderStorageBlockIndex(prog_.id(), b) : 999u,
+                         static_cast<unsigned>(gl::lastError()));
+    }
     ready_ = true;
     return true;
 }
@@ -174,7 +181,9 @@ void GpuCuller::cull(const math::Mat4& viewProj) {
     err("uniforms");
     items_.bindBase(0);
     models_.bindBase(1);
-    cmd_.bindBase(2);
+    // cmd_'s own target is GL_DRAW_INDIRECT_BUFFER, which glBindBufferBase rejects —
+    // bind the same buffer object explicitly as shader storage at binding 2
+    gl::functions().glBindBufferBase(gl::GL_SHADER_STORAGE_BUFFER, 2, cmd_.id());
     err("bindBase");
     gl::dispatchCompute(static_cast<gl::GLuint>((instanceCount_ + 63) / 64), 1, 1);
     err("dispatch");
