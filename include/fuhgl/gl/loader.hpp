@@ -5,7 +5,8 @@
 ///
 /// Call fuhgl::gl::init() once after an OpenGL context is current
 /// (fuhgl::Window does this automatically). The curated table below covers the
-/// core functions used by the wrappers plus common entry points up to GL 4.6;
+/// core functions used by the wrappers plus common entry points up to GL 4.6
+/// (where the platform provides them — macOS caps at GL 4.1);
 /// any other function (extensions, DSA, ...) is available via procAddress().
 
 #include "types.hpp"

@@ -43,7 +43,7 @@ public:
     /// @brief Pass 2 only: fullscreen lighting into `target` (default: output()).
     void renderLighting(const SceneView& scene, Framebuffer* target = nullptr);
 
-    /// @brief Optional SSAO map sampled on unit 5 in the lighting pass (F17).
+    /// @brief Optional SSAO map sampled on kTextureUnitSSAO in the lighting pass (F17).
     const Texture* aoTexture = nullptr;
     float aoStrength = 1.5f;
 

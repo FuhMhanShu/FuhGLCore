@@ -23,7 +23,8 @@ fog) — see `examples/showcase` and [tutorial 29](docs/tutorials/29-showcase-sc
 ## What you get
 
 - **Runtime GL loader** — `fuhgl::gl::init()` loads core functions (GL 1.0–4.6) by name at
-  runtime; `gl::procAddress(name)` for extensions/DSA; optional GL 4.5 DSA table (`gl::dsa()`).
+  runtime (whatever the platform provides — macOS caps at GL 4.1, Windows/Linux go up
+  to 4.6); `gl::procAddress(name)` for extensions/DSA; optional GL 4.5 DSA table (`gl::dsa()`).
 - **RAII wrappers** (PIMPL, movable, non-copyable) — `Shader`, `Program`, `Buffer`,
   `VertexArray`, `Texture` (2D/3D/array/cube/multisample), `Sampler`, `Framebuffer`,
   `Renderbuffer`, `UniformBuffer`, `Query`, `Fence`.
@@ -81,9 +82,10 @@ fog) — see `examples/showcase` and [tutorial 29](docs/tutorials/29-showcase-sc
   (divisor-1 `mat4` attribute); one draw call renders hundreds of copies, animated via
   `updateInstanceData()` — see [tutorial 28](docs/tutorials/28-instancing.md).
 
-Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
-API — failures return `bool`/info-log strings; debug builds assert and forward GL debug
-output to a callback.
+Baseline: **OpenGL 3.3 core** (higher versions up to 4.6 loaded opportunistically where
+the platform provides them; macOS caps at 4.1). The API never throws for domain errors —
+failures return `bool`/info-log strings (the C++ standard library itself may still throw,
+e.g. `std::bad_alloc`); debug builds assert and forward GL debug output to a callback.
 
 ## Quick start
 

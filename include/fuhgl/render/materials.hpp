@@ -4,7 +4,7 @@
 /// @brief Predefined materials: ready-made presets that drive the pipelines'
 /// built-in shaders (no custom GLSL needed). A preset Material has
 /// builtinShader = true and carries only data; the pipelines set the uniforms
-/// uAlbedo / uEmissive / uUseTex / uMatTex (albedo texture on unit 3) per item.
+/// uAlbedo / uEmissive / uUseTex / uMatTex (albedo texture on kTextureUnitAlbedo) per item.
 
 #include "material.hpp"
 #include "../gl/texture.hpp"
@@ -20,7 +20,7 @@ inline Material matte(const math::Vec3& albedo = {0.8f, 0.8f, 0.8f}) {
     return m;
 }
 
-/// @brief Textured material: albedo texture (unit 3) modulated by a tint color.
+/// @brief Textured material: albedo texture (kTextureUnitAlbedo) modulated by a tint color.
 inline Material textured(const Texture& albedoTex, const math::Vec3& tint = {1.f, 1.f, 1.f}) {
     Material m;
     m.builtinShader = true;
@@ -50,7 +50,7 @@ inline Material texturedEmissive(const Texture& albedoTex, const math::Vec3& tin
 }
 
 /// @brief Bump/normal-mapped material: albedo texture + tangent-space normal map
-/// (unit 4 in the deferred G-buffer pass; the normal perturbs the shading normal).
+/// (kTextureUnitNormalMap in the deferred G-buffer pass; the normal perturbs the shading normal).
 inline Material normalMapped(const Texture& albedoTex, const Texture& normalMap,
                              const math::Vec3& tint = {1.f, 1.f, 1.f}) {
     Material m;
@@ -61,7 +61,7 @@ inline Material normalMapped(const Texture& albedoTex, const Texture& normalMap,
     return m;
 }
 
-/// @brief Parallax-occlusion-mapped material: albedo texture + height map (unit 5),
+/// @brief Parallax-occlusion-mapped material: albedo texture + height map (kTextureUnitHeightMap),
 /// UVs are displaced along the view ray in the deferred G-buffer pass.
 inline Material parallax(const Texture& albedoTex, const Texture& heightMap,
                          float scale = 0.03f, int layers = 12,
