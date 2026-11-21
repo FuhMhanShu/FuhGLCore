@@ -2,6 +2,7 @@
 
 #include "fuhgl/gl/program_pipeline.hpp"
 
+#include "fuhgl/gl/error.hpp"
 #include "fuhgl/gl/loader.hpp"
 
 #include <string>
