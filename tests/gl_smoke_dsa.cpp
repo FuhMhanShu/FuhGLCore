@@ -40,12 +40,12 @@ int main() {
 
     fuhgl::Window window;
     if (!window.create("gl_smoke_dsa", 64, 64)) {
-        std::fprintf(stderr, "gl_smoke_dsa: no GL context — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_dsa: no GL context — SKIP\n");
+        return 77;
     }
     if (!version().atLeast(4, 5) || !hasDsa()) {
-        std::fprintf(stderr, "gl_smoke_dsa: no DSA (GL < 4.5) — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_dsa: no DSA (GL < 4.5) — SKIP\n");
+        return 77;
     }
     const auto& d = dsa();
     const auto& f = functions();

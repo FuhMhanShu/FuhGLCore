@@ -49,12 +49,12 @@ int main() {
 
     fuhgl::Window window;
     if (!window.create("gl_smoke_reflection", 64, 64)) {
-        std::fprintf(stderr, "gl_smoke_reflection: no GL context — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_reflection: no GL context — SKIP\n");
+        return 77;
     }
     if (!version().atLeast(3, 3)) {
-        std::fprintf(stderr, "gl_smoke_reflection: context below GL 3.3 — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_reflection: context below GL 3.3 — SKIP\n");
+        return 77;
     }
 
     fuhgl::Program prog;
@@ -72,7 +72,7 @@ int main() {
     const auto attribs = prog.activeAttributes();
     bool foundPos = false, foundUV = false;
     for (const auto& a : attribs) {
-        std::fprintf(stderr, "  [info] attrib '%s' type=0x%x size=%d loc=%d\n", a.name.c_str(),
+        std::fprintf(stderr, "  SKIP (driver capability): attrib '%s' type=0x%x size=%d loc=%d\n", a.name.c_str(),
                      (unsigned)a.type, a.size, a.location);
         if (a.name == "aPos" && a.location == 0 && a.type == GL_FLOAT_VEC3) foundPos = true;
         if (a.name == "aUV" && a.location == 1 && a.type == GL_FLOAT_VEC2) foundUV = true;
@@ -84,7 +84,7 @@ int main() {
     const auto uniforms = prog.activeUniforms();
     bool foundColor = false, foundScale = false, foundLightPos = false;
     for (const auto& u : uniforms) {
-        std::fprintf(stderr, "  [info] uniform '%s' type=0x%x size=%d block=%d offset=%d\n", u.name.c_str(),
+        std::fprintf(stderr, "  SKIP (driver capability): uniform '%s' type=0x%x size=%d block=%d offset=%d\n", u.name.c_str(),
                      (unsigned)u.type, u.size, u.blockIndex, u.offset);
         if (u.name == "uColor" && u.type == GL_FLOAT_VEC4 && u.size == 1 && u.blockIndex == -1) foundColor = true;
         if (u.name == "uScale" && u.type == GL_FLOAT && u.size == 1) foundScale = true;
@@ -100,7 +100,7 @@ int main() {
     expect(blocks.size() == 1, "exactly one uniform block");
     if (!blocks.empty()) {
         const auto& b = blocks[0];
-        std::fprintf(stderr, "  [info] block '%s' index=%u dataSize=%d binding=%d active=%d\n", b.name.c_str(),
+        std::fprintf(stderr, "  SKIP (driver capability): block '%s' index=%u dataSize=%d binding=%d active=%d\n", b.name.c_str(),
                      b.index, b.dataSize, b.binding, b.activeUniforms);
         expect(b.name == "Lights", "block name is 'Lights'");
         expect(b.dataSize == 32, "block data size == 32 (2 x vec4 std140)");
@@ -113,7 +113,7 @@ int main() {
         if (f.glGetProgramInterfaceiv) {
             GLint nUniforms = 0;
             f.glGetProgramInterfaceiv(prog.id(), GL_UNIFORM, GL_ACTIVE_RESOURCES, &nUniforms);
-            std::fprintf(stderr, "  [info] GL_UNIFORM interface active resources = %d\n", nUniforms);
+            std::fprintf(stderr, "  SKIP (driver capability): GL_UNIFORM interface active resources = %d\n", nUniforms);
             expect(nUniforms >= 3, "program resource interface: >= 3 active uniforms");
             expect(lastError() == Error::NoError, "no GL error in reflection group");
         }

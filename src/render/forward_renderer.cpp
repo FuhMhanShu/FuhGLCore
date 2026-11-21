@@ -15,7 +15,7 @@ ForwardRenderer::ForwardRenderer(ForwardRenderer&&) noexcept = default;
 ForwardRenderer& ForwardRenderer::operator=(ForwardRenderer&&) noexcept = default;
 
 bool ForwardRenderer::create(int width, int height) {
-    if (!pipeline_.create()) {
+    if (!pipeline_.create(width, height)) {
         std::fprintf(stderr, "ForwardRenderer: pipeline create failed\n");
         return false;
     }

@@ -1,4 +1,4 @@
-#include "fuhgl/render/pipeline.hpp"
+#include "fuhgl/render/forward_pipeline.hpp"
 #include "fuhgl/render/shadow.hpp"
 #include "lighting_glsl.hpp"
 #include "pipeline_internal.hpp"
@@ -63,14 +63,15 @@ void main() {
 
 } // namespace
 
-struct ForwardPipeline::Impl {};
-
-ForwardPipeline::ForwardPipeline() : impl_(std::make_unique<Impl>()) {}
+ForwardPipeline::ForwardPipeline() = default;
 ForwardPipeline::~ForwardPipeline() = default;
 ForwardPipeline::ForwardPipeline(ForwardPipeline&&) noexcept = default;
 ForwardPipeline& ForwardPipeline::operator=(ForwardPipeline&&) noexcept = default;
 
-bool ForwardPipeline::create() {
+bool ForwardPipeline::create(int width, int height) {
+    (void)width;  // forward pipeline renders into the bound FB / setTarget() FBO;
+    (void)height; // size only matters for pipelines with owned targets (deferred)
+
     if (!defaultMaterial_.create()) return false;
     Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
     if (!vs.compile(kForwardVert)) return false;
@@ -126,9 +127,9 @@ void ForwardPipeline::render(const SceneView& scene) {
     gl::clear(gl::ClearBit::Color | gl::ClearBit::Depth);
 
     const math::Mat4 viewProj = scene.camera->viewProj(scene.aspect);
-    // shadow map on texture unit 4 (dummy 1x1 when disabled so the sampler stays bound)
+    // shadow map on kTextureUnitShadowMap (dummy 1x1 so the sampler stays bound)
     const gl::GLuint shadowTexId = scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id();
-    gl::activeTexture(gl::GL_TEXTURE0 + 4);
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMap);
     gl::functions().glBindTexture(gl::GL_TEXTURE_2D, shadowTexId);
     for (const DrawItem& item : scene.items) {
         if (!item.mesh) continue;
@@ -140,7 +141,7 @@ void ForwardPipeline::render(const SceneView& scene) {
         prog.setUniform("uAmbient", scene.ambient);
         prog.setUniform(prog.uniformLocation("uLightCount"), n);
         prog.setUniform(prog.uniformLocation("uShadowEnabled"), scene.shadowMap ? 1 : 0);
-        prog.setUniform(prog.uniformLocation("uShadowMap"), 4);
+        prog.setUniform(prog.uniformLocation("uShadowMap"), kTextureUnitShadowMap);
         prog.setUniform("uLightVP", scene.lightVP);
         prog.setUniform(prog.uniformLocation("uShadowLightIndex"), scene.shadowLightIndex);
         prog.setUniform("uShadowStrength", scene.shadowStrength);

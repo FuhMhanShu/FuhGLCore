@@ -59,12 +59,12 @@ int main() {
 
     fuhgl::Window window;
     if (!window.create("gl_smoke_buffers", 64, 64)) {
-        std::fprintf(stderr, "gl_smoke_buffers: no GL context — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_buffers: no GL context — SKIP\n");
+        return 77;
     }
     if (!fuhgl::gl::version().atLeast(3, 3)) {
-        std::fprintf(stderr, "gl_smoke_buffers: context below GL 3.3 — skipping\n");
-        return 0;
+        std::fprintf(stderr, "gl_smoke_buffers: context below GL 3.3 — SKIP\n");
+        return 77;
     }
     std::fprintf(stderr, "gl_smoke_buffers: GL %d.%d\n", fuhgl::gl::version().major, fuhgl::gl::version().minor);
 
@@ -154,7 +154,7 @@ int main() {
             fuhgl::gl::getCompressedTexImage(fuhgl::gl::GL_TEXTURE_2D, 0, back);
             expect(std::memcmp(back, dxt, 16) == 0, "getCompressedTexImage round-trips the DXT5 block");
         } else {
-            std::fprintf(stderr, "  [skip] compressed textures unsupported on this driver\n");
+            std::fprintf(stderr, "  SKIP (driver capability): compressed textures unsupported on this driver\n");
         }
     }
 
@@ -266,7 +266,7 @@ int main() {
         prog3.setUniform("uMissing", 7u); // optimized out -> location -1, must not crash
         expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "setUniform on missing uniform is harmless");
     } else {
-        std::fprintf(stderr, "  [skip] GL < 4.3 — image binding / indirect / SSBO / VAO-4.3 not tested\n");
+        std::fprintf(stderr, "  SKIP (driver capability): GL < 4.3 — image binding / indirect / SSBO / VAO-4.3 not tested\n");
     }
 
     if (g_failures) {

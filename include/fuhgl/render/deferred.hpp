@@ -15,7 +15,11 @@
 
 namespace fuhgl::render {
 
-/// @brief Deferred pipeline. Always renders into its own output framebuffer;
+/// @brief Deferred pipeline (low-level building block). Always renders into its own
+/// output framebuffer; for the ready-to-use one-call renderer with SSAO/bloom/god-rays
+/// see render::DeferredRenderer (deferred_renderer.hpp).
+/// Role vs. render::DeferredRenderer: the *Pipeline* is driven manually (render(scene),
+/// G-buffer accessors); the *Renderer* adds shadows + the full post chain per call.
 /// blit it to the screen with output() + Framebuffer::blitTo, or read it headless.
 class DeferredPipeline : public RenderPipeline {
 public:
@@ -39,7 +43,7 @@ public:
     /// @brief Pass 2 only: fullscreen lighting into `target` (default: output()).
     void renderLighting(const SceneView& scene, Framebuffer* target = nullptr);
 
-    /// @brief Optional SSAO map sampled on unit 5 in the lighting pass (F17).
+    /// @brief Optional SSAO map sampled on kTextureUnitSSAO in the lighting pass (F17).
     const Texture* aoTexture = nullptr;
     float aoStrength = 1.5f;
 

@@ -12,7 +12,7 @@ namespace fuhgl::render::detail {
 /// @brief Binds the material for a draw item and sets the per-item uniforms
 /// (uModel/uViewProj + material fields). Preset materials (builtinShader = true)
 /// drive the pipeline's default program via uAlbedo/uEmissive/uUseTex/uMatTex
-/// (albedo texture on unit 3); custom materials get their own program bound.
+/// (albedo texture on kTextureUnitAlbedo); custom materials get their own program bound.
 inline void bindItem(const Material& defaultMat, const DrawItem& item,
                      const math::Mat4& model, const math::Mat4& viewProj) {
     const Material* preset = (item.material && item.material->builtinShader) ? item.material : nullptr;
@@ -27,25 +27,25 @@ inline void bindItem(const Material& defaultMat, const DrawItem& item,
         prog.setUniform("uEmissive", preset->emissive);
         prog.setUniform("uUseTex", preset->albedoTexture ? 1 : 0);
         if (preset->albedoTexture) {
-            gl::activeTexture(gl::GL_TEXTURE0 + 3);
+            gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitAlbedo);
             gl::functions().glBindTexture(static_cast<gl::GLenum>(preset->albedoTexture->target()),
                                           preset->albedoTexture->id());
-            prog.setUniform("uMatTex", 3);
+            prog.setUniform("uMatTex", kTextureUnitAlbedo);
         }
         // bump / parallax maps (used by the deferred G-buffer pass; harmless elsewhere)
         prog.setUniform("uUseNormalMap", preset->normalMap ? 1 : 0);
         prog.setUniform("uUseHeightMap", preset->heightMap ? 1 : 0);
         if (preset->normalMap) {
-            gl::activeTexture(gl::GL_TEXTURE0 + 4);
+            gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitNormalMap);
             gl::functions().glBindTexture(static_cast<gl::GLenum>(preset->normalMap->target()),
                                           preset->normalMap->id());
-            prog.setUniform("uNormalTex", 4);
+            prog.setUniform("uNormalTex", kTextureUnitNormalMap);
         }
         if (preset->heightMap) {
-            gl::activeTexture(gl::GL_TEXTURE0 + 5);
+            gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitHeightMap);
             gl::functions().glBindTexture(static_cast<gl::GLenum>(preset->heightMap->target()),
                                           preset->heightMap->id());
-            prog.setUniform("uHeightTex", 5);
+            prog.setUniform("uHeightTex", kTextureUnitHeightMap);
         }
         prog.setUniform("uParallaxScale", preset->parallaxScale);
         prog.setUniform("uParallaxLayers", preset->parallaxLayers);

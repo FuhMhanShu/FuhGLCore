@@ -392,23 +392,23 @@ void DeferredPipeline::renderLighting(const SceneView& scene, Framebuffer* targe
     lp.setUniform(lp.uniformLocation("uLightCount"), n);
     lp.setUniform("uSkyTop", skyTop);
     lp.setUniform("uSkyBottom", skyBottom);
-    // shadow map on unit 4 (dummy 1x1 when disabled)
+    // shadow map on unit kTextureUnitShadowMap (dummy 1x1 when disabled)
     const gl::GLuint shadowTexId = scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id();
-    gl::activeTexture(gl::GL_TEXTURE0 + 4);
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMap);
     gl::functions().glBindTexture(gl::GL_TEXTURE_2D, shadowTexId);
     lp.setUniform(lp.uniformLocation("uShadowEnabled"), scene.shadowMap ? 1 : 0);
-    lp.setUniform(lp.uniformLocation("uShadowMap"), 4);
+    lp.setUniform(lp.uniformLocation("uShadowMap"), kTextureUnitShadowMap);
     lp.setUniform("uLightVP", scene.lightVP);
     lp.setUniform(lp.uniformLocation("uShadowLightIndex"), scene.shadowLightIndex);
     lp.setUniform("uShadowStrength", scene.shadowStrength);
     lp.setUniform("uFogColor", scene.fogColor);
     lp.setUniform("uFogDensity", scene.fogDensity);
-    // SSAO map on unit 5 (F17)
+    // SSAO map (F17)
     if (aoTexture && aoTexture->id()) {
-        gl::activeTexture(gl::GL_TEXTURE0 + 5);
+        gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitSSAO);
         gl::functions().glBindTexture(gl::GL_TEXTURE_2D, aoTexture->id());
         lp.setUniform(lp.uniformLocation("uUseAO"), 1);
-        lp.setUniform(lp.uniformLocation("uAO"), 5);
+        lp.setUniform(lp.uniformLocation("uAO"), kTextureUnitSSAO);
         lp.setUniform("uAOStrength", aoStrength);
     } else {
         lp.setUniform(lp.uniformLocation("uUseAO"), 0);

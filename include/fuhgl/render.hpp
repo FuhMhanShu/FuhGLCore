@@ -1,7 +1,10 @@
 #pragma once
 
 /// @file render.hpp
-/// @brief Umbrella header for the render pipeline module (fuhgl::render).
+/// @brief Umbrella header for the render layer (fuhgl::render).
+/// Structure: pipeline.hpp = RenderPipeline base; forward_pipeline.hpp / deferred.hpp
+/// = concrete low-level pipelines; forward_renderer.hpp / deferred_renderer.hpp =
+/// ready-to-use one-call renderers (owned target + shadows + post FX).
 
 #include "render/scene.hpp"
 #include "render/light.hpp"
@@ -12,6 +15,7 @@
 #include "render/procedural.hpp"
 #include "render/solid.hpp"
 #include "render/pipeline.hpp"
+#include "render/forward_pipeline.hpp"
 #include "render/deferred.hpp"
 #include "render/forward_renderer.hpp"
 #include "render/deferred_renderer.hpp"
