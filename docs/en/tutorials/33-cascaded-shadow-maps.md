@@ -4,6 +4,8 @@
 the camera frustum, instead of a single map that is either blurry up close or too small
 far away.
 
+![CSM: long shadows across cascades](../../images/tutorial-csm.png)
+
 ## Usage
 
 ```cpp

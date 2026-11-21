@@ -23,9 +23,11 @@ Bibliothek, kein separates Engine-Projekt.
 
 ![Showcase Tag](docs/images/readme-showcase-day.png)
 ![Showcase Sonnenuntergang](docs/images/readme-showcase-sunset.png)
+![Showcase Nacht](docs/images/readme-showcase-night.png)
 
-Landschaft, gerendert mit dem `DeferredRenderer` (Schatten, SSAO, HDR + Bloom, God
-Rays, Nebel) — siehe `examples/showcase` und
+Landschaft, gerendert mit dem `DeferredRenderer` (CSM-Schatten, SSAO, HDR + Bloom, God
+Rays, Nebel, TAA, SSR; der Nacht-Look ergaenzt ein IBL-Environment und Lampen-Spiegelungen)
+— siehe `examples/showcase` und
 [Tutorial 29](docs/de/tutorials/29-showcase-scene.md).
 
 ![erstes Dreieck](docs/images/tutorial-first-triangle.png)

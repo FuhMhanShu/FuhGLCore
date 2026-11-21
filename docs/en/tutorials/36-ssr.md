@@ -3,6 +3,8 @@
 **Goal:** glossy surfaces reflect what is on screen — a render-graph pass that marches
 the reflection ray and samples the HDR image at the hit point.
 
+![SSR: the lamp reflected in the floor](../../images/tutorial-ssr.png)
+
 ## Usage
 
 ```cpp

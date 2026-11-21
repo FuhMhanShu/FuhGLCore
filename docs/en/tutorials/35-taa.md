@@ -3,6 +3,8 @@
 **Goal:** smooth edges without MSAA: render each frame with a subpixel Halton jitter and
 accumulate the history, clamped to the current neighborhood (anti-ghosting).
 
+![TAA: accumulated frame smooths the brick edges](../../images/tutorial-taa.png)
+
 ## Usage
 
 ```cpp

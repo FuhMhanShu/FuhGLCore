@@ -25,5 +25,9 @@ Auf Wayland-Desktops öffnet dasselbe EGL-Backend ein echtes xdg-shell-Fenster, 
 `WAYLAND_DISPLAY` gesetzt ist (und `FUHGL_BACKEND` nicht `surfaceless` ist). X11 bleibt das
 Linux-Default-Backend (`-DFUHGL_LINUX_BACKEND=X11`).
 
-Der CI-Job `docs` rendert beide Screenshots und lädt sie (plus das Doxygen-HTML) als
-Artefakte hoch: `tutorial-screenshots` und `doxygen-html`.
+Darüber hinaus rendert der CI-Job `docs` alle Tutorial-Screenshots: die Beispiele pro
+Thema (`deferred`, `solids`, `lights`, `shadows`, `forward`, `postfx`, `text`,
+`instancing`, `gpuinfo`, `stream`, ...) mit `--screenshot`, die Showcase-Looks
+(`--mode day|sunset|night`) und die Feature-Szenen von `examples/features`
+(`--scene noise|pbr|ibl|csm|taa|ssr|culling|bindless`, Tutorials 30-38). Alle PNGs werden
+(plus das Doxygen-HTML) als Artefakte hoch: `tutorial-screenshots` und `doxygen-html`.

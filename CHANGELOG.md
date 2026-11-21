@@ -91,6 +91,15 @@ All notable changes to FuhGLCore are documented here. The format follows
 - Tests: `test_graph.cpp` (unit), `gl_smoke_graph.cpp` / `gl_smoke_taa.cpp` /
   `gl_smoke_ssr.cpp` (gl_context); tutorials 34–36 (en + de).
 
+### Changed
+- Screenshots reworked: new `examples/features` renders one deterministic headless PNG
+  per feature scene (`--scene noise|pbr|ibl|csm|taa|ssr|culling|bindless`) for tutorials
+  30–38; the CI `docs` job renders them plus a new `readme-showcase-night.png`.
+  `examples/showcase` gained `--mode night` (dark sky, IBL environment baked from a
+  gradient cubemap, emissive lamp posts reflected via SSR) and now uses CSM shadows, TAA
+  and SSR in all modes (headless renders 8 frames so the TAA history accumulates).
+  Tutorials 12, 29–38 (en + de) and both READMEs reference the new images.
+
 ## [0.1.0] — initial release
 
 Zero-dependency C++17 OpenGL wrapper + built-in render layer. Highlights:

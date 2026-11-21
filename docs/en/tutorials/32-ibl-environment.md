@@ -5,6 +5,8 @@ color — `render::Environment` bakes an irradiance cubemap, a GGX-prefiltered
 environment cubemap and a BRDF LUT from any source cubemap, fully on the CPU
 (deterministic, works on the GL 3.3 baseline — no compute shaders needed).
 
+![IBL: scene lit by the baked environment](../../images/tutorial-ibl.png)
+
 ## Usage
 
 ```cpp

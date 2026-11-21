@@ -5,6 +5,8 @@ named texture resources and passes (inputs/outputs + callback); `compile()` orde
 and creates one FBO per pass; `execute()` runs them. The `DeferredRenderer` post chain
 (SSAO → lighting → SSR → TAA → bloom → god rays → composite) runs on it.
 
+![DeferredRenderer post chain running on the render graph](../../images/tutorial-deferred-fx.png)
+
 ## Usage
 
 ```cpp

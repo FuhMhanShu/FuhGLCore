@@ -4,6 +4,8 @@
 specular + Fresnel) in both built-in pipelines — the modern default in Unreal/Unity/
 Filament.
 
+![PBR: dielectric vs metal vs glossy](../../images/tutorial-pbr.png)
+
 ## Materials
 
 ```cpp

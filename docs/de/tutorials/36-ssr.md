@@ -5,6 +5,8 @@
 **Ziel:** glänzende Oberflächen spiegeln, was auf dem Bildschirm ist — ein Render-Graph-Pass,
 der den Reflexionsstrahl marched und das HDR-Bild am Trefferpunkt sampelt.
 
+![SSR: die Lampe spiegelt sich im Boden](../../images/tutorial-ssr.png)
+
 ## Nutzung
 
 ```cpp

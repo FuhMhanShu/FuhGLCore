@@ -5,6 +5,7 @@ and its full effect stack — used for the two hero images at the top of the REA
 
 ![showcase day](../../images/readme-showcase-day.png)
 ![showcase sunset](../../images/readme-showcase-sunset.png)
+![showcase night](../../images/readme-showcase-night.png)
 
 The scene (`examples/showcase`) combines several features from earlier tutorials:
 
@@ -17,11 +18,12 @@ The scene (`examples/showcase`) combines several features from earlier tutorials
   (`rayWeight`), distance fog and a gradient sky (`pipeline().skyTop/skyBottom`).
 - **Text overlay** (tutorial 24) for the HUD line.
 
-Two looks are rendered in CI:
+Three looks are rendered in CI:
 
 ```
 FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-day.png    --mode day    --width 960 --height 540
 FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-sunset.png --mode sunset --width 960 --height 540
+FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-night.png --mode night --width 960 --height 540
 ```
 
 `--mode sunset` lowers the directional sun into the camera frustum (direction

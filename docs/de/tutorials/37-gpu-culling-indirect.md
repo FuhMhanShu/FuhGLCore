@@ -6,6 +6,8 @@
 die GPU entscheidet, welche Instanzen sichtbar sind — keine Pro-Instanz-Arbeit auf der
 CPU, kein Overdraw durch Off-Screen-Instanzen.
 
+![GPU-Culling: 1000 Instanzen, die Hälfte hinter der Kamera gecullt](../../images/tutorial-culling.png)
+
 ## Verwendung
 
 ```cpp

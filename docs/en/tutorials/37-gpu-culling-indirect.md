@@ -4,6 +4,8 @@
 GPU decides which instances are visible — no per-instance CPU work, no overdraw from
 off-screen instances.
 
+![GPU culling: 1000 instances, half behind the camera culled](../../images/tutorial-culling.png)
+
 ## Usage
 
 ```cpp

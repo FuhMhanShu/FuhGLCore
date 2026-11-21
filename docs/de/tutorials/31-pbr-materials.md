@@ -6,6 +6,8 @@
 (GGX-Specular + Fresnel) in beiden eingebauten Pipelines shaden — der moderne Default
 in Unreal/Unity/Filament.
 
+![PBR: Dielektrikum vs Metall vs glänzend](../../images/tutorial-pbr.png)
+
 ## Materialien
 
 ```cpp

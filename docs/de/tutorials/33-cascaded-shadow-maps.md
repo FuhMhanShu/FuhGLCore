@@ -6,6 +6,8 @@
 Kaskade des Kamera-Frustums statt einer einzigen Map, die entweder nah unscharf oder
 weit zu klein ist.
 
+![CSM: lange Schatten über Kaskaden](../../images/tutorial-csm.png)
+
 ## Nutzung
 
 ```cpp

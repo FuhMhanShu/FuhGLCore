@@ -4,6 +4,8 @@
 handle in a `uint64_t` uniform is enough. This removes the texture-unit bottleneck and
 lets a shader access arbitrary texture arrays (e.g. a bindless material library).
 
+![bindless texture sampled through a 64-bit handle](../../images/tutorial-bindless.png)
+
 ## Usage
 
 ```cpp

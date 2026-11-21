@@ -6,6 +6,8 @@
 Werte erzeugen (Terrain-Höhen, Platzierungs-Jitter, Textur-Seeds) — alles header-only
 Value-Types, kein GL-Kontext nötig.
 
+![gesampelte fBm-Rauschtextur](../../images/tutorial-noise.png)
+
 ## Quaternionen (`math::Quat`)
 
 ```cpp

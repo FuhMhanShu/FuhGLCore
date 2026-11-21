@@ -8,6 +8,7 @@ verwendet.
 
 ![Showcase Tag](../../images/readme-showcase-day.png)
 ![Showcase Sonnenuntergang](../../images/readme-showcase-sunset.png)
+![Showcase Nacht](../../images/readme-showcase-night.png)
 
 Die Szene (`examples/showcase`) kombiniert mehrere Features aus früheren Tutorials:
 
@@ -20,11 +21,12 @@ Die Szene (`examples/showcase`) kombiniert mehrere Features aus früheren Tutori
   (`rayWeight`), Distanznebel und einem Verlaufs-Sky (`pipeline().skyTop/skyBottom`).
 - **Text-Overlay** (Tutorial 24) für die HUD-Zeile.
 
-Zwei Looks werden in der CI gerendert:
+Drei Looks werden in der CI gerendert:
 
 ```
 FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-day.png    --mode day    --width 960 --height 540
 FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-sunset.png --mode sunset --width 960 --height 540
+FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-night.png --mode night --width 960 --height 540
 ```
 
 `--mode sunset` senkt die direktionale Sonne in den Kamera-Frustum (Richtung

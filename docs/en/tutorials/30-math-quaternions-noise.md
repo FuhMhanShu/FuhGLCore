@@ -4,6 +4,8 @@
 procedural values (terrain heights, placement jitter, texture seeds) — all header-only
 value types, no GL context needed.
 
+![seeded fBm noise texture](../../images/tutorial-noise.png)
+
 ## Quaternions (`math::Quat`)
 
 ```cpp

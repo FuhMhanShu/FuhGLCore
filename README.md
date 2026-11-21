@@ -22,9 +22,11 @@ separate engine project.
 
 ![showcase day](docs/images/readme-showcase-day.png)
 ![showcase sunset](docs/images/readme-showcase-sunset.png)
+![showcase night](docs/images/readme-showcase-night.png)
 
-Landscape rendered with the `DeferredRenderer` (shadows, SSAO, HDR + bloom, god rays,
-fog) — see `examples/showcase` and [tutorial 29](docs/en/tutorials/29-showcase-scene.md).
+Landscape rendered with the `DeferredRenderer` (CSM shadows, SSAO, HDR + bloom, god rays,
+fog, TAA, SSR; the night look adds an IBL environment and lamp reflections) — see
+`examples/showcase` and [tutorial 29](docs/en/tutorials/29-showcase-scene.md).
 
 ![first triangle](docs/images/tutorial-first-triangle.png)
 ![isometric skybox](docs/images/tutorial-isometric-skybox.png)

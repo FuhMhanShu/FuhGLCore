@@ -5,6 +5,8 @@
 **Ziel:** glatte Kanten ohne MSAA: jedes Frame mit einem Halton-Subpixel-Jitter rendern
 und die History akkumulieren, auf die aktuelle Nachbarschaft geclampt (Anti-Ghosting).
 
+![TAA: akkumulierter Frame glättet die Backstein-Kanten](../../images/tutorial-taa.png)
+
 ## Nutzung
 
 ```cpp

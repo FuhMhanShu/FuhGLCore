@@ -23,5 +23,9 @@ On Wayland desktops the same EGL backend opens a real xdg-shell window when
 `WAYLAND_DISPLAY` is set (and `FUHGL_BACKEND` is not `surfaceless`). X11 remains the
 default Linux backend (`-DFUHGL_LINUX_BACKEND=X11`).
 
-The CI `docs` job renders both screenshots and uploads them (plus the Doxygen HTML) as
-artifacts: `tutorial-screenshots` and `doxygen-html`.
+Besides the two above, the CI `docs` job renders every tutorial screenshot: the
+per-topic examples (`deferred`, `solids`, `lights`, `shadows`, `forward`, `postfx`,
+`text`, `instancing`, `gpuinfo`, `stream`, ...) with `--screenshot`, the showcase looks
+(`--mode day|sunset|night`), and the feature scenes of `examples/features`
+(`--scene noise|pbr|ibl|csm|taa|ssr|culling|bindless`, tutorials 30-38). All PNGs are
+uploaded (plus the Doxygen HTML) as artifacts: `tutorial-screenshots` and `doxygen-html`.

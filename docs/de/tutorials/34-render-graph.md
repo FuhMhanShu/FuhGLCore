@@ -8,6 +8,8 @@ sortiert sie und legt pro Pass ein FBO an; `execute()` führt sie aus. Die Post-
 `DeferredRenderer` (SSAO → Lighting → SSR → TAA → Bloom → God Rays → Composite) läuft
 daraus.
 
+![Post-Kette des DeferredRenderer auf dem Render-Graph](../../images/tutorial-deferred-fx.png)
+
 ## Nutzung
 
 ```cpp

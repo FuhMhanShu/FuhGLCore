@@ -6,6 +6,8 @@
 einem `uint64_t`-Uniform genügt. Das entfernt den Texture-Unit-Flaschenhals und erlaubt
 Shadern Zugriff auf beliebige Textur-Arrays (z. B. eine bindless Material-Bibliothek).
 
+![Bindless-Textur über 64-Bit-Handle gesampelt](../../images/tutorial-bindless.png)
+
 ## Verwendung
 
 ```cpp
