@@ -49,19 +49,6 @@ int main() {
 
     fuhgl::render::Mesh boxMesh;
     fuhgl::render::shapes::box(boxMesh, {0.45f, 0.45f, 0.45f}, {1.f, 1.f, 1.f});
-    fuhgl::render::Material boxMat = fuhgl::render::materials::matte({0.95f, 0.55f, 0.2f});
-
-    // three instances spread along X
-    std::vector<fuhgl::math::Mat4> models = {
-        fuhgl::math::translate({-1.2f, 0.f, 0.f}),
-        fuhgl::math::Mat4{},
-        fuhgl::math::translate({1.2f, 0.f, 0.f}),
-    };
-    boxMesh.setInstanceData(models.data(), static_cast<fuhgl::gl::GLsizei>(models.size()));
-    if (boxMesh.instanceCount() != 3) {
-        std::fprintf(stderr, "gl_smoke_instancing: FAIL — instanceCount=%d\n", boxMesh.instanceCount());
-        return 1;
-    }
 
     fuhgl::FirstPersonCamera cam;
     cam.position = {0.f, 0.9f, 4.4f};
@@ -72,10 +59,12 @@ int main() {
     scene.width = W;
     scene.height = H;
     scene.aspect = 1.f;
+    fuhgl::render::Material boxMat = fuhgl::render::materials::matte({0.95f, 0.55f, 0.2f});
     scene.items.push_back({&boxMesh, &boxMat, fuhgl::math::Mat4{}});
     scene.lights.push_back({{3.f, 4.f, 5.f}, {1.f, 0.95f, 0.85f}, 25.f});
 
-    const int py = 140;
+    // readPixels origin is bottom-left; the box center projects to NDC y ~ -0.14 -> py ~ 110
+    const int py = H / 2 - 18;
     const int pxL = W / 2 - 58, pxC = W / 2, pxR = W / 2 + 58;
     auto renderAndProbe = [&](int x, int y) {
         pipeline.render(scene);
@@ -85,8 +74,42 @@ int main() {
         fuhgl::gl::readPixels(x, y, 1, 1, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, px.data());
         return px;
     };
+    auto litCountRow = [&](int y) {
+        pipeline.render(scene);
+        fuhgl::gl::flush();
+        pipeline.output().bind();
+        std::vector<unsigned char> row(static_cast<size_t>(W) * 4);
+        fuhgl::gl::readPixels(0, y, W, 1, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_UNSIGNED_BYTE, row.data());
+        int n = 0;
+        for (int x = 0; x < W; ++x) {
+            const Px px = {row[x * 4], row[x * 4 + 1], row[x * 4 + 2], row[x * 4 + 3]};
+            if (isLit(px)) ++n;
+        }
+        return n;
+    };
 
-    // --- 1) instanced draw: three boxes visible --------------------------------------
+    // --- 0) sanity: non-instanced single box must be visible at the center --------
+    const int singleLit = litCountRow(py);
+    const Px pc0 = renderAndProbe(pxC, py);
+    std::fprintf(stderr, "gl_smoke_instancing: single box: row lit=%d center=(%d,%d,%d,%d)\n",
+                 singleLit, pc0[0], pc0[1], pc0[2], pc0[3]);
+    if (!isLit(pc0) || singleLit < 10) {
+        std::fprintf(stderr, "gl_smoke_instancing: FAIL — non-instanced box not visible (probes/camera?)\n");
+        return 1;
+    }
+
+    // --- 1) instanced draw: three boxes spread along X ------------------------------
+    std::vector<fuhgl::math::Mat4> models = {
+        fuhgl::math::translate({-1.2f, 0.f, 0.f}),
+        fuhgl::math::Mat4{},
+        fuhgl::math::translate({1.2f, 0.f, 0.f}),
+    };
+    boxMesh.setInstanceData(models.data(), static_cast<fuhgl::gl::GLsizei>(models.size()));
+    if (boxMesh.instanceCount() != 3) {
+        std::fprintf(stderr, "gl_smoke_instancing: FAIL — instanceCount=%d\n", boxMesh.instanceCount());
+        return 1;
+    }
+    const int instLit = litCountRow(py);
     const Px pl = renderAndProbe(pxL, py);
     const Px pc = renderAndProbe(pxC, py);
     const Px pr = renderAndProbe(pxR, py);
@@ -95,9 +118,9 @@ int main() {
         std::fprintf(stderr, "gl_smoke_instancing: FAIL — GL error after instanced render\n");
         return 1;
     }
-    std::fprintf(stderr, "gl_smoke_instancing: left=(%d,%d,%d) center=(%d,%d,%d) right=(%d,%d,%d)\n",
-                 pl[0], pl[1], pl[2], pc[0], pc[1], pc[2], pr[0], pr[1], pr[2]);
-    if (!isLit(pl) || !isLit(pc) || !isLit(pr)) {
+    std::fprintf(stderr, "gl_smoke_instancing: instanced: row lit=%d left=(%d,%d,%d) center=(%d,%d,%d) right=(%d,%d,%d)\n",
+                 instLit, pl[0], pl[1], pl[2], pc[0], pc[1], pc[2], pr[0], pr[1], pr[2]);
+    if (!isLit(pl) || !isLit(pc) || !isLit(pr) || instLit < singleLit * 2) {
         std::fprintf(stderr, "gl_smoke_instancing: FAIL — instanced boxes not all visible\n");
         return 1;
     }
