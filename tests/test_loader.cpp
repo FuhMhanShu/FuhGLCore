@@ -79,6 +79,38 @@ void runLoaderTests() {
     };
     for (const char* fn : f13) CHECK(names.count(fn) == 1);
 
+    // DSA table (GL 4.5): names are known even without a GL context; all entries
+    // registered exactly once, all gl-prefixed. P2 completed the table to 72 entries.
+    CHECK(dsaFunctionNameCount() == 72);
+    std::set<std::string> dsaNames;
+    for (std::size_t i = 0; i < dsaFunctionNameCount(); ++i) {
+        const char* n = dsaFunctionNames()[i];
+        CHECK(n != nullptr);
+        CHECK(std::strncmp(n, "gl", 2) == 0);
+        dsaNames.insert(n);
+    }
+    CHECK(dsaNames.size() == dsaFunctionNameCount()); // no duplicates
+    const char* p2[] = {
+        "glNamedBufferStorage", "glMapNamedBuffer", "glMapNamedBufferRange", "glUnmapNamedBuffer",
+        "glFlushMappedNamedBufferRange", "glCopyNamedBufferSubData", "glClearNamedBufferSubData",
+        "glInvalidateNamedBufferData", "glInvalidateNamedBufferSubData", "glGetNamedBufferParameteriv",
+        "glGetNamedBufferParameteri64v", "glGetNamedBufferSubData", "glCreateTransformFeedbacks",
+        "glNamedFramebufferDrawBuffer", "glNamedFramebufferDrawBuffers", "glNamedFramebufferReadBuffer",
+        "glClearNamedFramebufferiv", "glClearNamedFramebufferuiv", "glClearNamedFramebufferfv",
+        "glClearNamedFramebufferfi", "glNamedFramebufferTextureLayer",
+        "glNamedRenderbufferStorageMultisample", "glGetNamedRenderbufferParameteriv",
+        "glTextureParameteri", "glTextureParameterf", "glTextureParameterfv", "glTextureSubImage3D",
+        "glCompressedTextureSubImage2D", "glCompressedTextureSubImage3D", "glCopyTextureSubImage2D",
+        "glCopyTextureSubImage3D", "glGenerateTextureMipmap", "glTextureStorage2DMultisample",
+        "glTextureStorage3DMultisample", "glGetTextureImage", "glGetCompressedTextureImage",
+        "glGetTextureLevelParameteriv", "glTextureBuffer", "glTextureBufferRange",
+        "glVertexArrayAttribBinding", "glVertexArrayAttribIFormat", "glVertexArrayAttribLFormat",
+        "glVertexArrayBindingDivisor", "glGetVertexArrayiv", "glGetVertexArrayIndexediv",
+        "glGetVertexArrayIndexed64iv", "glSamplerParameterf", "glSamplerParameterfv", "glBindSamplers",
+        "glCreateQueries",
+    };
+    for (const char* fn : p2) CHECK(dsaNames.count(fn) == 1);
+
     // procAddress contract: nullptr in -> nullptr out. (We must NOT assert nullptr
     // for unknown names: Mesa's glXGetProcAddress returns no-op stubs for those.)
     CHECK(procAddress(nullptr) == nullptr);

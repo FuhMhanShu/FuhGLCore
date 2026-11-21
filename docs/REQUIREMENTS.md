@@ -44,6 +44,7 @@ APIs). It provides:
 | F15 | Shadow mapping (depth pass + light VP + PCF) | `render::ShadowMap` (PIMPL: depth texture `GL_DEPTH_COMPONENT24` LINEAR + depth-only FBO with `glDrawBuffer(GL_NONE)`, `render(scene, lightVP)` draws back faces to reduce acne); free helpers `lightView/lightProjection/lightViewProj(light, center, radius)` (directional = ortho box around scene sphere with safe up-vector, spot = perspective fov 2*coneOuter); `SceneView::{shadowMap, lightVP, shadowLightIndex, shadowStrength}`; shared GLSL `kShadowUniforms`/`kShadowFunc` (slope-scaled bias + 3x3 PCF over LINEAR depth) applied in `shade()` only to the shadow light; both pipelines bind the map on unit 4 (1x1 dummy when off); `GL_NONE` constant; tests: `test_shadow.cpp` (light VP math), `gl_smoke_shadows.cpp` (with/without shadow pixel diff); example `shadows`; tutorial 21 |
 | F16 | Default forward renderer + fog | `render::ForwardRenderer` (PIMPL) in `render/forward_renderer.hpp`: owns `ForwardPipeline` + `ShadowMap` + optional own RGBA8/depth target (`create(w,h)` / `target()` / `blitToScreen()` / `resize()`); scene config `addLight/setLights/setAmbient/setClearColor/setFog`; `enableShadows(size)` + `setShadowSceneBounds(center,radius)` + `setShadowStrength`; `render(camera, items, w, h)` = auto shadow depth pass from the first directional/spot light (`lightViewProj`) + forward pass; `SceneView::{fogColor, fogDensity}` + exponential fog in both pipeline shaders (`exp(-density*d)`); tests: `gl_smoke_forward.cpp` (auto-shadow blob + fog color shift); example `forward` (+2 CI screenshots); tutorial 22 |
 | F17 | Default deferred renderer + post FX | `render::DeferredRenderer` (PIMPL): `DeferredPipeline` split into public `renderGBuffer()`/`renderLighting(scene, target)` passes + G-buffer texture accessors; G-buffer shader: parallax occlusion mapping (height map unit 5, derivative tangent frame, 64-step ray march) + bump/normal mapping (unit 4) via new `Material` fields (`normalMap`, `heightMap`, `parallaxScale`, `parallaxLayers`) + presets `materials::normalMapped/parallax`; `procedural::normalFromHeight/makeNormalMap`; post chain in `deferred_renderer.cpp`: SSAO (deterministic LCG kernel injected into GLSL, world-space hemisphere + depth compare, separable blur, unit 5 in lighting pass) → HDR lighting into RGBA16F (sun disk in sky via `SceneView::sun*`, `uInvViewProj`, AO multiply, fog, shadows) → bloom (bright-pass threshold + gaussian ping-pong) → crepuscular rays (radial blur toward `sunScreenUV(camera, sunDir, w, h)`) → composite (ACES + gamma into LDR `output()`); shadows like ForwardRenderer (`enableShadows`/`setShadowSceneBounds`); tests: `gl_smoke_deferred_fx.cpp` (per-effect pixel toggles), `sunScreenUV` in `test_shadow.cpp`; example `postfx` (+2 CI screenshots); tutorial 23 |
+| F18 | Complete GL 4.5 DSA table (P2) | `gl::DsaFunctions` extended from 22 to 72 typed entries (buffers: `glNamedBufferStorage`, `glMapNamedBuffer(Range)`, `glUnmapNamedBuffer`, `glFlushMappedNamedBufferRange`, `glCopyNamedBufferSubData`, `glClearNamedBufferSubData`, `glInvalidateNamedBufferData/SubData`, `glGetNamedBufferParameteriv/i64v`, `glGetNamedBufferSubData`; TF: `glCreateTransformFeedbacks`; FBOs: `glNamedFramebufferDrawBuffer(s)`, `glNamedFramebufferReadBuffer`, `glClearNamedFramebufferiv/uiv/fv/fi`, `glNamedFramebufferTextureLayer`; renderbuffers: `glNamedRenderbufferStorageMultisample`, `glGetNamedRenderbufferParameteriv`; textures: `glTextureParameteri/f/fv`, `glTextureSubImage3D`, `glCompressedTextureSubImage2D/3D`, `glCopyTextureSubImage2D/3D`, `glGenerateTextureMipmap`, `glTextureStorage2D/3DMultisample`, `glGetTextureImage`, `glGetCompressedTextureImage`, `glGetTextureLevelParameteriv`, `glTextureBuffer(Range)`; VAOs: `glVertexArrayAttribBinding/IFormat/LFormat`, `glVertexArrayBindingDivisor`, `glGetVertexArrayiv/Indexediv/Indexed64iv`; samplers: `glSamplerParameterf/fv`, `glBindSamplers`; queries: `glCreateQueries`) via `FUHGL_DSA` in `src/gl/loader.cpp`; new `gl::dsaFunctionNames()`/`dsaFunctionNameCount()`; new constants in `include/fuhgl/gl/types.hpp`; tests: `test_loader.cpp` (72-entry presence list), `gl_smoke_dsa.cpp` (readback-verified buffer/texture/sampler/VAO/FBO/query/TF ops, skips without GL 4.5); tutorial 11 addendum |
 
 ## 4. Non-functional requirements
 
@@ -75,7 +76,7 @@ APIs). It provides:
 
 ## 7. Backlog / TODO — GL coverage gaps (from coverage analysis, 2026-11-21)
 
-Covered today: 115 core functions in the curated loader table + 23 DSA entries
+Covered today: 115+ core functions in the curated loader table + 72 DSA entries
 (GL 4.5) + runtime `procAddress` for a few platform/legacy entries. Below: the
 GL core functions **not** covered yet that are worth implementing, grouped by
 priority. F9 (in progress) covers the buffer/texture/image-binding part of P1.
@@ -125,7 +126,16 @@ priority. F9 (in progress) covers the buffer/texture/image-binding part of P1.
 `glGetTextureImage`, `glGetTextureLevelParameteriv`, `glGetCompressedTextureImage`,
 `glVertexArrayAttribBinding/IFormat/LFormat`, `glVertexArrayBindingDivisor`, `glGetVertexArray*`,
 `glSamplerParameterf/fv`, `glBindSamplers`, `glCreateQueries`, `glBindImageTexture`,
-`glTextureBuffer(Range)`, `glClearTexImage/SubImage` — TODO
+`glTextureBuffer(Range)`, `glClearTexImage/SubImage` — **P2 done (F18)**: all 50 remaining
+entries are now typed fields in `gl::DsaFunctions` + `FUHGL_DSA` rows in `kDsaEntries`
+(72 DSA entries total; `glBindImageTexture`/`glClearTexImage/SubImage` were already in the
+curated table via F13); new `gl::dsaFunctionNames()`/`dsaFunctionNameCount()` accessors;
+new constants in `types.hpp` (storage bits, `GL_TEXTURE_BUFFER_*`, sRGB/RG/BGRA formats,
+query targets, `GL_ELEMENT_ARRAY_BUFFER_BINDING`, `GL_SAMPLER_BINDING`, ...);
+tests: `test_loader.cpp` P2 presence list (72 entries), `gl_smoke_dsa.cpp` (buffer
+mapping/copy/clear round-trips, texture 2D/3D/MS/buffer uploads + readback, sampler
+binding, VAO formats/divisors/queries, FBO typed clears + texture layer + MS blit,
+queries, transform feedback); tutorial 11 addendum
 
 ### P3 — larger subsystems
 - Program pipelines / separable programs (4.1): `glCreateProgramPipelines`,

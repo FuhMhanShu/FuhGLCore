@@ -33,7 +33,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Uniform buffer objects | `UniformBuffer` | [08](tutorials/08-uniform-buffers.md) |
 | Compute shaders | `gl::dispatchCompute` | [09](tutorials/09-compute-shaders.md) |
 | GPU timing / fences | `Query`, `Fence` | [10](tutorials/10-queries-and-sync.md) |
-| GL 4.5 DSA fast path | `gl::dsa()`, `gl::hasDsa()` | [11](tutorials/11-dsa.md) |
+| GL 4.5 DSA fast path (72 entries) | `gl::dsa()`, `gl::hasDsa()`, `gl::dsaFunctionNames()` | [11](tutorials/11-dsa.md) |
 | Headless rendering + screenshots | EGL backend, `examples/screenshot` | [12](tutorials/12-headless-rendering-and-screenshots.md) |
 | Render pipelines: forward & deferred | `fuhgl::render::ForwardPipeline`, `DeferredPipeline` | [13](tutorials/13-render-pipelines.md) |
 | Device info & capabilities | `gl::queryDeviceInfo()` | [14](tutorials/14-device-info-and-capabilities.md) |

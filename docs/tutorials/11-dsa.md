@@ -31,3 +31,38 @@ if (fuhgl::gl::hasDsa()) {
 
 All DSA pointers are resolved by name in `gl::init()`; `gl::hasDsa()` is true only on
 GL ≥ 4.5 with the pointers present. Below 4.5 use the classic bind-based wrappers.
+
+## Full DSA table (P2 / F18)
+
+`gl::dsa()` now covers **72 GL 4.5 entry points** — every object family can be created,
+modified and queried without binding:
+
+| Family | Entry points |
+| --- | --- |
+| Buffers | `glCreateBuffers`, `glNamedBufferData/SubData`, `glNamedBufferStorage`, `glMapNamedBuffer(Range)`, `glUnmapNamedBuffer`, `glFlushMappedNamedBufferRange`, `glCopyNamedBufferSubData`, `glClearNamedBufferSubData`, `glInvalidateNamedBufferData/SubData`, `glGetNamedBufferParameteriv/i64v`, `glGetNamedBufferSubData` |
+| Textures | `glCreateTextures`, `glTextureStorage2D/3D`, `glTextureStorage2D/3DMultisample`, `glTextureSubImage2D/3D`, `glCompressedTextureSubImage2D/3D`, `glCopyTextureSubImage2D/3D`, `glTextureParameteri/f/fv`, `glGenerateTextureMipmap`, `glGetTextureImage`, `glGetCompressedTextureImage`, `glGetTextureLevelParameteriv`, `glTextureBuffer(Range)`, `glBindTextureUnit` |
+| Samplers | `glCreateSamplers`, `glSamplerParameteri/f/fv`, `glBindSampler(s)` |
+| Vertex arrays | `glCreateVertexArrays`, `glEnableVertexArrayAttrib`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayVertexBuffer`, `glVertexArrayBindingDivisor`, `glVertexArrayElementBuffer`, `glGetVertexArrayiv/Indexediv/Indexed64iv` |
+| Framebuffers | `glCreateFramebuffers`, `glNamedFramebufferTexture(Layer)`, `glNamedFramebufferDrawBuffer(s)`, `glNamedFramebufferReadBuffer`, `glClearNamedFramebufferiv/uiv/fv/fi`, `glCheckNamedFramebufferStatus`, `glBlitNamedFramebuffer` |
+| Renderbuffers | `glCreateRenderbuffers`, `glNamedRenderbufferStorage(Multisample)`, `glGetNamedRenderbufferParameteriv` |
+| Queries / TF | `glCreateQueries`, `glCreateTransformFeedbacks` |
+
+```cpp
+// immutable, mappable buffer in three calls, no binding anywhere:
+fuhgl::gl::GLuint buf = 0;
+dsa.glCreateBuffers(1, &buf);
+dsa.glNamedBufferStorage(buf, bytes, nullptr,
+                         fuhgl::gl::GL_DYNAMIC_STORAGE_BIT | fuhgl::gl::GL_MAP_WRITE_BIT);
+void* p = dsa.glMapNamedBufferRange(buf, 0, bytes, fuhgl::gl::GL_MAP_WRITE_BIT);
+// ... write ...
+dsa.glFlushMappedNamedBufferRange(buf, 0, bytes);
+dsa.glUnmapNamedBuffer(buf);
+
+// typed FBO clear without binding the framebuffer:
+dsa.glClearNamedFramebufferfv(fbo, fuhgl::gl::GL_COLOR, 0, red);
+dsa.glClearNamedFramebufferfi(fbo, fuhgl::gl::GL_DEPTH_STENCIL, 0, 1.0f, 0);
+```
+
+`gl::dsaFunctionNames()` / `gl::dsaFunctionNameCount()` expose the table for
+diagnostics and tests. `tests/gl_smoke_dsa.cpp` exercises every family with readback
+verification and skips cleanly below GL 4.5.
