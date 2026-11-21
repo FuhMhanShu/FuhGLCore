@@ -88,7 +88,8 @@ int main() {
                      (unsigned)u.type, u.size, u.blockIndex, u.offset);
         if (u.name == "uColor" && u.type == GL_FLOAT_VEC4 && u.size == 1 && u.blockIndex == -1) foundColor = true;
         if (u.name == "uScale" && u.type == GL_FLOAT && u.size == 1) foundScale = true;
-        if (u.name == "lights.uLightPos" && u.blockIndex >= 0) foundLightPos = true;
+        // drivers report the block-qualified name ("Lights.uLightPos"), some use the instance name
+        if ((u.name == "lights.uLightPos" || u.name == "Lights.uLightPos") && u.blockIndex >= 0) foundLightPos = true;
     }
     expect(foundColor, "active uniform uColor (vec4, default block)");
     expect(foundScale, "active uniform uScale (float)");
