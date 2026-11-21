@@ -20,7 +20,7 @@ pipe.create();
 pipe.useStages(fuhgl::gl::GL_VERTEX_SHADER_BIT, vsProg.id());
 pipe.useStages(fuhgl::gl::GL_FRAGMENT_SHADER_BIT, fsProg.id());
 pipe.setActiveShaderProgram(fsProg.id());
-pipe.programUniform(uScaleLoc, 1.0f);          // glProgramUniform* on the active program
+pipe.programUniform(fsProg.id(), uScaleLoc, 1.0f); // glProgramUniform* targets the separable program
 pipe.validate();
 pipe.use();                                    // replaces glUseProgram for pipeline rendering
 

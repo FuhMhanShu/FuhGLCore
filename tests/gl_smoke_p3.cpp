@@ -71,6 +71,15 @@ int main() {
         return 0;
     }
     const auto& f = functions();
+    std::fprintf(stderr, "  [info] GL %d.%d, hasDsa=%d\n", version().major, version().minor, (int)hasDsa());
+    auto expectClean = [&](const char* what) {
+        Error e = lastError();
+        if (e != Error::NoError) {
+            char buf[96];
+            std::snprintf(buf, sizeof(buf), "%s (GL error 0x%x)", what, static_cast<unsigned>(e));
+            expect(false, buf);
+        } else expect(true, what);
+    };
 
     // --- program pipeline: separable VS + FS, stages, programUniform, pixel check ----
     {
@@ -81,14 +90,14 @@ int main() {
         vs.create(fuhgl::Shader::Type::Vertex);
         vs.compile(kVs);
         vsProg.attach(vs);
-        expect(vsProg.link(), "separable VS linked");
+        { const bool ok = vsProg.link(); if (!ok) std::fprintf(stderr, "  [info] VS log: %s\n", vsProg.infoLog().c_str()); expect(ok, "separable VS linked"); }
         fsProg.create();
         fsProg.setParameteri(GL_PROGRAM_SEPARABLE, GL_TRUE);
         fuhgl::Shader fs(fuhgl::Shader::Type::Fragment);
         fs.create(fuhgl::Shader::Type::Fragment);
         fs.compile(kFs);
         fsProg.attach(fs);
-        expect(fsProg.link(), "separable FS linked");
+        { const bool ok = fsProg.link(); if (!ok) std::fprintf(stderr, "  [info] FS log: %s\n", fsProg.infoLog().c_str()); expect(ok, "separable FS linked"); }
 
         fuhgl::ProgramPipeline pipe;
         expect(pipe.create(), "ProgramPipeline::create");
@@ -102,7 +111,7 @@ int main() {
         const GLint loc = f.glGetUniformLocation ? f.glGetUniformLocation(fsProg.id(), "uScale") : -1;
         expect(loc >= 0, "uniform uScale found in separable FS");
         pipe.programUniform(fsProg.id(), loc, 1.0f); // glProgramUniform* targets the separable program
-        expect(pipe.validate(), "pipeline validates");
+        { const bool ok = pipe.validate(); if (!ok) std::fprintf(stderr, "  [info] pipeline log: %s\n", pipe.infoLog().c_str()); expect(ok, "pipeline validates"); }
         pipe.use();
 
         // triangle VAO + FBO
@@ -135,7 +144,8 @@ int main() {
         unsigned char px[4] = {};
         f.glReadPixels(W / 2, H / 2, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, px);
         expect(px[0] > 200 && px[1] < 80, "pipeline render produced red center pixel");
-        expect(lastError() == Error::NoError, "no GL error in pipeline group");
+        expectClean("no GL error in pipeline group");
+        f.glBindProgramPipeline(0); // leave pipeline mode for the TF group
         fuhgl::VertexArray::unbind();
     }
 
@@ -186,7 +196,7 @@ int main() {
         float out[4] = {};
         f.glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 16, out);
         expect(out[0] == -0.5f && out[1] == -0.5f && out[2] == 0.5f && out[3] == 1.0f, "TF captured vertex readback");
-        expect(lastError() == Error::NoError, "no GL error in TF group");
+        expectClean("no GL error in TF group");
         fuhgl::VertexArray::unbind();
     }
 
@@ -213,7 +223,7 @@ int main() {
         GLint linked = 0;
         f.glGetProgramiv(prog2, GL_LINK_STATUS, &linked);
         expect(linked == GL_TRUE, "glProgramBinary -> linked program");
-        expect(lastError() == Error::NoError, "no GL error in binary group");
+        expectClean("no GL error in binary group");
         if (f.glDeleteProgram) f.glDeleteProgram(prog2);
     }
 
@@ -242,7 +252,7 @@ int main() {
             f.glGetUniformSubroutineuiv(GL_FRAGMENT_SHADER, loc, &back);
             expect(back == idxGreen, "glUniformSubroutinesuiv round-trip");
         }
-        expect(lastError() == Error::NoError, "no GL error in subroutine group");
+        expectClean("no GL error in subroutine group");
     }
 
     // --- GL 4.6 entry points (guarded) ---------------------------------------------------
@@ -251,7 +261,7 @@ int main() {
         f.glPolygonOffsetClamp(1.f, 1.f, 0.5f);
         expect(f.glSpecializeShader != nullptr, "glSpecializeShader present (4.6)");
         expect(f.glMultiDrawArraysIndirectCount != nullptr, "glMultiDrawArraysIndirectCount present (4.6)");
-        expect(lastError() == Error::NoError, "no GL error in 4.6 group");
+        expectClean("no GL error in 4.6 group");
     } else {
         std::fprintf(stderr, "  [info] context is GL %d.%d < 4.6 — 4.6 calls presence-checked only\n",
                      version().major, version().minor);
