@@ -44,6 +44,8 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 34 | Render graph: declarative passes, auto-ordered, FBO per pass (DeferredRenderer post chain) | [34-render-graph.md](34-render-graph.md) |
 | 35 | TAA: Halton subpixel jitter + temporal history accumulation | [35-taa.md](35-taa.md) |
 | 36 | SSR: screen-space reflections on the HDR image | [36-ssr.md](36-ssr.md) |
+| 37 | GPU culling + indirect draw: compute-shader frustum cull, one instanced indirect draw | [37-gpu-culling-indirect.md](37-gpu-culling-indirect.md) |
+| 38 | Bindless textures (GL_ARB_bindless_texture): 64-bit handles in uint64_t uniforms | [38-bindless-textures.md](38-bindless-textures.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

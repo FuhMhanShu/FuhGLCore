@@ -92,6 +92,10 @@ Rays, Nebel) — siehe `examples/showcase` und
   `render::RenderGraph` (deklarative Pässe, auto-sortiert, FBO pro Pass); optionales
   Temporal AA (Halton-Jitter + History-Akkumulation, `taaEnabled`) und Screen-Space
   Reflections (`ssrEnabled`) — siehe [Tutorials 34–36](docs/de/tutorials/34-render-graph.md).
+- **GPU-Culling + Indirect Draw** — `render::GpuCuller` cullt Instanzen auf der GPU
+  (Compute-Shader + Bounding Spheres) und zeichnet die sichtbaren mit einem indirekten
+  instanzierten Draw; **Bindless Textures** (`GL_ARB_bindless_texture`) über
+  `gl::ext::BindlessTexture` — siehe [Tutorials 37–38](docs/de/tutorials/37-gpu-culling-indirect.md).
 - **PBR-Materialien** — Metallic-Roughness-Shading (Cook-Torrance GGX) in beiden Pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, im Deferred-Pfad pro Pixel in einem
   5. G-Buffer-Attachment gespeichert — siehe [Tutorial 31](docs/de/tutorials/31-pbr-materials.md).

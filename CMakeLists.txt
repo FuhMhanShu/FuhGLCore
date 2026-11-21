@@ -24,8 +24,10 @@ add_library(fuhglcore STATIC
     src/gl/sync.cpp
     src/gl/program_pipeline.cpp
     src/gl/transform_feedback.cpp
+    src/gl/ext/bindless.cpp
     src/skybox.cpp
     src/render/mesh.cpp
+    src/render/culling.cpp
     src/render/material.cpp
     src/render/environment.cpp
     src/render/graph.cpp

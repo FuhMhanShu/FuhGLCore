@@ -65,6 +65,14 @@ public:
     gl::GLsizei indexCount() const { return indexCount_; }
     gl::GLsizei instanceCount() const { return instanceCount_; }
     gl::GLuint vaoId() const { return vao_.id(); }
+    gl::GLenum indexType() const { return indexType_; }
+    /// @brief Object-space bounding sphere (xyz = center, w = radius), computed from the
+    /// position attribute (index 0) at setData() time; unit sphere at origin by default.
+    /// Used by frustum culling (F34).
+    math::Vec4 boundingSphere() const { return boundingSphere_; }
+    /// @brief Raw vertex/index buffers (e.g. to build a culler VAO referencing this mesh).
+    const Buffer& vertexBuffer() const { return vbo_; }
+    const Buffer& indexBuffer() const { return ibo_; }
 
 private:
     struct Impl;
@@ -73,6 +81,7 @@ private:
     gl::GLsizei indexCount_ = 0;
     gl::GLsizei instanceCount_ = 0;
     gl::GLenum indexType_ = gl::GL_UNSIGNED_INT;
+    math::Vec4 boundingSphere_{0.f, 0.f, 0.f, 1.f};
     Buffer vbo_{Buffer::Target::Array};
     Buffer ibo_{Buffer::Target::ElementArray};
     Buffer instanceVbo_{Buffer::Target::Array};

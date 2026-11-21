@@ -86,6 +86,10 @@ fog) — see `examples/showcase` and [tutorial 29](docs/en/tutorials/29-showcase
   (declarative passes, auto-ordered, per-pass FBOs); optional temporal AA (Halton jitter +
   history accumulation, `taaEnabled`) and screen-space reflections (`ssrEnabled`) —
   see [tutorials 34–36](docs/en/tutorials/34-render-graph.md).
+- **GPU culling + indirect draw** — `render::GpuCuller` culls instances on the GPU
+  (compute shader + bounding spheres) and draws the visible ones with one indirect
+  instanced draw; **bindless textures** (`GL_ARB_bindless_texture`) via
+  `gl::ext::BindlessTexture` — see [tutorials 37–38](docs/en/tutorials/37-gpu-culling-indirect.md).
 - **PBR materials** — metallic-roughness shading (Cook-Torrance GGX) in both pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, stored per pixel in a 5th G-buffer
   attachment in the deferred path — see [tutorial 31](docs/en/tutorials/31-pbr-materials.md).

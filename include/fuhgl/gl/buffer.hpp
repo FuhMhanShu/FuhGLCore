@@ -23,6 +23,7 @@ public:
         PixelPack = gl::GL_PIXEL_PACK_BUFFER,
         PixelUnpack = gl::GL_PIXEL_UNPACK_BUFFER,
         DispatchIndirect = gl::GL_DISPATCH_INDIRECT_BUFFER,
+        DrawIndirect = gl::GL_DRAW_INDIRECT_BUFFER,
     };
     /// @brief Usage hint for the driver.
     enum class Usage : gl::GLenum {

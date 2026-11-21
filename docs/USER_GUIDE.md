@@ -50,6 +50,8 @@ library gives you safe, modern-C++ handles for GL objects:
 | Render graph (declarative passes, auto-ordered) | `render::RenderGraph`, `DeferredRenderer::postGraph()` | [34](en/tutorials/34-render-graph.md) |
 | Temporal anti-aliasing (Halton jitter + history) | `DeferredRenderer::taaEnabled`, `SceneView::jitter` | [35](en/tutorials/35-taa.md) |
 | Screen-space reflections | `DeferredRenderer::ssrEnabled` | [36](en/tutorials/36-ssr.md) |
+| GPU culling + indirect draw (GL 4.3 compute) | `render::GpuCuller`, `Mesh::boundingSphere()` | [37](en/tutorials/37-gpu-culling-indirect.md) |
+| Bindless textures (GL_ARB_bindless_texture) | `gl::ext::BindlessTexture`, `gl::ext::setUniformHandle()` | [38](en/tutorials/38-bindless-textures.md) |
 | PBR materials (metallic-roughness, GGX) | `materials::pbr(...)`, `Material::metallic/roughness/ao` | [31](en/tutorials/31-pbr-materials.md) |
 | IBL environment (irradiance / prefilter / BRDF LUT) | `render::Environment`, `SceneView::env` | [32](en/tutorials/32-ibl-environment.md) |
 | Default forward renderer | `render::ForwardRenderer` (lights + auto shadows + fog) | [22](en/tutorials/22-forward-renderer.md) |

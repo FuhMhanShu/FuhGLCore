@@ -72,6 +72,22 @@ All notable changes to FuhGLCore are documented here. The format follows
   the G-buffer pass + history accumulation with 3x3 neighborhood clamp.
 - F33 — SSR in `DeferredRenderer` (`ssrEnabled`, `ssrStrength`, `ssrMaxSteps`,
   `ssrThickness`): world-space raymarch against the G-buffer position texture.
+
+### Added
+- F34 — GPU culling + indirect draw: `render::GpuCuller` (`render/culling.hpp`) — compute
+  shader (GL 4.3) frustum-culls instances via world bounding spheres
+  (`math::transformSphere` + `math::Frustum`), compacts visible model matrices into an
+  SSBO that doubles as the divisor-1 instance attribute (locations 4..7), writes the
+  visible count into the indirect command (`atomicMax`), and `draw()` issues a single
+  `glDrawElementsIndirect`/`glDrawArraysIndirect`. `Mesh` gained `boundingSphere()` +
+  `vertexBuffer()/indexBuffer()`; new `Buffer::Target::DrawIndirect` + barrier-bit
+  constants. Tests: `test_culling.cpp` (unit), `gl_smoke_culling.cpp` (gl_context, skips
+  < GL 4.3); tutorial 37 (en + de).
+- F35 — bindless textures: `gl/ext/bindless.hpp` — `GL_ARB_bindless_texture` entry points
+  via `gl::procAddress`, RAII `ext::BindlessTexture`, `ext::setUniformHandle()`,
+  `ext::supported()`; guarded (macOS without the extension reports false). Test:
+  `gl_smoke_bindless.cpp` (gl_context, skips 77 without the extension); tutorial 38
+  (en + de).
 - Tests: `test_graph.cpp` (unit), `gl_smoke_graph.cpp` / `gl_smoke_taa.cpp` /
   `gl_smoke_ssr.cpp` (gl_context); tutorials 34–36 (en + de).
 

@@ -15,6 +15,7 @@ bool Mesh::create() {
     vertexCount_ = 0;
     indexCount_ = 0;
     instanceCount_ = 0;
+    boundingSphere_ = {0.f, 0.f, 0.f, 1.f};
     const bool ok = vao_.create();
     vao_.bind();
     for (gl::GLuint i = 4; i < 8; ++i) vao_.disableAttrib(i); // no instance attribute by default
@@ -29,6 +30,25 @@ void Mesh::setData(const void* data, gl::GLsizeiptr bytes, gl::GLsizei vertexCou
     for (const VertexAttrib& a : attribs)
         vao_.setAttrib(a.index, a.size, a.type, a.normalized, a.stride, a.offset);
     vertexCount_ = vertexCount;
+    // bounding sphere from the position attribute (index 0, 3 floats): center = mean of
+    // the min/max box, radius = half its diagonal (conservative, exact enough for culling)
+    boundingSphere_ = {0.f, 0.f, 0.f, 1.f};
+    for (const VertexAttrib& a : attribs) {
+        if (a.index != 0 || a.size != 3 || a.type != gl::GL_FLOAT) continue;
+        if (!data || vertexCount <= 0) break;
+        const auto* v = static_cast<const float*>(data);
+        math::Vec3 mn{1e30f, 1e30f, 1e30f}, mx{-1e30f, -1e30f, -1e30f};
+        for (gl::GLsizei i = 0; i < vertexCount; ++i) {
+            const float* p = v + static_cast<size_t>(i) * (a.stride / sizeof(float)) + (a.offset / sizeof(float));
+            mn.x = p[0] < mn.x ? p[0] : mn.x; mx.x = p[0] > mx.x ? p[0] : mx.x;
+            mn.y = p[1] < mn.y ? p[1] : mn.y; mx.y = p[1] > mx.y ? p[1] : mx.y;
+            mn.z = p[2] < mn.z ? p[2] : mn.z; mx.z = p[2] > mx.z ? p[2] : mx.z;
+        }
+        const math::Vec3 c = (mn + mx) * 0.5f;
+        const math::Vec3 d = mx - mn;
+        boundingSphere_ = {c.x, c.y, c.z, 0.5f * math::length(d)};
+        break;
+    }
 }
 
 void Mesh::setIndices(const void* data, gl::GLsizei indexCount, gl::GLenum indexType, Buffer::Usage usage) {

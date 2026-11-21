@@ -25,5 +25,6 @@
 #include "gl/ubo.hpp"
 #include "gl/program_pipeline.hpp"
 #include "gl/transform_feedback.hpp"
+#include "gl/ext/bindless.hpp"
 #include "skybox.hpp"
 #include "render.hpp"

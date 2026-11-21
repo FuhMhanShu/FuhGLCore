@@ -16,6 +16,7 @@ add_executable(fuhgl_tests
     test_wireframe.cpp
     test_environment.cpp
     test_graph.cpp
+    test_culling.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
@@ -138,6 +139,18 @@ add_executable(fuhgl_gl_smoke_ssr gl_smoke_ssr.cpp)
 target_link_libraries(fuhgl_gl_smoke_ssr PRIVATE fuhglcore)
 add_test(NAME gl_smoke_ssr COMMAND fuhgl_gl_smoke_ssr)
 
+# F34 GpuCuller smoke test: compute frustum cull of 1000 instances -> indirect draw;
+# visible count read back from the GPU counter. Skips without GL >= 4.3.
+add_executable(fuhgl_gl_smoke_culling gl_smoke_culling.cpp)
+target_link_libraries(fuhgl_gl_smoke_culling PRIVATE fuhglcore)
+add_test(NAME gl_smoke_culling COMMAND fuhgl_gl_smoke_culling)
+
+# F35 bindless texture smoke test: 64-bit handle sampled via uniform uint64_t in the
+# fragment shader. Skips without GL_ARB_bindless_texture (e.g. macOS).
+add_executable(fuhgl_gl_smoke_bindless gl_smoke_bindless.cpp)
+target_link_libraries(fuhgl_gl_smoke_bindless PRIVATE fuhglcore)
+add_test(NAME gl_smoke_bindless COMMAND fuhgl_gl_smoke_bindless)
+
 # --- test semantics (F26) ---------------------------------------------------------------
 # "unit": pure CPU tests, no GL context required.
 # "gl_context": needs a GL context; the test exits with code 77 ("Skipped" via
@@ -149,4 +162,5 @@ set_tests_properties(
     gl_smoke gl_smoke_deferred gl_smoke_buffers gl_smoke_solids gl_smoke_state gl_smoke_lights
     gl_smoke_shadows gl_smoke_forward gl_smoke_deferred_fx gl_smoke_dsa gl_smoke_text
     gl_smoke_wireframe gl_smoke_p3 gl_smoke_reflection gl_smoke_instancing gl_smoke_pbr gl_smoke_csm gl_smoke_graph gl_smoke_taa gl_smoke_ssr
+    gl_smoke_culling gl_smoke_bindless
     PROPERTIES LABELS "gl_context" SKIP_RETURN_CODE 77)

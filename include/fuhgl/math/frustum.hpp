@@ -69,6 +69,19 @@ struct Frustum {
     }
 };
 
+/// @brief Transforms a bounding sphere (xyz = center, w = radius, object space) into
+/// world space by a model matrix: the center is transformed by the matrix, the radius
+/// is scaled by the largest axis scale (exact for rotations/translations/uniform scale,
+/// conservative for non-uniform scale) — used by GPU/CPU frustum culling (F34).
+inline Vec4 transformSphere(const Mat4& model, const Vec4& localSphere) {
+    const Vec4 c = model * Vec4(localSphere.x, localSphere.y, localSphere.z, 1.f);
+    const float sx = length(Vec3(model.col(0).x, model.col(0).y, model.col(0).z));
+    const float sy = length(Vec3(model.col(1).x, model.col(1).y, model.col(1).z));
+    const float sz = length(Vec3(model.col(2).x, model.col(2).y, model.col(2).z));
+    const float s = sx > sy ? (sx > sz ? sx : sz) : (sy > sz ? sy : sz);
+    return {c.x, c.y, c.z, localSphere.w * s};
+}
+
 /// @brief Ray in world space.
 struct Ray {
     Vec3 origin;
