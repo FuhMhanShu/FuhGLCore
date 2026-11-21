@@ -97,7 +97,8 @@ int main() {
     scene.items.push_back({&floorMesh, &floorMat, fuhgl::math::translate({0.f, -0.25f, 0.f})});
     scene.items.push_back({&box, nullptr, fuhgl::math::translate({-1.6f, 1.2f, -0.5f})});
     scene.items.push_back({&lamp, &lampMat, fuhgl::math::translate({1.8f, 0.25f, 0.8f})});
-    scene.lights.push_back(fuhgl::render::Light::directional({0.3f, -0.9f, 0.45f}, {1.f, 0.9f, 0.75f}, 1.6f));
+    // sun low in front of the camera so the sun disk is inside the frame (god rays need it)
+    scene.lights.push_back(fuhgl::render::Light::directional({-0.3f, -0.08f, 1.f}, {1.f, 0.9f, 0.75f}, 1.6f));
     scene.lights.push_back(fuhgl::render::Light::point({2.f, 2.5f, 2.f}, {0.5f, 0.65f, 1.f}, 10.f, 12.f));
 
     auto renderImage = [&](const fuhgl::render::Material* floorOverride) {

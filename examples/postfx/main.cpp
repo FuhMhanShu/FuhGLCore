@@ -100,7 +100,8 @@ int main(int argc, char** argv) {
     fuhgl::render::shapes::box(meshes[3], {0.3f, 0.3f, 0.3f}, {1.f, 1.f, 1.f});   // lamp
     fuhgl::render::Material lampMat = fuhgl::render::materials::emissive({1.f, 0.8f, 0.45f}, 10.f);
 
-    const fuhgl::render::Light sun = fuhgl::render::Light::directional({0.35f, -0.85f, 0.5f}, {1.f, 0.88f, 0.7f}, 1.8f);
+    // sun low in front-right of the camera: visible disk + long shadows + god rays
+    const fuhgl::render::Light sun = fuhgl::render::Light::directional({-0.35f, -0.3f, 1.f}, {1.f, 0.88f, 0.7f}, 2.2f);
 
     fuhgl::render::SceneView scene;
     scene.camera = &cam;
@@ -108,7 +109,7 @@ int main(int argc, char** argv) {
     scene.height = args.height;
     scene.aspect = static_cast<float>(args.width) / static_cast<float>(args.height);
     scene.clearColor = {0.04f, 0.05f, 0.08f};
-    scene.ambient = {0.12f, 0.12f, 0.14f};
+    scene.ambient = {0.16f, 0.16f, 0.18f};
     scene.fogColor = {0.45f, 0.55f, 0.75f};
     scene.fogDensity = 0.02f;
     scene.items.push_back({&meshes[0], &floorMat, fuhgl::math::translate({0.f, -0.25f, 0.f})});
