@@ -15,6 +15,7 @@ namespace fuhgl::render {
 
 class Mesh;
 class Material;
+class ShadowMap;
 
 /// @brief One drawable object: mesh + material + model matrix.
 struct DrawItem {
@@ -33,6 +34,11 @@ struct SceneView {
     math::Vec3 ambient{0.06f, 0.06f, 0.07f};
     std::vector<DrawItem> items;
     std::vector<Light> lights;
+    // --- shadows (F15): optional depth map of one "main" light --------------------
+    const ShadowMap* shadowMap = nullptr; ///< depth texture rendered from lightVP
+    math::Mat4 lightVP{};                  ///< light view-projection matching shadowMap
+    int shadowLightIndex = 0;              ///< index into lights[] the shadow map belongs to
+    float shadowStrength = 1.f;            ///< 0 = shadows off, 1 = full darkening
 };
 
 /// @brief Vertex attribute layout for Mesh::setData.

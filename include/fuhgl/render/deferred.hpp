@@ -62,6 +62,7 @@ private:
     Texture texResolveEmissive_{Texture::Target::Tex2D};
     Texture texResolvePosition_{Texture::Target::Tex2D};
     Texture texOutput_{Texture::Target::Tex2D};
+    Texture dummyShadowTex_{Texture::Target::Tex2D}; ///< 1x1 depth bound when no shadow map is set
     Renderbuffer depth_{};
     Renderbuffer depthMsaa_{};
     Material defaultMaterial_; // G-buffer program

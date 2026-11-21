@@ -9,6 +9,7 @@ add_executable(fuhgl_tests
     test_solids.cpp
     test_light.cpp
     test_mesh.cpp
+    test_shadow.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
@@ -47,3 +48,9 @@ add_test(NAME gl_smoke_state COMMAND fuhgl_gl_smoke_state)
 add_executable(fuhgl_gl_smoke_lights gl_smoke_lights.cpp)
 target_link_libraries(fuhgl_gl_smoke_lights PRIVATE fuhglcore)
 add_test(NAME gl_smoke_lights COMMAND fuhgl_gl_smoke_lights)
+
+# Headless test for F15 shadow mapping: floor + casters rendered with/without a
+# ShadowMap; shadowed pixels must get darker. Skips without GL >= 3.3.
+add_executable(fuhgl_gl_smoke_shadows gl_smoke_shadows.cpp)
+target_link_libraries(fuhgl_gl_smoke_shadows PRIVATE fuhglcore)
+add_test(NAME gl_smoke_shadows COMMAND fuhgl_gl_smoke_shadows)

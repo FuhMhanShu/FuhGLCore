@@ -49,6 +49,9 @@ no Khronos headers, no vcpkg.
 - **Lights** — `render::Light` with directional/point/spot types, analytic attenuation,
   range cutoff and spot cones, uploaded as a `LightBlock` UBO to the pipelines —
   see [tutorial 20](docs/tutorials/20-lights.md).
+- **Shadow mapping** — `render::ShadowMap` (depth-only pass from the light's POV) +
+  `lightViewProj()` helpers + PCF sampling in the pipelines via `SceneView::shadowMap` —
+  see [tutorial 21](docs/tutorials/21-shadows.md).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug
