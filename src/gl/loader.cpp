@@ -86,6 +86,7 @@ struct Entry {
 
 const Entry kEntries[] = {
     FUHGL_ENTRY(glGetError), FUHGL_ENTRY(glGetString), FUHGL_ENTRY(glGetStringi), FUHGL_ENTRY(glGetIntegerv),
+    FUHGL_ENTRY(glGetInteger64v),
     FUHGL_ENTRY(glEnable), FUHGL_ENTRY(glDisable), FUHGL_ENTRY(glClear), FUHGL_ENTRY(glClearColor),
     FUHGL_ENTRY(glViewport), FUHGL_ENTRY(glScissor), FUHGL_ENTRY(glBlendFunc), FUHGL_ENTRY(glDepthFunc),
     FUHGL_ENTRY(glDepthMask), FUHGL_ENTRY(glColorMask), FUHGL_ENTRY(glCullFace), FUHGL_ENTRY(glFrontFace),

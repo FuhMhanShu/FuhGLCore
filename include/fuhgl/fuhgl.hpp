@@ -10,6 +10,7 @@
 #include "gl/types.hpp"
 #include "gl/loader.hpp"
 #include "gl/error.hpp"
+#include "gl/info.hpp"
 #include "gl/state.hpp"
 #include "gl/shader.hpp"
 #include "gl/program.hpp"

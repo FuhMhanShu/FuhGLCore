@@ -7,3 +7,4 @@ void runCameraTests();
 void runLoaderTests();
 void runFrustumTests();
 void runShaderIncludeTests();
+void runInfoTests();
