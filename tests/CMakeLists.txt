@@ -8,6 +8,7 @@ add_executable(fuhgl_tests
     test_info.cpp
     test_solids.cpp
     test_light.cpp
+    test_mesh.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
