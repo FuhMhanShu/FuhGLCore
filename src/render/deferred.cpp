@@ -73,6 +73,8 @@ uniform sampler2D uPosition;
 uniform sampler2D uEmissive;
 uniform vec3 uSkyTop;
 uniform vec3 uSkyBottom;
+uniform vec3 uFogColor;
+uniform float uFogDensity;
 )GLSL";
 
 constexpr const char* kLightFragTail = R"GLSL(
@@ -89,7 +91,12 @@ void main() {
     vec3 albedo = texture(uAlbedo, vUV).rgb;
     vec3 emissive = texture(uEmissive, vUV).rgb;
     vec3 V = normalize(uCamPos - worldPos);
-    FragColor = vec4(shade(albedo, N, worldPos, V) + emissive, 1.0);
+    vec3 lit = shade(albedo, N, worldPos, V) + emissive;
+    if (uFogDensity > 0.0) {
+        float d = length(worldPos - uCamPos);
+        lit = mix(lit, uFogColor, 1.0 - exp(-uFogDensity * d));
+    }
+    FragColor = vec4(lit, 1.0);
 }
 )GLSL";
 
@@ -327,6 +334,8 @@ void DeferredPipeline::render(const SceneView& scene) {
     lp.setUniform("uLightVP", scene.lightVP);
     lp.setUniform(lp.uniformLocation("uShadowLightIndex"), scene.shadowLightIndex);
     lp.setUniform("uShadowStrength", scene.shadowStrength);
+    lp.setUniform("uFogColor", scene.fogColor);
+    lp.setUniform("uFogDensity", scene.fogDensity);
     fullscreenVao_.bind();
     gl::drawArrays(gl::Primitive::Triangles, 0, 3);
 

@@ -52,6 +52,9 @@ no Khronos headers, no vcpkg.
 - **Shadow mapping** — `render::ShadowMap` (depth-only pass from the light's POV) +
   `lightViewProj()` helpers + PCF sampling in the pipelines via `SceneView::shadowMap` —
   see [tutorial 21](docs/tutorials/21-shadows.md).
+- **Default forward renderer** — `render::ForwardRenderer`: one `render()` call does the
+  shadow depth pass + lit forward pass with lights, PCF shadows and distance fog —
+  see [tutorial 22](docs/tutorials/22-forward-renderer.md).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug

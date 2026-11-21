@@ -38,6 +38,8 @@ uniform vec3 uAlbedo;
 uniform vec3 uEmissive;
 uniform int uUseTex;
 uniform sampler2D uMatTex;
+uniform vec3 uFogColor;
+uniform float uFogDensity;
 )GLSL";
 
 constexpr const char* kForwardFragTail = R"GLSL(
@@ -47,7 +49,12 @@ void main() {
     if (uUseTex == 1) albedo *= texture(uMatTex, vUV).rgb;
     vec3 N = normalize(vNormal);
     vec3 V = normalize(uCamPos - vWorldPos);
-    FragColor = vec4(shade(albedo, N, vWorldPos, V) + uEmissive, 1.0);
+    vec3 lit = shade(albedo, N, vWorldPos, V) + uEmissive;
+    if (uFogDensity > 0.0) {
+        float d = length(vWorldPos - uCamPos);
+        lit = mix(lit, uFogColor, 1.0 - exp(-uFogDensity * d));
+    }
+    FragColor = vec4(lit, 1.0);
 }
 )GLSL";
 
@@ -134,6 +141,8 @@ void ForwardPipeline::render(const SceneView& scene) {
         prog.setUniform("uLightVP", scene.lightVP);
         prog.setUniform(prog.uniformLocation("uShadowLightIndex"), scene.shadowLightIndex);
         prog.setUniform("uShadowStrength", scene.shadowStrength);
+        prog.setUniform("uFogColor", scene.fogColor);
+        prog.setUniform("uFogDensity", scene.fogDensity);
         item.mesh->draw();
     }
 
