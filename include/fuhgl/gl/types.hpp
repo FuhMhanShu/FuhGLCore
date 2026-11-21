@@ -523,6 +523,7 @@ inline constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_DIVISOR = 0x88FE;
 inline constexpr GLenum GL_RENDERBUFFER_SAMPLES = 0x8CAB;
 inline constexpr GLenum GL_ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
 inline constexpr GLenum GL_SAMPLER_BINDING = 0x8919;
+inline constexpr GLenum GL_R32F = 0x822E;
 inline constexpr GLenum GL_R32UI = 0x8236;
 inline constexpr GLenum GL_RGBA32UI = 0x8D70;
 inline constexpr GLenum GL_RED_INTEGER = 0x8D94;
