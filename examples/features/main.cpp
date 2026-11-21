@@ -262,15 +262,15 @@ bool sceneSsr(const Args& args) {
     d.renderer.ssrThickness = 0.6f;
     d.renderer.bloomThreshold = 0.5f; // the lamp must glow
     d.renderer.bloomStrength = 1.0f;
-    d.cam.position = {0.f, 0.7f, 3.2f};
-    d.cam.pitch = -0.22f; // low angle: the lamp's reflection band is on the floor in frame
+    // same framing as the gl_smoke_ssr test (proven to show the reflection band)
+    d.cam.position = {0.f, 3.f, 7.f};
+    d.cam.pitch = -0.45f;
     // bright emissive lamp whose reflection must appear in the floor
-    shapes::box(d.boxA, {0.3f, 0.3f, 0.3f}, {1.f, 1.f, 1.f});
-    Material lamp = materials::emissive({1.f, 0.85f, 0.5f}, 8.f);
-    d.scene.items.push_back({&d.boxA, &lamp, fuhgl::math::translate({1.2f, 0.35f, -1.6f})});
+    shapes::box(d.boxA, {0.5f, 1.f, 0.5f}, {1.f, 1.f, 1.f});
+    Material lamp = materials::emissive({1.f, 0.9f, 0.7f}, 6.f);
+    d.scene.items.push_back({&d.boxA, &lamp, fuhgl::math::translate({-1.f, 1.f, -1.f})});
     shapes::box(d.boxB, {0.5f, 0.5f, 0.5f}, {0.3f, 0.4f, 0.6f});
-    d.scene.items.push_back({&d.boxB, nullptr, fuhgl::math::translate({-1.2f, 0.5f, -0.5f})});
-    d.scene.lights.push_back(Light::point({1.2f, 1.2f, -1.0f}, {1.f, 0.8f, 0.5f}, 6.f, 10.f));
+    d.scene.items.push_back({&d.boxB, nullptr, fuhgl::math::translate({1.5f, 0.5f, 0.5f})});
     return renderDef(d, args, 1);
 }
 
@@ -283,7 +283,7 @@ bool sceneCulling(const Args& args) {
         return false;
     }
     Mesh boxMesh;
-    shapes::box(boxMesh, {0.45f, 0.45f, 0.45f}, {1.f, 1.f, 1.f});
+    shapes::box(boxMesh, {0.3f, 0.3f, 0.3f}, {1.f, 1.f, 1.f});
     GpuCuller culler;
     if (!culler.create(2000)) {
         std::fprintf(stderr, "features: culler create failed\n");
@@ -292,11 +292,11 @@ bool sceneCulling(const Args& args) {
     culler.setMesh(boxMesh);
     std::vector<fuhgl::math::Mat4> models;
     models.reserve(2000);
-    for (int i = 0; i < 1000; ++i) { // front grid 25x10x4, close enough to read as boxes
-        const float x = -6.f + 12.f * (i % 25) / 24.f;
-        const float y = -2.f + 4.f * ((i / 25) % 10) / 9.f;
-        const float z = -1.5f - 7.f * (i / 250);
-        const float s = 1.0f + 0.8f * ((i * 37 % 100) / 100.f);
+    for (int i = 0; i < 1000; ++i) { // front grid 25x10x4 receding into the distance
+        const float x = -8.f + 16.f * (i % 25) / 24.f;
+        const float y = -1.f + 4.f * ((i / 25) % 10) / 9.f;
+        const float z = -2.f - 18.f * (i / 250);
+        const float s = 0.8f + 0.6f * ((i * 37 % 100) / 100.f);
         models.push_back(fuhgl::math::translate({x, y, z}) * fuhgl::math::scale({s, s, s}) *
                          fuhgl::math::rotateY(0.3f * i));
     }
@@ -343,7 +343,8 @@ void main() { FragColor = vec4(vColor, 1.0); }
     fuhgl::gl::clear(fuhgl::gl::ClearBit::Color | fuhgl::gl::ClearBit::Depth);
 
     fuhgl::FirstPersonCamera cam;
-    cam.position = {0.f, 0.f, 0.5f};
+    cam.position = {0.f, 1.5f, 6.f};
+    cam.pitch = -0.15f;
     cam.yaw = 0.f;
     culler.cull(cam.viewProj(static_cast<float>(W) / H));
     prog.use();
