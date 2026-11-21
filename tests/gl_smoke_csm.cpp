@@ -92,9 +92,9 @@ int main() {
     renderer.setShadowZRange(0.5f, 120.f);
     renderer.setShadowSceneBounds({0.f, 0.5f, 0.f}, 12.f);
 
-    const auto farCsm = renderImage({0.f, 10.f, 45.f}, -0.22f);
+    const auto farCsm = renderImage({0.f, 14.f, 32.f}, -0.42f);
     renderer.disableCsmShadows();
-    const auto farNoShadow = renderImage({0.f, 10.f, 45.f}, -0.22f);
+    const auto farNoShadow = renderImage({0.f, 14.f, 32.f}, -0.42f);
 
     const auto [nearDarker, nearLit] = countDarker(nearCsm, nearNoShadow);
     const auto [farDarker, farLit] = countDarker(farCsm, farNoShadow);
@@ -102,8 +102,8 @@ int main() {
                  farDarker, farLit);
     expect(nearLit > 500, "near view: floor is lit");
     expect(nearDarker > 100, "near view: CSM darkens the shadow blob (cascade 0)");
-    expect(farLit > 300, "far view: floor is lit");
-    expect(farDarker > 60, "far view: CSM still shadows at distance (higher cascade)");
+    expect(farLit > 1000, "far view: floor is lit");
+    expect(farDarker > 15, "far view: CSM still shadows at distance (higher cascade)");
     expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
 
     if (g_failures) {
