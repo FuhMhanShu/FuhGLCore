@@ -202,13 +202,16 @@ int main(int argc, char** argv) {
     // whose reflections show up in the ground via SSR
     fuhgl::render::Environment env;
     if (night) {
+        std::fprintf(stderr, "showcase: night setup start\n");
         fuhgl::Skybox nightSky;
         nightSky.create();
         nightSky.makeGradient({0.01f, 0.02f, 0.07f}, {0.10f, 0.12f, 0.22f}, 64);
+        std::fprintf(stderr, "showcase: baking night env\n");
         if (!env.createFromCubemap(nightSky.texture())) {
             std::fprintf(stderr, "showcase: night IBL bake failed\n");
             return 1;
         }
+        std::fprintf(stderr, "showcase: night env baked\n");
         env.intensity = 1.0f;
         scene.env = &env;
         Mesh lampMesh;
@@ -241,7 +244,10 @@ int main(int argc, char** argv) {
     };
 
     if (headless) {
-        for (int i = 0; i < 8; ++i) renderer.render(scene); // let TAA history accumulate
+        for (int i = 0; i < 8; ++i) {
+            std::fprintf(stderr, "showcase: headless frame %d\n", i);
+            renderer.render(scene); // let TAA history accumulate
+        }
         fuhgl::gl::flush();
         renderer.output().bind();
         drawHud(60.0f);
