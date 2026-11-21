@@ -257,22 +257,21 @@ bool sceneSsr(const Args& args) {
     DefScene d;
     if (!buildDefScene(d, args.width, args.height, false)) return false;
     d.renderer.ssrEnabled = true;
-    d.renderer.ssrStrength = 1.0f;
+    d.renderer.ssrStrength = 1.5f;
     d.renderer.ssrMaxSteps = 48;
     d.renderer.ssrThickness = 0.6f;
-    // dark scene: the lamp's warm reflection band stands out on the dim floor
-    d.renderer.exposure = 1.0f;
-    d.renderer.bloomThreshold = 1.2f;
-    d.renderer.bloomStrength = 0.6f;
+    // dark scene without bloom washout: the lamp's warm reflection band stands out
+    d.renderer.exposure = 0.7f;
+    d.renderer.bloomStrength = 0.f;
     d.scene.ambient = {0.02f, 0.02f, 0.03f};
     d.scene.lights[0] = Light::directional({-0.4f, -1.f, -0.25f}, {1.f, 0.96f, 0.88f}, 0.5f);
     // same framing as the gl_smoke_ssr test (proven to show the reflection band)
-    d.cam.position = {0.f, 3.f, 7.f};
-    d.cam.pitch = -0.45f;
-    // bright emissive lamp whose reflection must appear in the floor
-    shapes::box(d.boxA, {0.5f, 1.f, 0.5f}, {1.f, 1.f, 1.f});
-    Material lamp = materials::emissive({1.f, 0.9f, 0.7f}, 6.f);
-    d.scene.items.push_back({&d.boxA, &lamp, fuhgl::math::translate({-1.f, 1.f, -1.f})});
+    d.cam.position = {0.f, 2.5f, 8.f};
+    d.cam.pitch = -0.40f;
+    // big bright emissive lamp panel whose reflection covers a large floor area
+    shapes::box(d.boxA, {1.2f, 2.4f, 0.15f}, {1.f, 1.f, 1.f});
+    Material lamp = materials::emissive({1.f, 0.8f, 0.5f}, 8.f);
+    d.scene.items.push_back({&d.boxA, &lamp, fuhgl::math::translate({-1.5f, 1.2f, -2.5f})});
     shapes::box(d.boxB, {0.5f, 0.5f, 0.5f}, {0.3f, 0.4f, 0.6f});
     d.scene.items.push_back({&d.boxB, nullptr, fuhgl::math::translate({1.5f, 0.5f, 0.5f})});
     return renderDef(d, args, 1);
