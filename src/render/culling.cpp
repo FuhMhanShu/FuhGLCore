@@ -70,32 +70,29 @@ bool GpuCuller::create(int maxInstances) {
     maxInstances_ = maxInstances;
     instanceCount_ = 0;
 
-    auto err = [](const char* what) {
-        std::fprintf(stderr, "GpuCuller::create: err after %s = 0x%x\n", what, static_cast<unsigned>(gl::lastError()));
-    };
+    // Buffer::setData/setSubData operate on the currently bound buffer of their target
+    items_.bind();
     items_.setData(static_cast<gl::GLsizeiptr>(maxInstances) * sizeof(CullItem), nullptr, Buffer::Usage::DynamicDraw);
+    models_.bind();
     models_.setData(static_cast<gl::GLsizeiptr>(maxInstances) * 64, nullptr, Buffer::Usage::DynamicDraw);
     std::vector<unsigned int> zeros(kCmdBufferBytes / 4, 0u);
+    cmd_.bind();
     cmd_.setData(kCmdBufferBytes, zeros.data(), Buffer::Usage::DynamicDraw);
-    err("setData");
 
     Shader comp(Shader::Type::Compute);
     if (!comp.compile(kCullComp)) {
         std::fprintf(stderr, "GpuCuller: compute shader: %s\n", comp.infoLog().c_str());
         return false;
     }
-    err("shader compile");
     if (!prog_.create()) return false;
     prog_.attach(comp);
     if (!prog_.link()) {
         std::fprintf(stderr, "GpuCuller: link: %s\n", prog_.infoLog().c_str());
         return false;
     }
-    err("link");
     prog_.bindShaderStorageBlock("Items", 0);
     prog_.bindShaderStorageBlock("Models", 1);
     prog_.bindShaderStorageBlock("Cmd", 2);
-    err("bindShaderStorageBlock");
     ready_ = true;
     return true;
 }
@@ -116,6 +113,7 @@ void GpuCuller::setMesh(const Mesh& mesh) {
         cmd[0] = static_cast<unsigned int>(vertexCount_); // count
         cmd[2] = 0u;                                       // first
     }
+    cmd_.bind();
     cmd_.setSubData(0, indexed_ ? 20 : 16, cmd);
     // own VAO: mesh vertex data (attribs 0..3) + models buffer as instance mat4 (4..7)
     vao_.create();
@@ -149,6 +147,7 @@ void GpuCuller::setInstances(const math::Mat4* models, int count) {
         items[i].sphere[2] = sphere_.z;
         items[i].sphere[3] = sphere_.w;
     }
+    items_.bind();
     items_.setData(static_cast<gl::GLsizeiptr>(count) * sizeof(CullItem), items.data(), Buffer::Usage::DynamicDraw);
 }
 
@@ -157,6 +156,7 @@ void GpuCuller::cull(const math::Mat4& viewProj) {
     const math::Frustum f = math::Frustum::fromViewProj(viewProj);
     // reset instanceCount (cmd[1]) and the atomic counter (cmd[5])
     const unsigned int zero = 0u;
+    cmd_.bind();
     cmd_.setSubData(4, 4, &zero);
     cmd_.setSubData(kCmdCounterOffset, 4, &zero);
 
