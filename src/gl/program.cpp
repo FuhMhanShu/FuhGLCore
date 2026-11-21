@@ -108,6 +108,15 @@ gl::GLuint Program::getUniformu(const char* name) const {
     return v;
 }
 
+void Program::setTransformFeedbackVaryings(gl::GLsizei count, const gl::GLchar* const* varyings, gl::GLenum bufferMode) const {
+    if (const auto& f = gl::functions(); f.glTransformFeedbackVaryings)
+        f.glTransformFeedbackVaryings(impl_->id, count, varyings, bufferMode);
+}
+
+void Program::setParameteri(gl::GLenum pname, gl::GLint value) const {
+    if (const auto& f = gl::functions(); f.glProgramParameteri) f.glProgramParameteri(impl_->id, pname, value);
+}
+
 void Program::bindUniformBlock(const char* blockName, gl::GLuint binding) const {
     const auto& f = gl::functions();
     if (!f.glGetUniformBlockIndex || !f.glUniformBlockBinding) return;

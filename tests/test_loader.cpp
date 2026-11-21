@@ -111,6 +111,25 @@ void runLoaderTests() {
     };
     for (const char* fn : p2) CHECK(dsaNames.count(fn) == 1);
 
+    // P3 entries (program pipelines, transform feedback, binaries, subroutines, GL 4.6)
+    const char* f21[] = {
+        "glCreateProgramPipelines", "glDeleteProgramPipelines", "glIsProgramPipeline", "glBindProgramPipeline",
+        "glUseProgramStages", "glActiveShaderProgram", "glValidateProgramPipeline", "glGetProgramPipelineiv",
+        "glGetProgramPipelineInfoLog", "glCreateShaderProgramv", "glProgramParameteri",
+        "glProgramUniform1i", "glProgramUniform4i", "glProgramUniform1f", "glProgramUniform4f",
+        "glProgramUniform1ui", "glProgramUniform4ui", "glProgramUniform1iv", "glProgramUniform4fv",
+        "glProgramUniform1uiv", "glProgramUniformMatrix4fv", "glProgramUniformMatrix2x3fv", "glProgramUniformMatrix4x3fv",
+        "glGenTransformFeedbacks", "glDeleteTransformFeedbacks", "glIsTransformFeedback", "glBindTransformFeedback",
+        "glBeginTransformFeedback", "glEndTransformFeedback", "glPauseTransformFeedback", "glResumeTransformFeedback",
+        "glDrawTransformFeedback", "glDrawTransformFeedbackStream", "glTransformFeedbackVaryings",
+        "glGetTransformFeedbackVarying", "glGetTransformFeedbacki_v", "glGetTransformFeedbacki64_v",
+        "glGetProgramBinary", "glProgramBinary", "glShaderBinary", "glReleaseShaderCompiler", "glGetShaderPrecisionFormat",
+        "glGetSubroutineUniformLocation", "glGetSubroutineIndex", "glUniformSubroutinesuiv", "glGetUniformSubroutineuiv",
+        "glGetActiveSubroutineUniformiv", "glGetActiveSubroutineUniformName", "glGetActiveSubroutineName",
+        "glMultiDrawArraysIndirectCount", "glMultiDrawElementsIndirectCount", "glPolygonOffsetClamp", "glSpecializeShader",
+    };
+    for (const char* fn : f21) CHECK(names.count(fn) == 1);
+
     // procAddress contract: nullptr in -> nullptr out. (We must NOT assert nullptr
     // for unknown names: Mesa's glXGetProcAddress returns no-op stubs for those.)
     CHECK(procAddress(nullptr) == nullptr);

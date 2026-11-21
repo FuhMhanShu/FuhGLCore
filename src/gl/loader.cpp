@@ -188,6 +188,37 @@ const Entry kEntries[] = {
     // F13: internal formats / image ops
     FUHGL_ENTRY(glGetInternalformativ), FUHGL_ENTRY(glGetInternalformati64v),
     FUHGL_ENTRY(glCopyImageSubData), FUHGL_ENTRY(glClearTexImage), FUHGL_ENTRY(glClearTexSubImage),
+    // P3: program pipelines / separable programs (GL 4.1)
+    FUHGL_ENTRY(glCreateProgramPipelines), FUHGL_ENTRY(glDeleteProgramPipelines), FUHGL_ENTRY(glIsProgramPipeline),
+    FUHGL_ENTRY(glBindProgramPipeline), FUHGL_ENTRY(glUseProgramStages), FUHGL_ENTRY(glActiveShaderProgram),
+    FUHGL_ENTRY(glValidateProgramPipeline), FUHGL_ENTRY(glGetProgramPipelineiv), FUHGL_ENTRY(glGetProgramPipelineInfoLog),
+    FUHGL_ENTRY(glCreateShaderProgramv), FUHGL_ENTRY(glProgramParameteri),
+    FUHGL_ENTRY(glProgramUniform1i), FUHGL_ENTRY(glProgramUniform2i), FUHGL_ENTRY(glProgramUniform3i), FUHGL_ENTRY(glProgramUniform4i),
+    FUHGL_ENTRY(glProgramUniform1f), FUHGL_ENTRY(glProgramUniform2f), FUHGL_ENTRY(glProgramUniform3f), FUHGL_ENTRY(glProgramUniform4f),
+    FUHGL_ENTRY(glProgramUniform1ui), FUHGL_ENTRY(glProgramUniform2ui), FUHGL_ENTRY(glProgramUniform3ui), FUHGL_ENTRY(glProgramUniform4ui),
+    FUHGL_ENTRY(glProgramUniform1iv), FUHGL_ENTRY(glProgramUniform2iv), FUHGL_ENTRY(glProgramUniform3iv), FUHGL_ENTRY(glProgramUniform4iv),
+    FUHGL_ENTRY(glProgramUniform1fv), FUHGL_ENTRY(glProgramUniform2fv), FUHGL_ENTRY(glProgramUniform3fv), FUHGL_ENTRY(glProgramUniform4fv),
+    FUHGL_ENTRY(glProgramUniform1uiv), FUHGL_ENTRY(glProgramUniform2uiv), FUHGL_ENTRY(glProgramUniform3uiv), FUHGL_ENTRY(glProgramUniform4uiv),
+    FUHGL_ENTRY(glProgramUniformMatrix2fv), FUHGL_ENTRY(glProgramUniformMatrix3fv), FUHGL_ENTRY(glProgramUniformMatrix4fv),
+    FUHGL_ENTRY(glProgramUniformMatrix2x3fv), FUHGL_ENTRY(glProgramUniformMatrix2x4fv), FUHGL_ENTRY(glProgramUniformMatrix3x2fv),
+    FUHGL_ENTRY(glProgramUniformMatrix3x4fv), FUHGL_ENTRY(glProgramUniformMatrix4x2fv), FUHGL_ENTRY(glProgramUniformMatrix4x3fv),
+    // P3: transform feedback (GL 4.0)
+    FUHGL_ENTRY(glGenTransformFeedbacks), FUHGL_ENTRY(glDeleteTransformFeedbacks), FUHGL_ENTRY(glIsTransformFeedback),
+    FUHGL_ENTRY(glBindTransformFeedback), FUHGL_ENTRY(glBeginTransformFeedback), FUHGL_ENTRY(glEndTransformFeedback),
+    FUHGL_ENTRY(glPauseTransformFeedback), FUHGL_ENTRY(glResumeTransformFeedback),
+    FUHGL_ENTRY(glDrawTransformFeedback), FUHGL_ENTRY(glDrawTransformFeedbackStream),
+    FUHGL_ENTRY(glTransformFeedbackVaryings), FUHGL_ENTRY(glGetTransformFeedbackVarying),
+    FUHGL_ENTRY(glGetTransformFeedbacki_v), FUHGL_ENTRY(glGetTransformFeedbacki64_v),
+    // P3: shader / program binaries (GL 4.1)
+    FUHGL_ENTRY(glGetProgramBinary), FUHGL_ENTRY(glProgramBinary), FUHGL_ENTRY(glShaderBinary),
+    FUHGL_ENTRY(glReleaseShaderCompiler), FUHGL_ENTRY(glGetShaderPrecisionFormat),
+    // P3: subroutines (GL 4.0)
+    FUHGL_ENTRY(glGetSubroutineUniformLocation), FUHGL_ENTRY(glGetSubroutineIndex),
+    FUHGL_ENTRY(glUniformSubroutinesuiv), FUHGL_ENTRY(glGetUniformSubroutineuiv),
+    FUHGL_ENTRY(glGetActiveSubroutineUniformiv), FUHGL_ENTRY(glGetActiveSubroutineUniformName), FUHGL_ENTRY(glGetActiveSubroutineName),
+    // P3: GL 4.6
+    FUHGL_ENTRY(glMultiDrawArraysIndirectCount), FUHGL_ENTRY(glMultiDrawElementsIndirectCount),
+    FUHGL_ENTRY(glPolygonOffsetClamp), FUHGL_ENTRY(glSpecializeShader),
 };
 
 // DSA (GL 4.5) — optional, resolved by name in init().

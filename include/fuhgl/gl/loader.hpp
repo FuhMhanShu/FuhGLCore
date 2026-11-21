@@ -315,6 +315,85 @@ struct Functions {
     void (*glClearTexImage)(GLuint texture, GLint level, GLenum format, GLenum type, const void* data);
     void (*glClearTexSubImage)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
                               GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* data);
+    // P3: program pipelines / separable programs (GL 4.1)
+    void (*glCreateProgramPipelines)(GLsizei n, GLuint* pipelines);
+    void (*glDeleteProgramPipelines)(GLsizei n, const GLuint* pipelines);
+    GLboolean (*glIsProgramPipeline)(GLuint pipeline);
+    void (*glBindProgramPipeline)(GLuint pipeline);
+    void (*glUseProgramStages)(GLuint pipeline, GLbitfield stages, GLuint program);
+    void (*glActiveShaderProgram)(GLuint pipeline, GLuint program);
+    void (*glValidateProgramPipeline)(GLuint pipeline);
+    void (*glGetProgramPipelineiv)(GLuint pipeline, GLenum pname, GLint* params);
+    void (*glGetProgramPipelineInfoLog)(GLuint pipeline, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
+    GLuint (*glCreateShaderProgramv)(GLenum type, GLsizei count, const GLchar* const* strings);
+    void (*glProgramParameteri)(GLuint program, GLenum pname, GLint value);
+    void (*glProgramUniform1i)(GLuint program, GLint location, GLint v0);
+    void (*glProgramUniform2i)(GLuint program, GLint location, GLint v0, GLint v1);
+    void (*glProgramUniform3i)(GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
+    void (*glProgramUniform4i)(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+    void (*glProgramUniform1f)(GLuint program, GLint location, GLfloat v0);
+    void (*glProgramUniform2f)(GLuint program, GLint location, GLfloat v0, GLfloat v1);
+    void (*glProgramUniform3f)(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+    void (*glProgramUniform4f)(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+    void (*glProgramUniform1ui)(GLuint program, GLint location, GLuint v0);
+    void (*glProgramUniform2ui)(GLuint program, GLint location, GLuint v0, GLuint v1);
+    void (*glProgramUniform3ui)(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2);
+    void (*glProgramUniform4ui)(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
+    void (*glProgramUniform1iv)(GLuint program, GLint location, GLsizei count, const GLint* value);
+    void (*glProgramUniform2iv)(GLuint program, GLint location, GLsizei count, const GLint* value);
+    void (*glProgramUniform3iv)(GLuint program, GLint location, GLsizei count, const GLint* value);
+    void (*glProgramUniform4iv)(GLuint program, GLint location, GLsizei count, const GLint* value);
+    void (*glProgramUniform1fv)(GLuint program, GLint location, GLsizei count, const GLfloat* value);
+    void (*glProgramUniform2fv)(GLuint program, GLint location, GLsizei count, const GLfloat* value);
+    void (*glProgramUniform3fv)(GLuint program, GLint location, GLsizei count, const GLfloat* value);
+    void (*glProgramUniform4fv)(GLuint program, GLint location, GLsizei count, const GLfloat* value);
+    void (*glProgramUniform1uiv)(GLuint program, GLint location, GLsizei count, const GLuint* value);
+    void (*glProgramUniform2uiv)(GLuint program, GLint location, GLsizei count, const GLuint* value);
+    void (*glProgramUniform3uiv)(GLuint program, GLint location, GLsizei count, const GLuint* value);
+    void (*glProgramUniform4uiv)(GLuint program, GLint location, GLsizei count, const GLuint* value);
+    void (*glProgramUniformMatrix2fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+    void (*glProgramUniformMatrix3fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+    void (*glProgramUniformMatrix4fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+    void (*glProgramUniformMatrix2x3fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+    void (*glProgramUniformMatrix2x4fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+    void (*glProgramUniformMatrix3x2fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+    void (*glProgramUniformMatrix3x4fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+    void (*glProgramUniformMatrix4x2fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+    void (*glProgramUniformMatrix4x3fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+    // P3: transform feedback (GL 4.0)
+    void (*glGenTransformFeedbacks)(GLsizei n, GLuint* ids);
+    void (*glDeleteTransformFeedbacks)(GLsizei n, const GLuint* ids);
+    GLboolean (*glIsTransformFeedback)(GLuint id);
+    void (*glBindTransformFeedback)(GLenum target, GLuint id);
+    void (*glBeginTransformFeedback)(GLenum primitiveMode);
+    void (*glEndTransformFeedback)();
+    void (*glPauseTransformFeedback)();
+    void (*glResumeTransformFeedback)();
+    void (*glDrawTransformFeedback)(GLenum mode, GLuint id);
+    void (*glDrawTransformFeedbackStream)(GLenum mode, GLuint id, GLuint stream);
+    void (*glTransformFeedbackVaryings)(GLuint program, GLsizei count, const GLchar* const* varyings, GLenum bufferMode);
+    void (*glGetTransformFeedbackVarying)(GLuint program, GLuint index, GLsizei bufSize, GLsizei* length, GLsizei* size, GLenum* type, GLchar* name);
+    void (*glGetTransformFeedbacki_v)(GLuint xfb, GLenum pname, GLuint index, GLint* param);
+    void (*glGetTransformFeedbacki64_v)(GLuint xfb, GLenum pname, GLuint index, GLint64* param);
+    // P3: shader / program binaries (GL 4.1)
+    void (*glGetProgramBinary)(GLuint program, GLsizei bufSize, GLsizei* length, GLenum* binaryFormat, void* binary);
+    void (*glProgramBinary)(GLuint program, GLenum binaryFormat, const void* binary, GLsizei length);
+    void (*glShaderBinary)(GLsizei count, const GLuint* shaders, GLenum binaryFormat, const void* binary, GLsizei length);
+    void (*glReleaseShaderCompiler)();
+    void (*glGetShaderPrecisionFormat)(GLenum shaderType, GLenum precisionType, GLint* range, GLint* precision);
+    // P3: subroutines (GL 4.0)
+    GLint (*glGetSubroutineUniformLocation)(GLuint program, GLenum shaderType, const GLchar* name);
+    GLuint (*glGetSubroutineIndex)(GLuint program, GLenum shaderType, const GLchar* name);
+    void (*glUniformSubroutinesuiv)(GLenum shaderType, GLsizei count, const GLuint* indices);
+    void (*glGetUniformSubroutineuiv)(GLenum shaderType, GLint location, GLuint* params);
+    void (*glGetActiveSubroutineUniformiv)(GLuint program, GLenum shaderType, GLuint index, GLenum pname, GLint* values);
+    void (*glGetActiveSubroutineUniformName)(GLuint program, GLenum shaderType, GLuint index, GLsizei bufSize, GLsizei* length, GLchar* name);
+    void (*glGetActiveSubroutineName)(GLuint program, GLenum shaderType, GLuint index, GLsizei bufSize, GLsizei* length, GLchar* name);
+    // P3: GL 4.6
+    void (*glMultiDrawArraysIndirectCount)(GLenum mode, const void* indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
+    void (*glMultiDrawElementsIndirectCount)(GLenum mode, GLenum type, const void* indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
+    void (*glPolygonOffsetClamp)(GLfloat factor, GLfloat units, GLfloat clamp);
+    void (*glSpecializeShader)(GLuint shader, const GLchar* pEntryPoint, GLuint numSpecializationConstants, const GLuint* pConstantIndex, const GLuint* pConstantValue);
 };
 
 /// @brief Direct State Access entry points (GL 4.5). Filled by init() via procAddress;

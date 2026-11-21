@@ -47,6 +47,7 @@ APIs). It provides:
 | F18 | Complete GL 4.5 DSA table (P2) | `gl::DsaFunctions` extended from 22 to 72 typed entries (buffers: `glNamedBufferStorage`, `glMapNamedBuffer(Range)`, `glUnmapNamedBuffer`, `glFlushMappedNamedBufferRange`, `glCopyNamedBufferSubData`, `glClearNamedBufferSubData`, `glInvalidateNamedBufferData/SubData`, `glGetNamedBufferParameteriv/i64v`, `glGetNamedBufferSubData`; TF: `glCreateTransformFeedbacks`; FBOs: `glNamedFramebufferDrawBuffer(s)`, `glNamedFramebufferReadBuffer`, `glClearNamedFramebufferiv/uiv/fv/fi`, `glNamedFramebufferTextureLayer`; renderbuffers: `glNamedRenderbufferStorageMultisample`, `glGetNamedRenderbufferParameteriv`; textures: `glTextureParameteri/f/fv`, `glTextureSubImage3D`, `glCompressedTextureSubImage2D/3D`, `glCopyTextureSubImage2D/3D`, `glGenerateTextureMipmap`, `glTextureStorage2D/3DMultisample`, `glGetTextureImage`, `glGetCompressedTextureImage`, `glGetTextureLevelParameteriv`, `glTextureBuffer(Range)`; VAOs: `glVertexArrayAttribBinding/IFormat/LFormat`, `glVertexArrayBindingDivisor`, `glGetVertexArrayiv/Indexediv/Indexed64iv`; samplers: `glSamplerParameterf/fv`, `glBindSamplers`; queries: `glCreateQueries`) via `FUHGL_DSA` in `src/gl/loader.cpp`; new `gl::dsaFunctionNames()`/`dsaFunctionNameCount()`; new constants in `include/fuhgl/gl/types.hpp`; tests: `test_loader.cpp` (72-entry presence list), `gl_smoke_dsa.cpp` (readback-verified buffer/texture/sampler/VAO/FBO/query/TF ops, skips without GL 4.5); tutorial 11 addendum |
 | F19 | Text rendering + FPS overlay + screenshot fixes | `render::TextRenderer` (PIMPL, `render/text.hpp`): embedded public-domain 8x8 font atlas (font8x8, IBM VGA based, 128x64 GL_R8 texture), batched glyph quads (one draw call per begin/end), screen-space pixel coords (y down), alpha blending; `render::FpsCounter` value type (EMA fps); `render::font8x8Glyph()` pure-data accessor; `TextRenderer::measure/lineHeight`; example `examples/text` (+ CI screenshot `tutorial-text.png`); `examples/gpuinfo` now labels its capability bars with TextRenderer (tutorial 14 screenshot readable again); fixed broken `](images/...)` links in tutorials 20-23 (needed `../images/`); tests: `test_text.cpp` (font/measure/FpsCounter), `gl_smoke_text.cpp` (readback-verified text pixels); tutorial 24 |
 | F20 | Wireframe rendering (solids + bounding boxes as line grids) | `render::Wireframe` (PIMPL, `render/wireframe.hpp`): CPU-side line queue (`addLine`/`addBox`/`addBoundingBox`/`addMesh`/`addSolid`), one batched `glDrawArrays(GL_LINES)` per `render(camera,w,h)` with depth test; pure helpers `boxCorners()`, `kBoxEdgeIndices`, `wireframeEdges()` (deduped triangle edges) unit-testable without GL; `examples/solids --wireframe` (+ CI screenshot `tutorial-wireframe.png`); tests: `test_wireframe.cpp`, `gl_smoke_wireframe.cpp` (readback-verified line pixels); tutorial 25 |
+| F21 | P3: program pipelines, transform feedback, binaries, subroutines, GL 4.6 | 67 new curated loader entries (program pipelines + all glProgramUniform* + glCreateShaderProgramv + glProgramParameteri; TF: gen/bind/begin/end/pause/resume/draw/varyings/queries; binaries: glGetProgramBinary/glProgramBinary/glShaderBinary/glReleaseShaderCompiler/glGetShaderPrecisionFormat; subroutines: index/location/uniform queries; 4.6: glSpecializeShader/glPolygonOffsetClamp/glMultiDraw*IndirectCount); new wrappers `gl::ProgramPipeline` (handle class: use/useStages/setActiveShaderProgram/programUniform/validate/createShaderProgram) and `gl::TransformFeedback` + `Program::setTransformFeedbackVaryings/setParameteri`; new constants (stage bits, TF, binary, subroutine, 4.6) in types.hpp; tests: `test_loader.cpp` f21[] presence list, `gl_smoke_p3.cpp` (pipeline pixel check, TF capture readback, binary round-trip, subroutine round-trip; skips < 4.1); tutorial 26 |
 
 ## 4. Non-functional requirements
 
@@ -139,18 +140,18 @@ mapping/copy/clear round-trips, texture 2D/3D/MS/buffer uploads + readback, samp
 binding, VAO formats/divisors/queries, FBO typed clears + texture layer + MS blit,
 queries, transform feedback); tutorial 11 addendum
 
-### P3 — larger subsystems
+### P3 — larger subsystems — **P3 done (F21)**
 - Program pipelines / separable programs (4.1): `glCreateProgramPipelines`,
   `glBindProgramPipeline`, `glUseProgramStages`, `glActiveShaderProgram`, `glProgramUniform*`,
-  `glCreateShaderProgramv` — TODO
+  `glCreateShaderProgramv` — **P3 done**
 - Transform feedback: `glBindTransformFeedback`, `glBegin/End/Pause/ResumeTransformFeedback`,
-  `glDrawTransformFeedback(Stream)`, `glTransformFeedbackVaryings` — TODO
-- Tessellation: `GL_PATCHES` primitive + `glPatchParameteri/fv` (shader stages covered) — TODO
+  `glDrawTransformFeedback(Stream)`, `glTransformFeedbackVaryings` — **P3 done**
+- Tessellation: `GL_PATCHES` primitive + `glPatchParameteri/fv` (shader stages covered) — **P3 done** (glPatchParameteri/fv in F13, GL_PATCHES)
 - Shader cache: `glGetProgramBinary`, `glProgramBinary`, `glShaderBinary`,
-  `glReleaseShaderCompiler`, `glGetShaderPrecisionFormat` — TODO
-- Shader subroutines (4.0): `glGetSubroutineUniformLocation`, `glUniformSubroutinesuiv`, ... — TODO (low value)
+  `glReleaseShaderCompiler`, `glGetShaderPrecisionFormat` — **P3 done**
+- Shader subroutines (4.0): `glGetSubroutineUniformLocation`, `glUniformSubroutinesuiv`, ... — **P3 done**
 - GL 4.6: `glMultiDrawArraysIndirectCount`, `glMultiDrawElementsIndirectCount`,
-  `glPolygonOffsetClamp`, `glSpecializeShader` — TODO
+  `glPolygonOffsetClamp`, `glSpecializeShader` — **P3 done**
 
 ## 6. Feasibility assessment
 

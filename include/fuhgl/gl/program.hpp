@@ -66,6 +66,11 @@ public:
     gl::GLuint getUniformu(const char* name) const;
 
     /// @brief Binds a uniform block (by name) to an indexed binding point (e.g. 0).
+    /// @brief Declares transform feedback varyings before link() (GL 4.0, P3).
+    void setTransformFeedbackVaryings(gl::GLsizei count, const gl::GLchar* const* varyings, gl::GLenum bufferMode) const;
+    /// @brief Sets a program parameter (e.g. GL_PROGRAM_SEPARABLE, GL_PROGRAM_BINARY_RETRIEVABLE_HINT).
+    void setParameteri(gl::GLenum pname, gl::GLint value) const;
+
     void bindUniformBlock(const char* blockName, gl::GLuint binding) const;
     /// @brief Binds a shader storage block (by name) to an indexed binding point (GL 4.3+, SSBO).
     void bindShaderStorageBlock(const char* blockName, gl::GLuint binding) const;
