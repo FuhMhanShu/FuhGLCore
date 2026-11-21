@@ -137,7 +137,10 @@ void Program::bindShaderStorageBlock(const char* blockName, gl::GLuint binding) 
     const auto& f = gl::functions();
     if (!f.glGetShaderStorageBlockIndex || !f.glShaderStorageBlockBinding) return;
     const gl::GLuint idx = f.glGetShaderStorageBlockIndex(impl_->id, blockName);
-    if (idx != gl::GL_INVALID_INDEX) f.glShaderStorageBlockBinding(impl_->id, idx, binding);
+    // GL_INVALID_INDEX = block absent; some drivers return other garbage (e.g. 0xFFFFFFF8)
+    // — only forward plausible small indices, else glShaderStorageBlockBinding raises
+    // GL_INVALID_VALUE (GL_MAX_SHADER_STORAGE_BLOCKS is >= 8 on every GL 4.3+ implementation)
+    if (idx != gl::GL_INVALID_INDEX && idx < 1024u) f.glShaderStorageBlockBinding(impl_->id, idx, binding);
 }
 
 gl::GLuint Program::id() const { return impl_->id; }
