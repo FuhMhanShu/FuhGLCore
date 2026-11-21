@@ -160,7 +160,23 @@ int main() {
     // glBeginTransformFeedback on freshly generated named objects with INVALID_OPERATION;
     // the named-object API (gen/bind/draw) is still exercised below.
     {
-        fuhgl::Framebuffer::unbind(); // no FBO bound: draws with TF active must not hit FBO validation
+        // surfaceless contexts have an incomplete default framebuffer — bind a complete
+        // FBO so the TF draw passes framebuffer validation (content is discarded anyway)
+        fuhgl::Texture tfTex(fuhgl::Texture::Target::Tex2D);
+        tfTex.bind();
+        tfTex.texStorage2D(1, GL_RGBA8, 64, 64);
+        fuhgl::Renderbuffer tfDepth;
+        tfDepth.create();
+        tfDepth.bind();
+        tfDepth.storage(GL_DEPTH_COMPONENT24, 64, 64);
+        fuhgl::Framebuffer tfFbo;
+        tfFbo.create();
+        tfFbo.setSize(64, 64);
+        tfFbo.bind();
+        tfFbo.attachTexture2D(0, tfTex);
+        tfFbo.attachRenderbuffer(fuhgl::Framebuffer::Attachment::Depth, tfDepth);
+        expect(tfFbo.isComplete(), "TF draw FBO complete");
+        f.glViewport(0, 0, 64, 64);
         fuhgl::Program prog;
         prog.create();
         const GLchar* varyings[] = {"vOut"};
@@ -206,18 +222,23 @@ int main() {
         prog.use();
         expectClean("prog.use");
         f.glEnable(GL_RASTERIZER_DISCARD);
+        GLuint pq = 0;
+        f.glGenQueries(1, &pq);
+        f.glBeginQueryIndexed(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, 0, pq);
         tf.begin(GL_TRIANGLES); // wrapper targets the bound object; begin is global
         expectClean("tf.begin");
         f.glDrawArrays(GL_TRIANGLES, 0, 3);
         expectClean("draw with TF active");
         tf.end();
         expectClean("tf.end");
+        f.glEndQueryIndexed(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, 0);
         f.glDisable(GL_RASTERIZER_DISCARD);
-        GLint64 written64 = -1;
-        f.glGetTransformFeedbacki64_v(0, GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, 0, &written64);
-        expectClean("glGetTransformFeedbacki64_v");
-        std::fprintf(stderr, "  [info] TF primitives written = %lld\n", (long long)written64);
-        expect(written64 == 1, "TF primitives written == 1");
+        GLuint64 written = 0;
+        f.glGetQueryObjectui64v(pq, GL_QUERY_RESULT, &written);
+        expectClean("primitives-written query");
+        std::fprintf(stderr, "  [info] TF primitives written = %llu\n", (unsigned long long)written);
+        expect(written == 1, "TF primitives written == 1");
+        f.glDeleteQueries(1, &pq);
         float out[4] = {};
         f.glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 16, out);
         expectClean("glGetBufferSubData TF");
