@@ -23,5 +23,7 @@
 #include "gl/sampler.hpp"
 #include "gl/sync.hpp"
 #include "gl/ubo.hpp"
+#include "gl/program_pipeline.hpp"
+#include "gl/transform_feedback.hpp"
 #include "skybox.hpp"
 #include "render.hpp"

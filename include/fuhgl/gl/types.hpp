@@ -102,6 +102,7 @@ inline constexpr GLenum GL_FRAGMENT_SHADER = 0x8B30;
 inline constexpr GLenum GL_GEOMETRY_SHADER = 0x8DD9;
 inline constexpr GLenum GL_COMPILE_STATUS = 0x8B81;
 inline constexpr GLenum GL_LINK_STATUS = 0x8B82;
+inline constexpr GLenum GL_VALIDATE_STATUS = 0x8B81;
 inline constexpr GLenum GL_INFO_LOG_LENGTH = 0x8B84;
 inline constexpr GLenum GL_ACTIVE_UNIFORMS = 0x8B86;
 inline constexpr GLenum GL_CURRENT_PROGRAM = 0x8B8D;
@@ -529,6 +530,57 @@ inline constexpr GLenum GL_R32UI = 0x8236;
 inline constexpr GLenum GL_RGBA32UI = 0x8D70;
 inline constexpr GLenum GL_RED_INTEGER = 0x8D94;
 inline constexpr GLenum GL_RGBA_INTEGER = 0x8D99;
+
+// --- P3: shader stage bits / program pipelines (GL 4.1) ----------------------------
+inline constexpr GLbitfield GL_VERTEX_SHADER_BIT = 0x00000001;
+inline constexpr GLbitfield GL_FRAGMENT_SHADER_BIT = 0x00000002;
+inline constexpr GLbitfield GL_GEOMETRY_SHADER_BIT = 0x00000004;
+inline constexpr GLbitfield GL_TESS_CONTROL_SHADER_BIT = 0x00000008;
+inline constexpr GLbitfield GL_TESS_EVALUATION_SHADER_BIT = 0x00000010;
+inline constexpr GLbitfield GL_COMPUTE_SHADER_BIT = 0x00000020;
+inline constexpr GLbitfield GL_ALL_SHADER_BITS = 0xFFFFFFFF;
+inline constexpr GLenum GL_PROGRAM_SEPARABLE = 0x8258;
+inline constexpr GLenum GL_ACTIVE_PROGRAM = 0x8259;
+inline constexpr GLenum GL_PROGRAM_PIPELINE_BINDING = 0x825A;
+inline constexpr GLenum GL_MAX_VERTEX_ATTRIB_STRIDE = 0x82E5;
+
+// --- P3: transform feedback (GL 4.0) -------------------------------------------------
+inline constexpr GLenum GL_RASTERIZER_DISCARD = 0x8C89;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK_BINDING = 0x8E25;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_BINDING = 0x8C8F;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_START = 0x8C84;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_SIZE = 0x8C85;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN = 0x8C88;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_MODE = 0x8C7F;
+inline constexpr GLenum GL_INTERLEAVED_ATTRIBS = 0x8C8C;
+inline constexpr GLenum GL_SEPARATE_ATTRIBS = 0x8C8D;
+inline constexpr GLenum GL_MAX_TRANSFORM_FEEDBACK_BUFFERS = 0x8E70;
+inline constexpr GLenum GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = 0x8C7A;
+inline constexpr GLenum GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS = 0x8C80;
+inline constexpr GLenum GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS = 0x8C81;
+inline constexpr GLenum GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH = 0x8C76;
+
+// --- P3: shader / program binaries (GL 4.1) -------------------------------------------
+inline constexpr GLenum GL_NUM_PROGRAM_BINARY_FORMATS = 0x87FE;
+inline constexpr GLenum GL_PROGRAM_BINARY_FORMATS = 0x87FF;
+inline constexpr GLenum GL_PROGRAM_BINARY_LENGTH = 0x8741;
+inline constexpr GLenum GL_PROGRAM_BINARY_RETRIEVABLE_HINT = 0x8257;
+inline constexpr GLenum GL_SHADER_BINARY_FORMATS = 0x8DF8;
+inline constexpr GLenum GL_NUM_SHADER_BINARY_FORMATS = 0x8DF9;
+inline constexpr GLenum GL_SHADER_COMPILER = 0x8DFA;
+
+// --- P3: subroutines (GL 4.0) ----------------------------------------------------------
+inline constexpr GLenum GL_ACTIVE_SUBROUTINES = 0x8DE5;
+inline constexpr GLenum GL_ACTIVE_SUBROUTINE_UNIFORMS = 0x8DE6;
+inline constexpr GLenum GL_MAX_SUBROUTINES = 0x8DE7;
+inline constexpr GLenum GL_ACTIVE_SUBROUTINE_MAX_LENGTH = 0x8E48;
+inline constexpr GLenum GL_ACTIVE_SUBROUTINE_UNIFORM_MAX_LENGTH = 0x8E49;
+inline constexpr GLenum GL_MAX_SUBROUTINE_UNIFORM_LOCATIONS = 0x8E4A;
+
+// --- P3: GL 4.6 ------------------------------------------------------------------------
+inline constexpr GLenum GL_POLYGON_OFFSET_CLAMP = 0x8E1B;
+inline constexpr GLenum GL_QUERY_BUFFER_BINDING = 0x9193;
+inline constexpr GLbitfield GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT = 0x00000004;
 
 /// @brief Signature of the GL debug message callback (GLDEBUGPROC).
 using GLDEBUGPROC = void (*)(GLenum source, GLenum type, GLuint id, GLenum severity,

@@ -22,6 +22,8 @@ add_library(fuhglcore STATIC
     src/gl/state.cpp
     src/gl/sampler.cpp
     src/gl/sync.cpp
+    src/gl/program_pipeline.cpp
+    src/gl/transform_feedback.cpp
     src/skybox.cpp
     src/render/mesh.cpp
     src/render/material.cpp

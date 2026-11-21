@@ -88,3 +88,10 @@ add_test(NAME gl_smoke_text COMMAND fuhgl_gl_smoke_text)
 add_executable(fuhgl_gl_smoke_wireframe gl_smoke_wireframe.cpp)
 target_link_libraries(fuhgl_gl_smoke_wireframe PRIVATE fuhglcore)
 add_test(NAME gl_smoke_wireframe COMMAND fuhgl_gl_smoke_wireframe)
+
+# Headless test for P3 (F21): program pipelines with separable programs + pixel check,
+# transform feedback capture with readback, program binary round-trip, subroutines,
+# GL 4.6 entry points (version-guarded). Skips without GL >= 4.1.
+add_executable(fuhgl_gl_smoke_p3 gl_smoke_p3.cpp)
+target_link_libraries(fuhgl_gl_smoke_p3 PRIVATE fuhglcore)
+add_test(NAME gl_smoke_p3 COMMAND fuhgl_gl_smoke_p3)
