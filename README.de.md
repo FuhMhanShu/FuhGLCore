@@ -46,7 +46,9 @@ Rays, Nebel) — siehe `examples/showcase` und
   und unter Linux ein EGL-Backend (Wayland oder surfaceless/headless). Kein
   Windowing-Framework nötig.
 - **Mathematik** — `fuhgl::math`: `Vec2/3/4`, `Mat3/Mat4` (spalten-major, direkt für
-  `glUniformMatrix*fv` geeignet), `perspective/ortho/lookAt/...`, `Frustum`, Picking-Strahlen.
+  `glUniformMatrix*fv` geeignet), `perspective/ortho/lookAt/...`, `Frustum`, Picking-Strahlen,
+  `Quat` (Rotationen + `slerp`; `toMat4(q)` entspricht `rotate(Winkel, Achse)`) und geseedetes
+  `Noise` (Perlin 2D/3D + fBm) — siehe [Tutorial 30](docs/de/tutorials/30-math-quaternions-noise.md).
 - **Kameras** — `FirstPersonCamera`, `FreeCamera` (6-DOF), `IsometricCamera`, über
   `attach(window)` an Fenster-Events gekoppelt.
 - **Skybox** — Cubemap-Skybox mit dem Far-Ebenen-Depth-Trick, aus 6 Bildern oder prozedural.

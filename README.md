@@ -42,7 +42,9 @@ fog) — see `examples/showcase` and [tutorial 29](docs/en/tutorials/29-showcase
 - **Native window + GL context** — `fuhgl::Window`: Win32/WGL, X11/GLX, macOS/Cocoa,
   and on Linux an EGL backend (Wayland or surfaceless/headless). No windowing library needed.
 - **Math** — `fuhgl::math`: `Vec2/3/4`, `Mat3/Mat4` (column-major, ready for
-  `glUniformMatrix*fv`), `perspective/ortho/lookAt/...`, `Frustum`, picking rays.
+  `glUniformMatrix*fv`), `perspective/ortho/lookAt/...`, `Frustum`, picking rays,
+  `Quat` (rotations + `slerp`; `toMat4(q)` matches `rotate(angle, axis)`) and seeded
+  `Noise` (Perlin 2D/3D + fBm) — see [tutorial 30](docs/en/tutorials/30-math-quaternions-noise.md).
 - **Cameras** — `FirstPersonCamera`, `FreeCamera` (6-DOF), `IsometricCamera`, wired to
   window events via `attach(window)`.
 - **Skybox** — cubemap skybox with the far-plane depth trick, from 6 images or procedural.

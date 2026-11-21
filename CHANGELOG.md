@@ -30,6 +30,14 @@ All notable changes to FuhGLCore are documented here. The format follows
   - Fixed two warnings (`-Werror`-clean now): unused variable in
     `src/render/deferred.cpp`, unused `ext` in `src/render/solid.cpp`.
 
+### Added
+- F27 — `fuhgl::math::Quat` (`math/quat.hpp`): quaternions for rotations —
+  `fromAxisAngle` / `fromEuler` / `lookRotation` / `fromMat3`, `toMat3` / `toMat4`
+  (`toMat4(q)` matches `rotate(angle, axis)`), `slerp` / `nlerp`, `inverse`,
+  `angle` / `toAxisAngle`; and `fuhgl::math::Noise` (`math/noise.hpp`): deterministic
+  seeded improved-Perlin 2D/3D + fBm (amplitude-normalized). Header-only value types,
+  unit tests (`test_quat.cpp`, `test_noise.cpp`), tutorials 30 (en + de).
+
 ## [0.1.0] — initial release
 
 Zero-dependency C++17 OpenGL wrapper + built-in render layer. Highlights:

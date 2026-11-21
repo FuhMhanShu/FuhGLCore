@@ -31,6 +31,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Framebuffers, MSAA resolve | `Framebuffer`, `Renderbuffer` | [05](en/tutorials/05-framebuffers-and-msaa.md) |
 | Skybox | `fuhgl::Skybox` | [06](en/tutorials/06-skybox.md) |
 | Cameras, frustum culling, picking | `FirstPersonCamera` …, `math::Frustum` | [07](en/tutorials/07-cameras-frustum-picking.md) |
+| Quaternions & seeded gradient noise (Perlin / fBm) | `math::Quat`, `math::Noise` | [30](en/tutorials/30-math-quaternions-noise.md) |
 | Uniform buffer objects | `UniformBuffer` | [08](en/tutorials/08-uniform-buffers.md) |
 | Compute shaders | `gl::dispatchCompute` | [09](en/tutorials/09-compute-shaders.md) |
 | GPU timing / fences | `Query`, `Fence` | [10](en/tutorials/10-queries-and-sync.md) |

@@ -5,6 +5,8 @@
 
 int main() {
     runMathTests();
+    runQuatTests();
+    runNoiseTests();
     runCameraTests();
     runLoaderTests();
     runFrustumTests();

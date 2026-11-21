@@ -1,6 +1,8 @@
 add_executable(fuhgl_tests
     main.cpp
     test_math.cpp
+    test_quat.cpp
+    test_noise.cpp
     test_camera.cpp
     test_loader.cpp
     test_frustum.cpp

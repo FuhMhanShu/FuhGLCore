@@ -37,6 +37,7 @@ Screenshots in `docs/images/` werden headless von der CI (`docs`-Job) gerendert
 | 27 | Programm-Reflexion (aktive Uniforms, Attribute, Uniform-Blöcke, Ressourcen) | [27-program-reflection.md](27-program-reflection.md) |
 | 28 | Instancing: Modellmatrizen pro Instanz, ein Draw-Call pro Mesh | [28-instancing.md](28-instancing.md) |
 | 29 | Showcase-Szene: Landschaft mit DeferredRenderer voller FX (README-Hero-Bilder) | [29-showcase-scene.md](29-showcase-scene.md) |
+| 30 | Quaternionen & geseedetes Noise (Perlin / fBm) in `fuhgl::math` | [30-math-quaternions-noise.md](30-math-quaternions-noise.md) |
 
 Voraussetzung für alle: Bibliothek bauen und `FuhGLCore::fuhglcore` linken
 (siehe [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

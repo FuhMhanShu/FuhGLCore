@@ -5,5 +5,7 @@
 
 #include "math/vec.hpp"
 #include "math/mat.hpp"
+#include "math/quat.hpp"
+#include "math/noise.hpp"
 #include "math/func.hpp"
 #include "math/frustum.hpp"
