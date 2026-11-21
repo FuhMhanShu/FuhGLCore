@@ -139,13 +139,13 @@ int main(int argc, char** argv) {
         cam.pitch = -0.10f;
         scene.items.push_back({&interMesh, &interMat, fuhgl::math::Mat4{}});
     } else if (args.csg == "bounds") {
-        // CSG part + its three bounding volumes side by side
-        cam.position = {0.f, 0.6f, 4.6f};
-        cam.pitch = -0.08f;
-        scene.items.push_back({&partMesh, &partMat, fuhgl::math::translate({-2.3f, 0.f, 0.f})});
-        scene.items.push_back({&boMesh, &octMat, fuhgl::math::translate({0.f, 0.f, 0.f})});
-        scene.items.push_back({&bsMesh, &sphMat, fuhgl::math::translate({2.3f, 0.f, 0.f})});
-        scene.items.push_back({&bbMesh, &boxMat, fuhgl::math::translate({0.f, 0.f, 2.6f})});
+        // CSG part + its three bounding volumes in a row (part | octahedron | sphere | box)
+        cam.position = {0.f, 0.7f, 7.0f};
+        cam.pitch = -0.07f;
+        scene.items.push_back({&partMesh, &partMat, fuhgl::math::translate({-3.6f, 0.f, 0.f})});
+        scene.items.push_back({&boMesh, &octMat, fuhgl::math::translate({-1.2f, 0.f, 0.f})});
+        scene.items.push_back({&bsMesh, &sphMat, fuhgl::math::translate({1.2f, 0.f, 0.f})});
+        scene.items.push_back({&bbMesh, &boxMat, fuhgl::math::translate({3.6f, 0.f, 0.f})});
     } else { // "scene": full demo scene
         cam.position = {0.f, 1.4f, 5.6f};
         cam.pitch = -0.10f;
