@@ -69,7 +69,7 @@ int main() {
 
     fuhgl::FirstPersonCamera cam;
     cam.position = {0.f, 5.f, 0.f};
-    cam.pitch = -fuhgl::math::kPi * 0.5f; // look straight down onto the box top
+    cam.pitch = -1.45f; // look almost straight down onto the box top (exactly -90° would make lookAt's up vector degenerate)
 
     auto renderCenter = [&](const fuhgl::render::Light& light) {
         fuhgl::render::SceneView scene;
