@@ -62,6 +62,9 @@ int main() {
 
     fuhgl::render::TextRenderer text;
     expect(text.create(), "TextRenderer::create");
+    // simulate pipeline state: culling + depth test left enabled (must not hide text)
+    f.glEnable(GL_CULL_FACE);
+    f.glEnable(GL_DEPTH_TEST);
     text.begin(W, H);
     text.draw("FPS: 60", 8.f, 8.f, 2.f, {1.f, 1.f, 1.f, 1.f});
     text.draw("red", 8.f, 32.f, 2.f, {1.f, 0.2f, 0.2f, 1.f});

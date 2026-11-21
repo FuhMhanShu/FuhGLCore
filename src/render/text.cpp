@@ -203,6 +203,8 @@ void TextRenderer::begin(int width, int height) {
     impl_->quadVerts.clear();
     f.glViewport(0, 0, width, height);
     f.glDisable(gl::GL_DEPTH_TEST);
+    f.glDisable(gl::GL_CULL_FACE);   // pipelines leave culling on; glyph quads must not be culled
+    f.glDisable(gl::GL_SCISSOR_TEST);
     f.glEnable(gl::GL_BLEND);
     f.glBlendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
     impl_->prog.use();
@@ -219,6 +221,7 @@ void TextRenderer::end() {
     const auto& f = gl::functions();
     f.glDisable(gl::GL_BLEND);
     f.glEnable(gl::GL_DEPTH_TEST);
+    f.glEnable(gl::GL_CULL_FACE);
     f.glUseProgram(0);
     impl_->active = false;
 }
