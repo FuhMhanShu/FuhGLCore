@@ -61,6 +61,9 @@ no Khronos headers, no vcpkg.
 - **Text & FPS overlay** — `render::TextRenderer` with an embedded public-domain 8x8 bitmap
   font (one batched draw call per frame) plus `render::FpsCounter` — see
   [tutorial 24](docs/tutorials/24-text-and-fps-overlay.md).
+- **Wireframe overlay** — `render::Wireframe`: solids (triangle edges) and bounding boxes
+  (AABB edges) as one batched `GL_LINES` draw — see
+  [tutorial 25](docs/tutorials/25-wireframe-solids-and-bounding-boxes.md).
 
 Baseline: **OpenGL 3.3 core** (up to 4.6 loaded opportunistically). No exceptions in the
 API — failures return `bool`/info-log strings; debug builds assert and forward GL debug

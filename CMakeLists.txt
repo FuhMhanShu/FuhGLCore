@@ -34,6 +34,7 @@ add_library(fuhglcore STATIC
     src/render/procedural.cpp
     src/render/solid.cpp
     src/render/text.cpp
+    src/render/wireframe.cpp
 )
 add_library(FuhGLCore::fuhglcore ALIAS fuhglcore)
 

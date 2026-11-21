@@ -30,6 +30,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 22 | Default forward renderer (lights + shadows + fog) | [22-forward-renderer.md](22-forward-renderer.md) |
 | 23 | Default deferred renderer + post FX (SSAO, HDR, bloom, god rays, parallax/bump) | [23-deferred-renderer-postfx.md](23-deferred-renderer-postfx.md) |
 | 24 | Text & FPS overlay (embedded 8x8 bitmap font HUD) | [24-text-and-fps-overlay.md](24-text-and-fps-overlay.md) |
+| 25 | Wireframe: solids & bounding boxes as line grids | [25-wireframe-solids-and-bounding-boxes.md](25-wireframe-solids-and-bounding-boxes.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../DEVELOPMENT.md#build-options)).
