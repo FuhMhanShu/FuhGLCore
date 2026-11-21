@@ -21,3 +21,6 @@ target_link_libraries(lights PRIVATE fuhglcore)
 
 add_executable(shadows shadows/main.cpp)
 target_link_libraries(shadows PRIVATE fuhglcore)
+
+add_executable(forward forward/main.cpp)
+target_link_libraries(forward PRIVATE fuhglcore)

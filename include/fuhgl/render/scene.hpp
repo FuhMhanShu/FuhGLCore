@@ -39,6 +39,9 @@ struct SceneView {
     math::Mat4 lightVP{};                  ///< light view-projection matching shadowMap
     int shadowLightIndex = 0;              ///< index into lights[] the shadow map belongs to
     float shadowStrength = 1.f;            ///< 0 = shadows off, 1 = full darkening
+    // --- distance fog (F16) ----------------------------------------------------------
+    math::Vec3 fogColor{0.05f, 0.05f, 0.08f};
+    float fogDensity = 0.f;                ///< 0 = off; visibility = exp(-density * distance)
 };
 
 /// @brief Vertex attribute layout for Mesh::setData.

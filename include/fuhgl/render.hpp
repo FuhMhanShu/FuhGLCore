@@ -13,3 +13,4 @@
 #include "render/solid.hpp"
 #include "render/pipeline.hpp"
 #include "render/deferred.hpp"
+#include "render/forward_renderer.hpp"

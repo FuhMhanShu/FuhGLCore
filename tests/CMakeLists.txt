@@ -54,3 +54,9 @@ add_test(NAME gl_smoke_lights COMMAND fuhgl_gl_smoke_lights)
 add_executable(fuhgl_gl_smoke_shadows gl_smoke_shadows.cpp)
 target_link_libraries(fuhgl_gl_smoke_shadows PRIVATE fuhglcore)
 add_test(NAME gl_smoke_shadows COMMAND fuhgl_gl_smoke_shadows)
+
+# Headless test for F16 ForwardRenderer: auto shadow pass (blob gets darker) +
+# exponential fog (far pixels move toward the fog color). Skips without GL >= 3.3.
+add_executable(fuhgl_gl_smoke_forward gl_smoke_forward.cpp)
+target_link_libraries(fuhgl_gl_smoke_forward PRIVATE fuhglcore)
+add_test(NAME gl_smoke_forward COMMAND fuhgl_gl_smoke_forward)
