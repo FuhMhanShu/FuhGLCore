@@ -155,6 +155,24 @@ int main() {
     const size_t so = (static_cast<size_t>(sy) * W + sx) * 4;
     std::fprintf(stderr, "gl_smoke_deferred_fx: rays top-quarter R sum on=%ld off=%ld anyDiff=%d sunUV=(%.2f,%.2f) sunPx=(%d,%d,%d)\n",
                  sumOn, sumOff, anyDiff, suv.x, suv.y, base[so], base[so + 1], base[so + 2]);
+    // debug: read the HDR buffer around the sun pixel (RGBA16F -> read as float)
+    {
+        renderer.output().bind();
+        std::vector<float> hdr(static_cast<size_t>(W) * H * 4, 0.f);
+        fuhgl::gl::activeTexture(fuhgl::gl::GL_TEXTURE0);
+        renderer.hdrTexture().bind();
+        fuhgl::gl::functions().glGetTexImage(fuhgl::gl::GL_TEXTURE_2D, 0, fuhgl::gl::GL_RGBA, fuhgl::gl::GL_FLOAT, hdr.data());
+        int maxR = 0, argx = 0, argy = 0;
+        for (int y = sy - 4; y <= sy + 4; ++y)
+            for (int x = sx - 4; x <= sx + 4; ++x) {
+                if (x < 0 || y < 0 || x >= W || y >= H) continue;
+                const int r = static_cast<int>(hdr[(static_cast<size_t>(y) * W + x) * 4] * 255.f);
+                if (r > maxR) { maxR = r; argx = x; argy = y; }
+            }
+        const size_t hp = (static_cast<size_t>(sy) * W + sx) * 4;
+        std::fprintf(stderr, "gl_smoke_deferred_fx: hdr sunPx=(%.2f,%.2f,%.2f) maxR5x5=%d at (%d,%d)\n",
+                     hdr[hp], hdr[hp + 1], hdr[hp + 2], maxR, argx, argy);
+    }
     expect(sumOn > sumOff + 150, "god rays add light toward the sun");
 
     const std::vector<unsigned char> noParallax = renderImage(&plainMat);

@@ -48,6 +48,8 @@ public:
     DeferredPipeline& pipeline() { return pipeline_; }
     int width() const { return width_; }
     int height() const { return height_; }
+    /// @brief The HDR scene texture before tone mapping (debug/introspection).
+    const Texture& hdrTexture() const { return texHdr_; }
 
     // --- post-processing config ------------------------------------------------------
     bool ssaoEnabled = true;
