@@ -160,6 +160,7 @@ int main() {
     // glBeginTransformFeedback on freshly generated named objects with INVALID_OPERATION;
     // the named-object API (gen/bind/draw) is still exercised below.
     {
+        fuhgl::Framebuffer::unbind(); // no FBO bound: draws with TF active must not hit FBO validation
         fuhgl::Program prog;
         prog.create();
         const GLchar* varyings[] = {"vOut"};
@@ -212,10 +213,11 @@ int main() {
         tf.end();
         expectClean("tf.end");
         f.glDisable(GL_RASTERIZER_DISCARD);
-        GLint written = -1;
-        f.glGetTransformFeedbacki_v(0, GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, 0, &written);
-        expectClean("glGetTransformFeedbacki_v");
-        expect(written == 1, "TF primitives written == 1");
+        GLint64 written64 = -1;
+        f.glGetTransformFeedbacki64_v(0, GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, 0, &written64);
+        expectClean("glGetTransformFeedbacki64_v");
+        std::fprintf(stderr, "  [info] TF primitives written = %lld\n", (long long)written64);
+        expect(written64 == 1, "TF primitives written == 1");
         float out[4] = {};
         f.glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 16, out);
         expectClean("glGetBufferSubData TF");
