@@ -67,7 +67,7 @@ int main() {
     wf.addBox({-1.2f, -1.2f, -1.2f}, {1.2f, 1.2f, 1.2f}, {1.f, 1.f, 1.f});          // white AABB
     wf.addMesh(fuhgl::render::shapes::boxData({1.f, 1.f, 1.f}, {1, 1, 1}),          // green mesh edges
                fuhgl::math::Mat4{}, {0.f, 1.f, 0.f});
-    expect(wf.lineCount() == 24, "24 queued lines (12 box + 12 mesh)");
+    expect(wf.lineCount() == 42, "42 queued lines (12 box + 30 mesh edges)");
     wf.render(cam, W, H);
     f.glFlush();
     expect(lastError() == Error::NoError, "no GL error after wireframe render");
