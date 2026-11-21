@@ -51,12 +51,44 @@ vec3 shade(vec3 albedo, vec3 N, vec3 worldPos, vec3 V) {
         vec3 L;
         float atten;
         lightVector(i, worldPos, L, atten);
+        float sh = 1.0;
+        if (uShadowEnabled == 1 && i == uShadowLightIndex)
+            sh = mix(1.0, shadowFactor(worldPos, N, L), uShadowStrength);
         float diff = max(dot(N, L), 0.0);
         vec3 H = normalize(L + V);
         float spec = pow(max(dot(N, H), 0.0), 32.0) * 0.4;
-        acc += (albedo * diff + vec3(spec)) * lightColor[i].rgb * atten;
+        acc += (albedo * diff + vec3(spec)) * lightColor[i].rgb * atten * sh;
     }
     return acc;
+}
+)GLSL";
+
+// F15: uniforms + PCF shadow sampling against the shadow map on texture unit uShadowMap.
+// Assemble as: ... + kLightingUniforms + kShadowUniforms + kShadowFunc + kLightingLoop + ...
+constexpr const char* kShadowUniforms = R"GLSL(
+uniform sampler2D uShadowMap;
+uniform mat4 uLightVP;
+uniform int uShadowEnabled;
+uniform int uShadowLightIndex;
+uniform float uShadowStrength;
+)GLSL";
+
+constexpr const char* kShadowFunc = R"GLSL(
+// 3x3 PCF (on top of the LINEAR-filtered depth texture) with slope-scaled bias.
+// Returns 1.0 = fully lit, 0.0 = fully shadowed.
+float shadowFactor(vec3 worldPos, vec3 N, vec3 L) {
+    vec4 lp = uLightVP * vec4(worldPos, 1.0);
+    vec3 p = lp.xyz / lp.w * 0.5 + 0.5;
+    if (p.z > 1.0 || p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0) return 1.0;
+    float bias = max(0.0015 * (1.0 - dot(N, L)), 0.0004);
+    vec2 texel = 1.0 / vec2(textureSize(uShadowMap, 0));
+    float sum = 0.0;
+    for (int x = -1; x <= 1; ++x)
+        for (int y = -1; y <= 1; ++y) {
+            float d = texture(uShadowMap, p.xy + vec2(float(x), float(y)) * texel).r;
+            sum += (p.z - bias <= d) ? 1.0 : 0.0;
+        }
+    return sum / 9.0;
 }
 )GLSL";
 

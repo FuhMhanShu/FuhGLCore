@@ -1,4 +1,5 @@
 #include "fuhgl/render/pipeline.hpp"
+#include "fuhgl/render/shadow.hpp"
 #include "lighting_glsl.hpp"
 #include "pipeline_internal.hpp"
 
@@ -63,7 +64,8 @@ bool ForwardPipeline::create() {
     if (!defaultMaterial_.create()) return false;
     Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
     if (!vs.compile(kForwardVert)) return false;
-    const std::string fragSrc = std::string(kForwardFrag) + kLightingUniforms + kLightingLoop + kForwardFragTail;
+    const std::string fragSrc = std::string(kForwardFrag) + kLightingUniforms + kShadowUniforms + kShadowFunc +
+                                kLightingLoop + kForwardFragTail;
     if (!fs.compile(fragSrc.c_str())) return false;
     defaultMaterial_.program().attach(vs);
     defaultMaterial_.program().attach(fs);
@@ -71,6 +73,13 @@ bool ForwardPipeline::create() {
     defaultMaterial_.program().bindUniformBlock("LightBlock", 0);
     if (!lightsUbo_.create()) return false;
     lightsUbo_.bindBase(0);
+    // 1x1 dummy depth texture: keeps the uShadowMap sampler bound even when shadows are off
+    dummyShadowTex_.bind();
+    dummyShadowTex_.texStorage2D(1, gl::GL_DEPTH_COMPONENT24, 1, 1);
+    dummyShadowTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_NEAREST);
+    dummyShadowTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
+    dummyShadowTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
+    dummyShadowTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
     return true;
 }
 
@@ -107,6 +116,10 @@ void ForwardPipeline::render(const SceneView& scene) {
     gl::clear(gl::ClearBit::Color | gl::ClearBit::Depth);
 
     const math::Mat4 viewProj = scene.camera->viewProj(scene.aspect);
+    // shadow map on texture unit 4 (dummy 1x1 when disabled so the sampler stays bound)
+    const gl::GLuint shadowTexId = scene.shadowMap ? scene.shadowMap->textureId() : dummyShadowTex_.id();
+    gl::activeTexture(gl::GL_TEXTURE0 + 4);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D, shadowTexId);
     for (const DrawItem& item : scene.items) {
         if (!item.mesh) continue;
         detail::bindItem(defaultMaterial_, item, item.model, viewProj);
@@ -116,6 +129,11 @@ void ForwardPipeline::render(const SceneView& scene) {
         prog.setUniform("uCamPos", scene.camera->eye());
         prog.setUniform("uAmbient", scene.ambient);
         prog.setUniform(prog.uniformLocation("uLightCount"), n);
+        prog.setUniform(prog.uniformLocation("uShadowEnabled"), scene.shadowMap ? 1 : 0);
+        prog.setUniform(prog.uniformLocation("uShadowMap"), 4);
+        prog.setUniform("uLightVP", scene.lightVP);
+        prog.setUniform(prog.uniformLocation("uShadowLightIndex"), scene.shadowLightIndex);
+        prog.setUniform("uShadowStrength", scene.shadowStrength);
         item.mesh->draw();
     }
 

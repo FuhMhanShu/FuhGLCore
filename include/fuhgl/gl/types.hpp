@@ -36,6 +36,7 @@ using GLsync = struct __GLsync*;
 // --- boolean / error ----------------------------------------------------------
 inline constexpr GLboolean GL_FALSE = 0;
 inline constexpr GLboolean GL_TRUE = 1;
+inline constexpr GLenum GL_NONE = 0;
 inline constexpr GLenum GL_NO_ERROR = 0;
 inline constexpr GLenum GL_INVALID_ENUM = 0x0500;
 inline constexpr GLenum GL_INVALID_VALUE = 0x0501;

@@ -56,6 +56,7 @@ private:
     Framebuffer* target_ = nullptr;
     Material defaultMaterial_;
     UniformBuffer lightsUbo_;
+    Texture dummyShadowTex_{Texture::Target::Tex2D}; ///< 1x1 depth bound when no shadow map is set
 };
 
 } // namespace fuhgl::render

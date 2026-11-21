@@ -43,6 +43,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Solids & CSG (bodies + boolean ops) | `render::Solid`, `makeCube(...) - makeSphere(...)`, `buildMesh()` | [18](tutorials/18-solids-and-csg.md) |
 | GL state, batching, debug labels, image ops | `gl::stencilOp()`, `gl::multiDrawElements()`, `gl::objectLabel()`, … | [19](tutorials/19-state-batching-and-debug.md) |
 | Lights: directional / point / spot | `render::Light::directional/point/spot()`, `SceneView::lights` | [20](tutorials/20-lights.md) |
+| Shadow mapping (depth pass + PCF) | `render::ShadowMap`, `render::lightViewProj()`, `SceneView::shadowMap` | [21](tutorials/21-shadows.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

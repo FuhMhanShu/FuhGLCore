@@ -6,6 +6,7 @@
 #include "render/scene.hpp"
 #include "render/light.hpp"
 #include "render/mesh.hpp"
+#include "render/shadow.hpp"
 #include "render/material.hpp"
 #include "render/materials.hpp"
 #include "render/procedural.hpp"
