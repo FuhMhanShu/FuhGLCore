@@ -180,7 +180,7 @@ int main() {
         std::fprintf(stderr, "gl_smoke_deferred_fx: uSunDir loc=%d val=(%.3f,%.3f,%.3f)\n",
                      lp.uniformLocation("uSunDir"), v3[0], v3[1], v3[2]);
         fuhgl::gl::functions().glGetUniformfv(lp.id(), lp.uniformLocation("uSunColor"), v3);
-        fuhgl::gl::functions().glGetUniformf(lp.id(), lp.uniformLocation("uSunCos"), &v1);
+        fuhgl::gl::functions().glGetUniformfv(lp.id(), lp.uniformLocation("uSunCos"), &v1);
         std::fprintf(stderr, "gl_smoke_deferred_fx: uSunColor loc=%d val=(%.3f,%.3f,%.3f) uSunCos=%.6f\n",
                      lp.uniformLocation("uSunColor"), v3[0], v3[1], v3[2], v1);
     }
