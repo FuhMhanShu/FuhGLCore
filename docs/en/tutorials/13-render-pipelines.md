@@ -4,8 +4,8 @@
 `fuhgl::render` provides `ForwardPipeline` (one pass) and `DeferredPipeline`
 (G-buffer + fullscreen lighting), both driven by a plain `SceneView`.
 
-![deferred](../images/tutorial-deferred.png)
-![forward](../images/tutorial-forward.png)
+![deferred](../../images/tutorial-deferred.png)
+![forward](../../images/tutorial-forward.png)
 
 *(Both screenshots rendered headless in CI via the surfaceless EGL backend — see
 [tutorial 12](12-headless-rendering-and-screenshots.md).)*

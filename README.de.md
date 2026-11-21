@@ -26,12 +26,12 @@ Bibliothek, kein separates Engine-Projekt.
 
 Landschaft, gerendert mit dem `DeferredRenderer` (Schatten, SSAO, HDR + Bloom, God
 Rays, Nebel) — siehe `examples/showcase` und
-[Tutorial 29](docs/tutorials/29-showcase-scene.md).
+[Tutorial 29](docs/de/tutorials/29-showcase-scene.md).
 
 ![erstes Dreieck](docs/images/tutorial-first-triangle.png)
 ![isometrische Skybox](docs/images/tutorial-isometric-skybox.png)
 
-*(Screenshots wurden headless in der CI gerendert — siehe [Tutorial 12](docs/tutorials/12-headless-rendering-and-screenshots.md))*
+*(Screenshots wurden headless in der CI gerendert — siehe [Tutorial 12](docs/de/tutorials/12-headless-rendering-and-screenshots.md))*
 
 ## Was du bekommst
 
@@ -54,51 +54,51 @@ Rays, Nebel) — siehe `examples/showcase` und
   dependency-freies GLSL-`#include "..."`.
 - **Render-Pipelines** — `fuhgl::render`: `ForwardPipeline` und `DeferredPipeline`
   (G-Buffer + Lighting-Pass, optionales MSAA), gesteuert über eine schlichte
-  `SceneView` (siehe [Tutorial 13](docs/tutorials/13-render-pipelines.md)).
+  `SceneView` (siehe [Tutorial 13](docs/de/tutorials/13-render-pipelines.md)).
 - **Geräte-Infos & Fähigkeiten** — `gl::queryDeviceInfo()`: GPU-Hersteller/Renderer,
   GL-/GLSL-Version, Erweiterungsliste, Implementierungs-Limits und Feature-Flags
   (DSA, Compute, …), plus ein ausdruckbarer Bericht (siehe
-  [Tutorial 14](docs/tutorials/14-device-info-and-capabilities.md)).
+  [Tutorial 14](docs/de/tutorials/14-device-info-and-capabilities.md)).
 - **Buffer-/Textur-Power-ups** — `Buffer::mapRange()`-Streaming, `gl::copyBufferSubData()`,
   komprimierter Textur-Upload (`Texture::compressedImage2D()`), Textur-Readback
   (`gl::getTexImage`), GL-4.3-Vertex-Binding, Compute-Image-I/O (`gl::bindImageTexture`,
-  `gl::dispatchComputeIndirect`) — siehe [Tutorials 15](docs/tutorials/15-buffer-streaming-and-copies.md)
-  und [16](docs/tutorials/16-textures-images-and-compute-io.md).
+  `gl::dispatchComputeIndirect`) — siehe [Tutorials 15](docs/de/tutorials/15-buffer-streaming-and-copies.md)
+  und [16](docs/de/tutorials/16-textures-images-and-compute-io.md).
 - **Prozedurale Texturen, voreingestellte Materialien, Körper & CSG** —
   `render::procedural` erzeugt Texturen im Code (Schachbrett/Rauschen/Voronoi/…),
   `render::materials` liefert matte/texturierte/emissive Presets, und `render::Solid` +
   CSG-Operatoren (`makeCube(...) - makeSphere(...)`) vermaschen analytische Körper per
   Marching Tetrahedra — mit wählbaren UV-Mapping-Modi (`render::SolidUv`: planar
   XZ/XY/YZ, sphärisch, zylindrisch), damit texturierte Materialien auf jedem Körper
-  funktionieren — siehe [Tutorials 17](docs/tutorials/17-procedural-textures-and-materials.md)
-  und [18](docs/tutorials/18-solids-and-csg.md).
+  funktionieren — siehe [Tutorials 17](docs/de/tutorials/17-procedural-textures-and-materials.md)
+  und [18](docs/de/tutorials/18-solids-and-csg.md).
 - **Vollständiger GL-State & Batching** — Blending/Stencil, Polygon-Modus,
   Viewport-/Scissor-Arrays, Multi-Draw-/Instanced-Base-Draws, Debug-Labels & -Gruppen
   (`gl/debug.hpp`), Query-/Sync-Helfer, Internal-Format-Abfragen,
   `glCopyImageSubData`/`glClearTexImage` — siehe
-  [Tutorial 19](docs/tutorials/19-state-batching-and-debug.md).
+  [Tutorial 19](docs/de/tutorials/19-state-batching-and-debug.md).
 - **Lichtquellen** — `render::Light` mit den Typen direktional/Punkt/Spot, analytischer
   Attenuation, Reichweiten-Cutoff und Spot-Kegeln, als `LightBlock`-UBO in die Pipelines
-  hochgeladen — siehe [Tutorial 20](docs/tutorials/20-lights.md).
+  hochgeladen — siehe [Tutorial 20](docs/de/tutorials/20-lights.md).
 - **Shadow Mapping** — `render::ShadowMap` (reiner Depth-Pass aus Sicht der Lichtquelle)
   + `lightViewProj()`-Helfer + PCF-Sampling in den Pipelines über `SceneView::shadowMap` —
-  siehe [Tutorial 21](docs/tutorials/21-shadows.md).
+  siehe [Tutorial 21](docs/de/tutorials/21-shadows.md).
 - **Default-Forward-Renderer** — `render::ForwardRenderer`: ein `render()`-Aufruf erledigt
   den Schatten-Depth-Pass + den beleuchteten Forward-Pass mit Lichtquellen, PCF-Schatten
-  und Distanznebel — siehe [Tutorial 22](docs/tutorials/22-forward-renderer.md).
+  und Distanznebel — siehe [Tutorial 22](docs/de/tutorials/22-forward-renderer.md).
 - **Default-Deferred-Renderer + Post-FX** — `render::DeferredRenderer`: G-Buffer mit
   Parallax-/Bump-Mapping, SSAO, HDR-Beleuchtung mit Schatten, Bloom, Crepuscular God
   Rays und ACES-Tonemapping — siehe
-  [Tutorial 23](docs/tutorials/23-deferred-renderer-postfx.md).
+  [Tutorial 23](docs/de/tutorials/23-deferred-renderer-postfx.md).
 - **Text & FPS-Overlay** — `render::TextRenderer` mit eingebetteter Public-Domain-8x8-Bitmap-Schrift
   (ein gebatchter Draw-Call pro Frame) plus `render::FpsCounter` — siehe
-  [Tutorial 24](docs/tutorials/24-text-and-fps-overlay.md).
+  [Tutorial 24](docs/de/tutorials/24-text-and-fps-overlay.md).
 - **Drahtgitter-Overlay** — `render::Wireframe`: Körper (Dreieckskanten) und Bounding Boxes
   (AABB-Kanten) als ein gebatchter `GL_LINES`-Draw — siehe
-  [Tutorial 25](docs/tutorials/25-wireframe-solids-and-bounding-boxes.md).
+  [Tutorial 25](docs/de/tutorials/25-wireframe-solids-and-bounding-boxes.md).
 - **Instancing** — `Mesh::setInstanceData()` legt Modellmatrizen pro Instanz auf der GPU ab
   (Divisor-1-`mat4`-Attribut); ein Draw-Call rendert hunderte Kopien, animiert über
-  `updateInstanceData()` — siehe [Tutorial 28](docs/tutorials/28-instancing.md).
+  `updateInstanceData()` — siehe [Tutorial 28](docs/de/tutorials/28-instancing.md).
 
 Basis: **OpenGL 3.3 Core** (höhere Versionen bis 4.6 werden opportunistisch geladen, wo
 die Plattform sie bietet; macOS ist bei 4.1 gedeckelt). Die API wirft keine Ausnahmen
@@ -133,7 +133,7 @@ int main() {
 }
 ```
 
-Komplette Einführung: [Tutorial 01 — Fenster und erstes Dreieck](docs/tutorials/01-window-and-first-triangle.md).
+Komplette Einführung: [Tutorial 01 — Fenster und erstes Dreieck](docs/de/tutorials/01-window-and-first-triangle.md).
 
 ## Build
 
@@ -153,8 +153,10 @@ Laufzeit geladen, daher sind zur Build-Zeit keine OpenGL-Entwicklungspakete nöt
 
 ## Dokumentation
 
+- [Dokumentationsübersicht / language picker](docs/README.md)
+- [Tutorials (Deutsch)](docs/de/tutorials/README.md) — ein kleines Tutorial pro Feature, mit Screenshots;
+  [Tutorials (English)](docs/en/tutorials/README.md) — englische Fassung
 - [Benutzerhandbuch](docs/USER_GUIDE.md) — Konzepte und Features (der beschreibende Teil; auf Englisch)
-- [Tutorials](docs/tutorials/README.md) — ein kleines Tutorial pro Feature, mit Screenshots (auf Englisch)
 - [Entwicklung](docs/DEVELOPMENT.md) — Architektur, Konventionen, Build, Tests, CI (der technische Teil; auf Englisch)
 - [Anforderungen](docs/REQUIREMENTS.md) — die vereinbarten funktionalen/nicht-funktionalen Anforderungen (auf Englisch)
 - API-Referenz — Doxygen-HTML wird in der CI gebaut und als `doxygen-html`-Artefakt hochgeladen

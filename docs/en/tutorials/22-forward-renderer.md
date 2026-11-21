@@ -5,7 +5,7 @@ map by hand: `render::ForwardRenderer` owns a `ForwardPipeline`, the scene-wide 
 (lights, ambient, clear color, fog) and an optional shadow map that is re-rendered
 automatically from the first directional/spot light on every `render()` call.
 
-![forward renderer](../images/tutorial-forward-renderer.png)
+![forward renderer](../../images/tutorial-forward-renderer.png)
 *With shadows and fog (left would be `--no-shadows`: see `tutorial-forward-renderer-noshadow.png`).*
 
 ## Usage

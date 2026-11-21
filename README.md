@@ -13,7 +13,7 @@ shadow mapping, SSAO, HDR post-processing (bloom, god rays, ACES tone mapping),
 procedural textures & materials, CSG solids, text/FPS overlay, wireframe overlay
 and instancing.
 
-🇩🇪 [Deutsche Version dieser README](README.de.md)
+> 🇩🇪 **Deutsche Version:** [README.de.md](README.de.md) · Deutsche Doku: [docs/de/](docs/de/tutorials/README.md)
 
 The name "Core" refers to the zero-dependency GL/window/math core; the built-in
 render layer on top (`fuhgl/render.hpp` — pipelines, default renderers, post FX,
@@ -24,12 +24,12 @@ separate engine project.
 ![showcase sunset](docs/images/readme-showcase-sunset.png)
 
 Landscape rendered with the `DeferredRenderer` (shadows, SSAO, HDR + bloom, god rays,
-fog) — see `examples/showcase` and [tutorial 29](docs/tutorials/29-showcase-scene.md).
+fog) — see `examples/showcase` and [tutorial 29](docs/en/tutorials/29-showcase-scene.md).
 
 ![first triangle](docs/images/tutorial-first-triangle.png)
 ![isometric skybox](docs/images/tutorial-isometric-skybox.png)
 
-*(Screenshots rendered headless in CI — see [tutorial 12](docs/tutorials/12-headless-rendering-and-screenshots.md))*
+*(Screenshots rendered headless in CI — see [tutorial 12](docs/en/tutorials/12-headless-rendering-and-screenshots.md))*
 
 ## What you get
 
@@ -50,48 +50,48 @@ fog) — see `examples/showcase` and [tutorial 29](docs/tutorials/29-showcase-sc
   dependency-free GLSL `#include "..."`.
 - **Render pipelines** — `fuhgl::render`: `ForwardPipeline` and `DeferredPipeline`
   (G-buffer + lighting pass, optional MSAA) driven by a plain `SceneView`
-  (see [tutorial 13](docs/tutorials/13-render-pipelines.md)).
+  (see [tutorial 13](docs/en/tutorials/13-render-pipelines.md)).
 - **Device info & capabilities** — `gl::queryDeviceInfo()`: GPU vendor/renderer, GL/GLSL
   version, extension list, implementation limits and feature flags (DSA, compute, …),
-  plus a printable report (see [tutorial 14](docs/tutorials/14-device-info-and-capabilities.md)).
+  plus a printable report (see [tutorial 14](docs/en/tutorials/14-device-info-and-capabilities.md)).
 - **Buffer/texture power-ups** — `Buffer::mapRange()` streaming, `gl::copyBufferSubData()`,
   compressed texture upload (`Texture::compressedImage2D()`), texture readback
   (`gl::getTexImage`), GL 4.3 vertex binding, compute image I/O (`gl::bindImageTexture`,
-  `gl::dispatchComputeIndirect`) — see [tutorials 15](docs/tutorials/15-buffer-streaming-and-copies.md)
-  and [16](docs/tutorials/16-textures-images-and-compute-io.md).
+  `gl::dispatchComputeIndirect`) — see [tutorials 15](docs/en/tutorials/15-buffer-streaming-and-copies.md)
+  and [16](docs/en/tutorials/16-textures-images-and-compute-io.md).
 - **Procedural textures, preset materials, solids & CSG** — `render::procedural` generates
   textures in code (checker/noise/voronoi/…), `render::materials` provides
   matte/textured/emissive presets, and `render::Solid` + CSG operators
   (`makeCube(...) - makeSphere(...)`) mesh analytic bodies via marching tetrahedra —
   with selectable UV mapping modes (`render::SolidUv`: planar XZ/XY/YZ, spherical,
   cylindrical) so textured materials work on any solid —
-  see [tutorials 17](docs/tutorials/17-procedural-textures-and-materials.md) and
-  [18](docs/tutorials/18-solids-and-csg.md).
+  see [tutorials 17](docs/en/tutorials/17-procedural-textures-and-materials.md) and
+  [18](docs/en/tutorials/18-solids-and-csg.md).
 - **Full GL state & batching** — blending/stencil, polygon mode, viewport/scissor arrays,
   multi-draw/instanced-base draws, debug labels & groups (`gl/debug.hpp`), queries/sync
   helpers, internal-format queries, `glCopyImageSubData`/`glClearTexImage` —
-  see [tutorial 19](docs/tutorials/19-state-batching-and-debug.md).
+  see [tutorial 19](docs/en/tutorials/19-state-batching-and-debug.md).
 - **Lights** — `render::Light` with directional/point/spot types, analytic attenuation,
   range cutoff and spot cones, uploaded as a `LightBlock` UBO to the pipelines —
-  see [tutorial 20](docs/tutorials/20-lights.md).
+  see [tutorial 20](docs/en/tutorials/20-lights.md).
 - **Shadow mapping** — `render::ShadowMap` (depth-only pass from the light's POV) +
   `lightViewProj()` helpers + PCF sampling in the pipelines via `SceneView::shadowMap` —
-  see [tutorial 21](docs/tutorials/21-shadows.md).
+  see [tutorial 21](docs/en/tutorials/21-shadows.md).
 - **Default forward renderer** — `render::ForwardRenderer`: one `render()` call does the
   shadow depth pass + lit forward pass with lights, PCF shadows and distance fog —
-  see [tutorial 22](docs/tutorials/22-forward-renderer.md).
+  see [tutorial 22](docs/en/tutorials/22-forward-renderer.md).
 - **Default deferred renderer + post FX** — `render::DeferredRenderer`: G-buffer with
   parallax/bump mapping, SSAO, HDR lighting with shadows, bloom, crepuscular god rays
-  and ACES tone mapping — see [tutorial 23](docs/tutorials/23-deferred-renderer-postfx.md).
+  and ACES tone mapping — see [tutorial 23](docs/en/tutorials/23-deferred-renderer-postfx.md).
 - **Text & FPS overlay** — `render::TextRenderer` with an embedded public-domain 8x8 bitmap
   font (one batched draw call per frame) plus `render::FpsCounter` — see
-  [tutorial 24](docs/tutorials/24-text-and-fps-overlay.md).
+  [tutorial 24](docs/en/tutorials/24-text-and-fps-overlay.md).
 - **Wireframe overlay** — `render::Wireframe`: solids (triangle edges) and bounding boxes
   (AABB edges) as one batched `GL_LINES` draw — see
-  [tutorial 25](docs/tutorials/25-wireframe-solids-and-bounding-boxes.md).
+  [tutorial 25](docs/en/tutorials/25-wireframe-solids-and-bounding-boxes.md).
 - **Instancing** — `Mesh::setInstanceData()` puts per-instance model matrices on the GPU
   (divisor-1 `mat4` attribute); one draw call renders hundreds of copies, animated via
-  `updateInstanceData()` — see [tutorial 28](docs/tutorials/28-instancing.md).
+  `updateInstanceData()` — see [tutorial 28](docs/en/tutorials/28-instancing.md).
 
 Baseline: **OpenGL 3.3 core** (higher versions up to 4.6 loaded opportunistically where
 the platform provides them; macOS caps at 4.1). The API never throws for domain errors —
@@ -125,7 +125,7 @@ int main() {
 }
 ```
 
-Full walkthrough: [tutorial 01 — window and first triangle](docs/tutorials/01-window-and-first-triangle.md).
+Full walkthrough: [tutorial 01 — window and first triangle](docs/en/tutorials/01-window-and-first-triangle.md).
 
 ## Build
 
@@ -146,10 +146,12 @@ so no OpenGL dev packages are needed at build time.
 
 ## Documentation
 
-- [User guide](docs/USER_GUIDE.md) — concepts and features (the descriptive part)
-- [Tutorials](docs/tutorials/README.md) — one small tutorial per feature, with screenshots
-- [Development](docs/DEVELOPMENT.md) — architecture, conventions, build, tests, CI (the technical part)
-- [Requirements](docs/REQUIREMENTS.md) — the agreed functional/non-functional requirements
+- [Documentation overview / Sprachauswahl](docs/README.md)
+- [User guide](docs/USER_GUIDE.md) — concepts and features (the descriptive part, English)
+- [Tutorials (English)](docs/en/tutorials/README.md) — one small tutorial per feature, with screenshots;
+  [Tutorials (Deutsch)](docs/de/tutorials/README.md) — German translation
+- [Development](docs/DEVELOPMENT.md) — architecture, conventions, build, tests, CI (the technical part, English)
+- [Requirements](docs/REQUIREMENTS.md) — the agreed functional/non-functional requirements (English)
 - API reference — Doxygen HTML is built in CI and uploaded as the `doxygen-html` artifact
   (locally: `cd docs && doxygen Doxyfile`)
 

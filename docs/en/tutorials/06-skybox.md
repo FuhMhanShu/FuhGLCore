@@ -3,7 +3,7 @@
 **Goal:** a skybox that always stays at the far plane, from 6 images or a procedural
 gradient — no image files needed for the procedural variant.
 
-![isometric skybox](../images/tutorial-isometric-skybox.png)
+![isometric skybox](../../images/tutorial-isometric-skybox.png)
 
 ```cpp
 fuhgl::Skybox sky; sky.create();

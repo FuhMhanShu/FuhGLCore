@@ -3,7 +3,7 @@
 **Goal:** describe bodies analytically, combine them with boolean operators
 (union / intersection / difference) and extract a renderable mesh on demand.
 
-![solids demo](../images/tutorial-solids.png)
+![solids demo](../../images/tutorial-solids.png)
 
 *(Left: `cube - sphere` with a voronoi texture, middle: `torus - cylinder`,
 right: `cylinder | translated(cone)`, plus an emissive marker sphere.
@@ -49,19 +49,19 @@ All rendered headless in CI by `examples/solids --screenshot ... --csg <mode>`:
 
 **Union** — `makeCube({0.85,0.85,0.85}) | makeSphere(0.8)`:
 
-![CSG union](../images/tutorial-csg-union.png)
+![CSG union](../../images/tutorial-csg-union.png)
 
 **Difference** — `makeCube({1,1,1}) - makeSphere(0.75)` (voronoi-textured):
 
-![CSG difference](../images/tutorial-csg-difference.png)
+![CSG difference](../../images/tutorial-csg-difference.png)
 
 **Intersection** — `makeSphere(0.95) & makeCube({0.8,0.8,0.8})`:
 
-![CSG intersection](../images/tutorial-csg-intersection.png)
+![CSG intersection](../../images/tutorial-csg-intersection.png)
 
 **Bounding volumes** of the difference part — solid, low-poly octahedron, bounding sphere, AABB box:
 
-![bounding volumes](../images/tutorial-csg-bounds.png)
+![bounding volumes](../../images/tutorial-csg-bounds.png)
 
 ## How meshing works
 
@@ -129,7 +129,7 @@ values, pole/seam behavior and that every meshed UV stays in [0,1] for all five 
 Left to right: PlanarXZ, PlanarXY, PlanarYZ, Spherical (spheres) + Cylindrical (cylinder
 with bricks, torus with voronoi) — all one checker/brick/voronoi texture each:
 
-![textured solids with different UV modes](../images/tutorial-solids-textured.png)
+![textured solids with different UV modes](../../images/tutorial-solids-textured.png)
 
 ## Example
 

@@ -4,7 +4,7 @@
 vendor & renderer strings, GL/GLSL version, extension list, implementation
 limits and feature flags — via one call: `fuhgl::gl::queryDeviceInfo()`.
 
-![capability bars](../images/tutorial-gpuinfo.png)
+![capability bars](../../images/tutorial-gpuinfo.png)
 
 *(Screenshot rendered headless in CI: `examples/gpuinfo --screenshot` draws the
 key limits as bars with text labels via `render::TextRenderer` — see

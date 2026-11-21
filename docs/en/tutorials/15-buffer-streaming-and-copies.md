@@ -4,7 +4,7 @@
 on the GPU (`glCopyBufferSubData`), read data back (`glGetBufferSubData`), and use the
 modern GL 4.3 vertex binding model instead of classic attribute pointers.
 
-![stream demo](../images/tutorial-stream.png)
+![stream demo](../../images/tutorial-stream.png)
 
 *(Left half: triangle with per-frame streamed colors. Screenshot rendered headless in CI
 by `examples/stream --screenshot` — see [12](12-headless-rendering-and-screenshots.md).)*

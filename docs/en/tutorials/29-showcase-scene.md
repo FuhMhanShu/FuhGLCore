@@ -3,8 +3,8 @@
 **Goal:** a small, good-looking landscape rendered with the default `DeferredRenderer`
 and its full effect stack — used for the two hero images at the top of the README.
 
-![showcase day](../images/readme-showcase-day.png)
-![showcase sunset](../images/readme-showcase-sunset.png)
+![showcase day](../../images/readme-showcase-day.png)
+![showcase sunset](../../images/readme-showcase-sunset.png)
 
 The scene (`examples/showcase`) combines several features from earlier tutorials:
 

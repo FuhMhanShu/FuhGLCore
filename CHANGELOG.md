@@ -10,6 +10,11 @@ All notable changes to FuhGLCore are documented here. The format follows
 - README reworked: the "lightweight OpenGL wrapper" headline is replaced by a
   description of the current scope (zero-dependency GL core + built-in render
   layer); complete German translation added as `README.de.md` (cross-linked).
+- All 29 tutorials translated into German (`docs/de/tutorials/`, same file names)
+  following the InMemDB docs convention: English tutorials moved to
+  `docs/en/tutorials/`, new `docs/README.md` language picker, per-file
+  cross-language links at the top of each tutorial. All links updated
+  (README.md, README.de.md, USER_GUIDE.md, DEVELOPMENT.md).
 - Project hardening:
   - CI: top-level `permissions: contents: read`, `concurrency` with
     `cancel-in-progress`, all actions pinned to commit SHAs

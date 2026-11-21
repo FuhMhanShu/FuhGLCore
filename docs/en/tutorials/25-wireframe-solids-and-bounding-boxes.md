@@ -3,7 +3,7 @@
 **Goal:** visualize solids and their bounding volumes as wireframe — for debugging,
 bounding-volume previews and CSG inspection.
 
-![wireframe](../images/tutorial-wireframe.png)
+![wireframe](../../images/tutorial-wireframe.png)
 
 `render::Wireframe` queues line segments on the CPU (no GL calls while queueing) and
 draws everything in **one `glDrawArrays(GL_LINES)`** per frame:

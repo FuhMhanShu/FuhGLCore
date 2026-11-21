@@ -6,7 +6,7 @@
 cutoff and spot cones. The pipelines upload up to `kMaxLights` (64) of them through the
 std140 `LightBlock` UBO at binding 0 — no shader changes needed to add lights.
 
-![lights](../images/tutorial-lights.png)
+![lights](../../images/tutorial-lights.png)
 
 ## The Light class
 

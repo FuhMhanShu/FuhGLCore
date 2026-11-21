@@ -4,7 +4,7 @@
 No windowing library is involved — `fuhgl::Window` does it natively (Win32/WGL,
 X11/GLX, Cocoa; EGL/Wayland/surfaceless on Linux with `-DFUHGL_LINUX_BACKEND=EGL`).
 
-![first triangle](../images/tutorial-first-triangle.png)
+![first triangle](../../images/tutorial-first-triangle.png)
 
 ```cpp
 #include <fuhgl/fuhgl.hpp>

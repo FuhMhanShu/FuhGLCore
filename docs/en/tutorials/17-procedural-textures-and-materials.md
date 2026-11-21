@@ -3,7 +3,7 @@
 **Goal:** generate textures in code (no image files) and use ready-made materials
 instead of hand-written shaders.
 
-![solids demo](../images/tutorial-solids.png)
+![solids demo](../../images/tutorial-solids.png)
 
 *(The CSG part on the left uses a procedural voronoi texture with the `textured`
 material — screenshot rendered headless in CI by `examples/solids --screenshot`,

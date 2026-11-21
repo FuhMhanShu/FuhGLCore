@@ -3,7 +3,7 @@
 **Goal:** draw text on top of a rendered frame — HUD labels, FPS counters, debug info —
 without any external font file or dependency.
 
-![text overlay](../images/tutorial-text.png)
+![text overlay](../../images/tutorial-text.png)
 
 `render::TextRenderer` embeds a public-domain 8x8 bitmap font (font8x8, IBM VGA based)
 as a 128×64 `GL_R8` atlas and batches all glyphs of a frame into **one draw call**.

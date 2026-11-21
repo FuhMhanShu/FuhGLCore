@@ -6,7 +6,7 @@ back (`getTexImage`), view a buffer as a texture (`texBuffer`), create zero-copy
 views (`glTextureView`), and bind textures as **compute images** (`glBindImageTexture`)
 with direct/indirect dispatch.
 
-![stream demo](../images/tutorial-stream.png)
+![stream demo](../../images/tutorial-stream.png)
 
 *(Right half: quad with a DXT1-compressed checkerboard uploaded via
 `Texture::compressedImage2D` — `examples/stream --screenshot`, rendered headless in CI.)*

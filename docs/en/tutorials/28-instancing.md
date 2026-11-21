@@ -4,7 +4,7 @@
 trees, rocks, particles, a crowd — by uploading per-instance model matrices once
 and letting the GPU fetch them per instance.
 
-![instancing](../images/tutorial-instancing.png)
+![instancing](../../images/tutorial-instancing.png)
 
 ## How it works
 

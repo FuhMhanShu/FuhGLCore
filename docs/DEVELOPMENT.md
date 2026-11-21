@@ -25,8 +25,10 @@ tests/                  unit tests (own mini runner, no framework) + gl_smoke
 cmake/                  package config template
 README.md / README.de.md  project readme (English / German)
 SECURITY.md             vulnerability reporting policy
-docs/                   USER_GUIDE.md, DEVELOPMENT.md, REQUIREMENTS.md, tutorials/,
-                        Doxyfile, images/ (committed screenshots), doxygen/ (gitignored)
+docs/                   README.md (language picker), USER_GUIDE.md, DEVELOPMENT.md,
+                        REQUIREMENTS.md (English-only), en/tutorials/, de/tutorials/
+                        (tutorials in English and German), Doxyfile,
+                        images/ (committed screenshots), doxygen/ (gitignored)
 .github/workflows/ci.yml
 ```
 
@@ -131,5 +133,7 @@ immutable commit SHAs (e.g. `actions/checkout@11bd71901bbe5b1630ceea73d27597364c
 1. Public API in `include/fuhgl/…` (Doxygen comments, English), PIMPL impl in `src/`.
 2. Extend the curated loader table in `src/gl/loader.cpp` if you need new GL entry points.
 3. Unit tests in `tests/` (headless where possible).
-4. Tutorial in `docs/tutorials/` (+ screenshot via the `docs` CI job if it renders).
+4. Tutorial in `docs/en/tutorials/` in English (+ screenshot via the `docs` CI job if it
+   renders), then translate it into `docs/de/tutorials/` (same file name; cross-links at
+   the top of each file, see the InMemDB-style `docs/README.md` language picker).
 5. Update `README.md` / `USER_GUIDE.md` feature table.
