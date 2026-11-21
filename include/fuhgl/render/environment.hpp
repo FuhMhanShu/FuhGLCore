@@ -41,8 +41,8 @@ CubemapData readCubemap(const Texture& cube);
 math::Vec3 cubemapTexelDir(int face, float u, float v);
 /// @brief Nearest-neighbor cubemap sample (RGB).
 math::Vec3 sampleCubemap(const CubemapData& src, const math::Vec3& dir);
-/// @brief Van der Corput radical inverse (base 2).
-float radicalInverse(std::uint32_t bits);
+/// @brief Van der Corput radical inverse (base 2) — delegates to math::radicalInverse.
+inline float radicalInverse(std::uint32_t bits) { return math::radicalInverse(bits); }
 /// @brief Hammersley point i of n in [0,1)^2.
 math::Vec2 hammersley(std::uint32_t i, std::uint32_t n);
 /// @brief GGX (Trowbridge-Reitz) importance sample around the normal n.

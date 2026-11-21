@@ -17,3 +17,4 @@ void runShadowTests();
 void runTextTests();
 void runWireframeTests();
 void runEnvironmentTests();
+void runGraphTests();

@@ -82,6 +82,10 @@ fog) — see `examples/showcase` and [tutorial 29](docs/en/tutorials/29-showcase
 - **Cascaded shadow maps (CSM)** — `render::CascadeShadowMap` (depth texture array, one layer
   per cascade, fitted per camera-frustum slice) via `ForwardRenderer::enableCsmShadows()` /
   `SceneView::cascades` — see [tutorial 33](docs/en/tutorials/33-cascaded-shadow-maps.md).
+- **Render graph + TAA + SSR** — the deferred post chain runs through `render::RenderGraph`
+  (declarative passes, auto-ordered, per-pass FBOs); optional temporal AA (Halton jitter +
+  history accumulation, `taaEnabled`) and screen-space reflections (`ssrEnabled`) —
+  see [tutorials 34–36](docs/en/tutorials/34-render-graph.md).
 - **PBR materials** — metallic-roughness shading (Cook-Torrance GGX) in both pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, stored per pixel in a 5th G-buffer
   attachment in the deferred path — see [tutorial 31](docs/en/tutorials/31-pbr-materials.md).

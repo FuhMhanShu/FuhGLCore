@@ -6,6 +6,7 @@
 #include "mat.hpp"
 #include "vec.hpp"
 #include <cmath>
+#include <cstdint>
 
 namespace fuhgl::math {
 
@@ -84,6 +85,41 @@ inline Mat4 ortho(float left, float right, float bottom, float top, float zNear,
     r(3, 1) = -(top + bottom) / (top - bottom);
     r(3, 2) = -(zFar + zNear) / (zFar - zNear);
     return r;
+}
+
+/// @brief Van der Corput radical inverse (base 2) of a 32-bit integer, in [0, 1).
+inline float radicalInverse(std::uint32_t bits) {
+    bits = (bits << 16u) | (bits >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    return static_cast<float>(bits) * 2.3283064365386963e-10f;
+}
+
+/// @brief Halton low-discrepancy point i (bases 2 and 3 by default) in [0, 1)^2 —
+/// used for TAA subpixel jitter (F32).
+inline Vec2 halton(std::uint32_t i, std::uint32_t b1 = 2u, std::uint32_t b2 = 3u) {
+    // general base radical inverse
+    const auto radInv = [](std::uint32_t v, std::uint32_t base) {
+        float r = 0.f, f = 1.f;
+        while (v) {
+            f /= static_cast<float>(base);
+            r += f * static_cast<float>(v % base);
+            v /= base;
+        }
+        return r;
+    };
+    return {radInv(i, b1), radInv(i, b2)};
+}
+
+/// @brief Returns viewProj with a subpixel jitter applied in clip space:
+/// clip' = T(jitterNdc) * viewProj * world (jitterNdc in NDC units, e.g. from halton()).
+inline Mat4 jitterViewProj(const Mat4& viewProj, const Vec2& jitterNdc) {
+    Mat4 t;
+    t(3, 0) = jitterNdc.x;
+    t(3, 1) = jitterNdc.y;
+    return t * viewProj;
 }
 
 /// @brief Right-handed view matrix looking from eye towards center with the given up vector.

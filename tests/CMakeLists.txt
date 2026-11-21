@@ -15,6 +15,7 @@ add_executable(fuhgl_tests
     test_text.cpp
     test_wireframe.cpp
     test_environment.cpp
+    test_graph.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
@@ -122,6 +123,21 @@ add_executable(fuhgl_gl_smoke_csm gl_smoke_csm.cpp)
 target_link_libraries(fuhgl_gl_smoke_csm PRIVATE fuhglcore)
 add_test(NAME gl_smoke_csm COMMAND fuhgl_gl_smoke_csm)
 
+# F31 render graph smoke test: two-pass graph (fill + scale) readback, cycle rejected.
+add_executable(fuhgl_gl_smoke_graph gl_smoke_graph.cpp)
+target_link_libraries(fuhgl_gl_smoke_graph PRIVATE fuhglcore)
+add_test(NAME gl_smoke_graph COMMAND fuhgl_gl_smoke_graph)
+
+# F32 TAA smoke test: jitter changes the raw frame, accumulation converges.
+add_executable(fuhgl_gl_smoke_taa gl_smoke_taa.cpp)
+target_link_libraries(fuhgl_gl_smoke_taa PRIVATE fuhglcore)
+add_test(NAME gl_smoke_taa COMMAND fuhgl_gl_smoke_taa)
+
+# F33 SSR smoke test: emissive lamp reflected in the floor brightens it.
+add_executable(fuhgl_gl_smoke_ssr gl_smoke_ssr.cpp)
+target_link_libraries(fuhgl_gl_smoke_ssr PRIVATE fuhglcore)
+add_test(NAME gl_smoke_ssr COMMAND fuhgl_gl_smoke_ssr)
+
 # --- test semantics (F26) ---------------------------------------------------------------
 # "unit": pure CPU tests, no GL context required.
 # "gl_context": needs a GL context; the test exits with code 77 ("Skipped" via
@@ -132,5 +148,5 @@ set_tests_properties(fuhgl_tests PROPERTIES LABELS "unit")
 set_tests_properties(
     gl_smoke gl_smoke_deferred gl_smoke_buffers gl_smoke_solids gl_smoke_state gl_smoke_lights
     gl_smoke_shadows gl_smoke_forward gl_smoke_deferred_fx gl_smoke_dsa gl_smoke_text
-    gl_smoke_wireframe gl_smoke_p3 gl_smoke_reflection gl_smoke_instancing gl_smoke_pbr gl_smoke_csm
+    gl_smoke_wireframe gl_smoke_p3 gl_smoke_reflection gl_smoke_instancing gl_smoke_pbr gl_smoke_csm gl_smoke_graph gl_smoke_taa gl_smoke_ssr
     PROPERTIES LABELS "gl_context" SKIP_RETURN_CODE 77)

@@ -26,10 +26,10 @@ static CubemapData constantCubemap(int size, const Vec3& c) {
 
 void runEnvironmentTests() {
     // radicalInverse / hammersley
-    CHECK_NEAR(radicalInverse(0), 0.f, 1e-7f);
-    CHECK_NEAR(radicalInverse(1), 0.5f, 1e-7f);
-    CHECK_NEAR(radicalInverse(2), 0.25f, 1e-7f);
-    CHECK_NEAR(radicalInverse(3), 0.75f, 1e-7f);
+    CHECK_NEAR(render::radicalInverse(0), 0.f, 1e-7f);
+    CHECK_NEAR(render::radicalInverse(1), 0.5f, 1e-7f);
+    CHECK_NEAR(render::radicalInverse(2), 0.25f, 1e-7f);
+    CHECK_NEAR(render::radicalInverse(3), 0.75f, 1e-7f);
     const Vec2 h0 = hammersley(0, 4);
     CHECK_NEAR(h0.x, 0.f, 1e-7f);
     CHECK_NEAR(h0.y, 0.f, 1e-7f);

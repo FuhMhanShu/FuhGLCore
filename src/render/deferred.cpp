@@ -353,7 +353,7 @@ void DeferredPipeline::renderGBuffer(const SceneView& scene) {
     gl::clearBufferfv(gl::GL_COLOR, 4, clearZero); // pbr
     gl::clear(gl::ClearBit::Depth);
 
-    const math::Mat4 viewProj = scene.camera->viewProj(scene.aspect);
+    const math::Mat4 viewProj = math::jitterViewProj(scene.camera->viewProj(scene.aspect), scene.jitter); // F32
     for (const DrawItem& item : scene.items) {
         if (!item.mesh) continue;
         detail::bindItem(defaultMaterial_, item, item.model, viewProj);

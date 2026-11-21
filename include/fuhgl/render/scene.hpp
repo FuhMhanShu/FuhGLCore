@@ -52,6 +52,8 @@ struct SceneView {
     float sunCos = 0.99995f;                ///< cos of the sun's angular radius
     // --- IBL (F29): optional environment for image-based ambient lighting -----------
     const Environment* env = nullptr;       ///< nullptr = flat uAmbient term only
+    // --- TAA (F32): subpixel jitter in NDC units, applied by the pipelines -----------
+    math::Vec2 jitter{0.f, 0.f};            ///< 0 = off (no jitter)
 };
 
 /// @brief Vertex attribute layout for Mesh::setData.

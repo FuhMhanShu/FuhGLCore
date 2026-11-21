@@ -28,6 +28,7 @@ add_library(fuhglcore STATIC
     src/render/mesh.cpp
     src/render/material.cpp
     src/render/environment.cpp
+    src/render/graph.cpp
     src/render/light.cpp
     src/render/shadow.cpp
     src/render/forward_renderer.cpp

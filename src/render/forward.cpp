@@ -137,7 +137,7 @@ void ForwardPipeline::render(const SceneView& scene) {
     gl::clearColor(scene.clearColor.x, scene.clearColor.y, scene.clearColor.z, 1.f);
     gl::clear(gl::ClearBit::Color | gl::ClearBit::Depth);
 
-    const math::Mat4 viewProj = scene.camera->viewProj(scene.aspect);
+    const math::Mat4 viewProj = math::jitterViewProj(scene.camera->viewProj(scene.aspect), scene.jitter); // F32
     // shadow map on kTextureUnitShadowMap (dummy 1x1 so the sampler stays bound);
     // F30: a CascadeShadowMap binds a GL_TEXTURE_2D_ARRAY on the same unit instead
     const bool csm = scene.cascades && scene.cascades->cascadeCount() > 0;

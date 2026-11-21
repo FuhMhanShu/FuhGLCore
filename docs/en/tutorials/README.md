@@ -41,6 +41,9 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 31 | PBR materials: metallic-roughness (Cook-Torrance GGX) in both pipelines | [31-pbr-materials.md](31-pbr-materials.md) |
 | 32 | IBL: irradiance + prefiltered env cubemap + BRDF LUT from any cubemap | [32-ibl-environment.md](32-ibl-environment.md) |
 | 33 | Cascaded shadow maps (CSM): depth texture array, one layer per cascade | [33-cascaded-shadow-maps.md](33-cascaded-shadow-maps.md) |
+| 34 | Render graph: declarative passes, auto-ordered, FBO per pass (DeferredRenderer post chain) | [34-render-graph.md](34-render-graph.md) |
+| 35 | TAA: Halton subpixel jitter + temporal history accumulation | [35-taa.md](35-taa.md) |
+| 36 | SSR: screen-space reflections on the HDR image | [36-ssr.md](36-ssr.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

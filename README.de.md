@@ -88,6 +88,10 @@ Rays, Nebel) — siehe `examples/showcase` und
 - **Cascaded Shadow Maps (CSM)** — `render::CascadeShadowMap` (Depth-Textur-Array, eine Ebene
   pro Kaskade, passend pro Kamera-Frustum-Slice) über `ForwardRenderer::enableCsmShadows()` /
   `SceneView::cascades` — siehe [Tutorial 33](docs/de/tutorials/33-cascaded-shadow-maps.md).
+- **Render Graph + TAA + SSR** — die Post-Kette des Deferred-Renderers läuft über
+  `render::RenderGraph` (deklarative Pässe, auto-sortiert, FBO pro Pass); optionales
+  Temporal AA (Halton-Jitter + History-Akkumulation, `taaEnabled`) und Screen-Space
+  Reflections (`ssrEnabled`) — siehe [Tutorials 34–36](docs/de/tutorials/34-render-graph.md).
 - **PBR-Materialien** — Metallic-Roughness-Shading (Cook-Torrance GGX) in beiden Pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, im Deferred-Pfad pro Pixel in einem
   5. G-Buffer-Attachment gespeichert — siehe [Tutorial 31](docs/de/tutorials/31-pbr-materials.md).

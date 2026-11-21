@@ -2,12 +2,15 @@
 
 /// @file deferred_renderer.hpp
 /// @brief DeferredRenderer (F17): the default ready-to-use deferred renderer —
-/// G-buffer pass + SSAO + HDR lighting (lights, PCF shadows, fog, sky sun disk),
-/// then a post-processing chain: bloom (bright-pass + separable blur), crepuscular
-/// "god" rays from the sun's screen position, and ACES tone mapping + gamma into
-/// the LDR output. Parallax/bump mapping live in the G-buffer pass (material maps).
+/// G-buffer pass + SSAO + HDR lighting (lights, PCF/CSM shadows, IBL, fog, sky sun
+/// disk), then a post-processing chain that runs through a render::RenderGraph (F31):
+/// optional SSR (F33) and TAA (F32, subpixel jitter + history accumulation) on the HDR
+/// image, then bloom (bright-pass + separable blur), crepuscular "god" rays from the
+/// sun's screen position, and ACES tone mapping + gamma into the LDR output.
+/// Parallax/bump mapping live in the G-buffer pass (material maps).
 
 #include "deferred.hpp"
+#include "graph.hpp"
 #include "light.hpp"
 #include "shadow.hpp"
 
@@ -16,6 +19,7 @@
 #include "../gl/ubo.hpp"
 #include "../gl/vao.hpp"
 
+#include <functional>
 #include <memory>
 
 namespace fuhgl::render {
@@ -40,16 +44,18 @@ public:
     bool create(int width, int height, int msaaSamples = 0);
     void resize(int width, int height);
 
-    /// @brief Full frame: shadow depth pass (if enabled) -> G-buffer -> SSAO ->
-    /// HDR lighting -> bloom -> god rays -> ACES+gamma composite into output().
+    /// @brief Full frame: shadow depth pass (if enabled) -> G-buffer -> post graph
+    /// (SSAO -> lighting -> [SSR] -> [TAA] -> bloom -> god rays -> composite into output()).
     void render(const SceneView& scene);
 
     Framebuffer& output() { return pipeline_.output(); }
     DeferredPipeline& pipeline() { return pipeline_; }
+    /// @brief The post-processing render graph (F31) — passes can be toggled via setPassEnabled().
+    RenderGraph& postGraph() { return post_; }
     int width() const { return width_; }
     int height() const { return height_; }
-    /// @brief The HDR scene texture before tone mapping (debug/introspection).
-    const Texture& hdrTexture() const { return texHdr_; }
+    /// @brief The HDR scene texture before post FX (graph resource "hdr" — debug/introspection).
+    const Texture& hdrTexture() const;
 
     // --- post-processing config ------------------------------------------------------
     bool ssaoEnabled = true;
@@ -62,6 +68,14 @@ public:
     bool godRaysEnabled = true;
     float rayDensity = 0.92f, rayDecay = 0.95f, rayWeight = 0.35f;
     float exposure = 1.0f;
+    // --- TAA (F32): temporal anti-aliasing with Halton subpixel jitter ------------------
+    bool taaEnabled = false;
+    float taaBlend = 0.1f;          ///< steady-state history weight (first frame = 1.0)
+    // --- SSR (F33): screen-space reflections on the HDR image ---------------------------
+    bool ssrEnabled = false;
+    float ssrStrength = 0.6f;
+    int ssrMaxSteps = 32;
+    float ssrThickness = 0.3f;
 
     // --- shadows (same model as ForwardRenderer) ---------------------------------------
     void enableShadows(int mapSize = 2048);
@@ -83,18 +97,25 @@ private:
     std::unique_ptr<Impl> impl_;
 
     bool createPost(int w, int h);
-    void runSSAO(const SceneView& scene);
-    void runBloom();
-    void runRays(const SceneView& scene);
-    void runComposite();
-    void beginPass(Framebuffer& fbo);
-    void endPass();
-    void drawFs(Material& mat);
+    void drawFs(Material& mat, const std::function<void(Program&)>& setUniforms = nullptr);
+    void drawSSAO(RenderGraph::PassContext& ctx);
+    void drawBlur(RenderGraph::PassContext& ctx, std::string_view in, const math::Vec2& dir);
+    void drawLighting(RenderGraph::PassContext& ctx);
+    void drawSSR(RenderGraph::PassContext& ctx);
+    void drawTAA(RenderGraph::PassContext& ctx);
+    void drawCopy(RenderGraph::PassContext& ctx, std::string_view in);
+    void drawBloomBright(RenderGraph::PassContext& ctx);
+    void drawRays(RenderGraph::PassContext& ctx);
+    void drawComposite(RenderGraph::PassContext& ctx, std::string_view bloomRes);
 
     DeferredPipeline pipeline_;
+    RenderGraph post_;
     ShadowMap shadowMap_;
     CascadeShadowMap csm_;
     int width_ = 0, height_ = 0, msaa_ = 0;
+    const SceneView* curScene_ = nullptr;
+    unsigned frameIndex_ = 0;
+    std::string bloomLast_; ///< bloom resource the composite pass reads
 
     bool shadows_ = false;
     bool csmEnabled_ = false;
@@ -104,15 +125,7 @@ private:
     float shadowRadius_ = 10.f;
     float shadowStrength_ = 1.f;
 
-    // post resources (RGBA16F HDR chain, RGBA8 AO)
-    Framebuffer ssaoFbo_, blurFbo_, hdrFbo_, bloomFboA_, bloomFboB_, raysFbo_;
-    Texture texSsao_{Texture::Target::Tex2D};
-    Texture texBlur_{Texture::Target::Tex2D};
-    Texture texHdr_{Texture::Target::Tex2D};
-    Texture texBloomA_{Texture::Target::Tex2D};
-    Texture texBloomB_{Texture::Target::Tex2D};
-    Texture texRays_{Texture::Target::Tex2D};
-    Material ssaoMat_, blurMat_, brightMat_, raysMat_, compositeMat_;
+    Material ssaoMat_, blurMat_, brightMat_, raysMat_, compositeMat_, taaMat_, ssrMat_, copyMat_;
     VertexArray fsVao_;
 };
 

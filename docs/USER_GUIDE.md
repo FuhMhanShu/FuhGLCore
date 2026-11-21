@@ -47,6 +47,9 @@ library gives you safe, modern-C++ handles for GL objects:
 | Lights: directional / point / spot | `render::Light::directional/point/spot()`, `SceneView::lights` | [20](en/tutorials/20-lights.md) |
 | Shadow mapping (depth pass + PCF) | `render::ShadowMap`, `render::lightViewProj()`, `SceneView::shadowMap` | [21](en/tutorials/21-shadows.md) |
 | Cascaded shadow maps (CSM, depth texture array) | `render::CascadeShadowMap`, `enableCsmShadows()`, `SceneView::cascades` | [33](en/tutorials/33-cascaded-shadow-maps.md) |
+| Render graph (declarative passes, auto-ordered) | `render::RenderGraph`, `DeferredRenderer::postGraph()` | [34](en/tutorials/34-render-graph.md) |
+| Temporal anti-aliasing (Halton jitter + history) | `DeferredRenderer::taaEnabled`, `SceneView::jitter` | [35](en/tutorials/35-taa.md) |
+| Screen-space reflections | `DeferredRenderer::ssrEnabled` | [36](en/tutorials/36-ssr.md) |
 | PBR materials (metallic-roughness, GGX) | `materials::pbr(...)`, `Material::metallic/roughness/ao` | [31](en/tutorials/31-pbr-materials.md) |
 | IBL environment (irradiance / prefilter / BRDF LUT) | `render::Environment`, `SceneView::env` | [32](en/tutorials/32-ibl-environment.md) |
 | Default forward renderer | `render::ForwardRenderer` (lights + auto shadows + fog) | [22](en/tutorials/22-forward-renderer.md) |

@@ -60,6 +60,21 @@ All notable changes to FuhGLCore are documented here. The format follows
   loader entry `glUniform1fv`. Tests: `test_shadow.cpp` (unit) + `gl_smoke_csm.cpp`
   (gl_context); tutorial 33 (en + de).
 
+### Added
+- F31 — `render::RenderGraph` (`render/graph.hpp`): declarative render-pass graph — named
+  texture resources (owned/external) + passes with input/output lists and callbacks;
+  `compile()` topologically orders the passes (cycle-safe, ping-pong aware, `feedback`
+  passes for temporal accumulation) and creates one FBO per pass; `execute()`,
+  `setPassEnabled()`, `resize()`. The `DeferredRenderer` post chain (SSAO → lighting →
+  SSR → TAA → bloom → god rays → composite) now runs through a graph (`postGraph()`).
+  Math: `math::halton()`, `math::jitterViewProj()`, `SceneView::jitter`.
+- F32 — TAA in `DeferredRenderer` (`taaEnabled`, `taaBlend`): Halton subpixel jitter on
+  the G-buffer pass + history accumulation with 3x3 neighborhood clamp.
+- F33 — SSR in `DeferredRenderer` (`ssrEnabled`, `ssrStrength`, `ssrMaxSteps`,
+  `ssrThickness`): world-space raymarch against the G-buffer position texture.
+- Tests: `test_graph.cpp` (unit), `gl_smoke_graph.cpp` / `gl_smoke_taa.cpp` /
+  `gl_smoke_ssr.cpp` (gl_context); tutorials 34–36 (en + de).
+
 ## [0.1.0] — initial release
 
 Zero-dependency C++17 OpenGL wrapper + built-in render layer. Highlights:

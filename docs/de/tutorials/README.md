@@ -41,6 +41,9 @@ Screenshots in `docs/images/` werden headless von der CI (`docs`-Job) gerendert
 | 31 | PBR-Materialien: Metallic-Roughness (Cook-Torrance GGX) in beiden Pipelines | [31-pbr-materials.md](31-pbr-materials.md) |
 | 32 | IBL: Irradiance- + vorgefilterte Env-Cubemap + BRDF-LUT aus beliebiger Cubemap | [32-ibl-environment.md](32-ibl-environment.md) |
 | 33 | Cascaded Shadow Maps (CSM): Depth-Textur-Array, eine Ebene pro Kaskade | [33-cascaded-shadow-maps.md](33-cascaded-shadow-maps.md) |
+| 34 | Render Graph: deklarative Pässe, auto-sortiert, FBO pro Pass (Post-Kette des DeferredRenderer) | [34-render-graph.md](34-render-graph.md) |
+| 35 | TAA: Halton-Subpixel-Jitter + temporäre History-Akkumulation | [35-taa.md](35-taa.md) |
+| 36 | SSR: Screen-Space-Reflections auf dem HDR-Bild | [36-ssr.md](36-ssr.md) |
 
 Voraussetzung für alle: Bibliothek bauen und `FuhGLCore::fuhglcore` linken
 (siehe [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

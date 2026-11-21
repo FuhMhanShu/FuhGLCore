@@ -126,6 +126,82 @@ void main() {
 }
 )GLSL";
 
+// F32: TAA resolve — clamp the history to the current 3x3 neighborhood, then blend.
+constexpr const char* kTaaFrag = R"GLSL(#version 330 core
+in vec2 vUV;
+out vec4 FragColor;
+uniform sampler2D uCur;   // current (jittered) frame
+uniform sampler2D uHist;  // previous accumulated frame
+uniform float uAlpha;     // 1 on the first frame, taaBlend afterwards
+uniform vec2 uTexel;
+void main() {
+    vec3 c = texture(uCur, vUV).rgb;
+    vec3 h = texture(uHist, vUV).rgb;
+    vec3 mn = c, mx = c;
+    for (int x = -1; x <= 1; ++x)
+        for (int y = -1; y <= 1; ++y) {
+            vec3 s = texture(uCur, vUV + vec2(float(x), float(y)) * uTexel).rgb;
+            mn = min(mn, s);
+            mx = max(mx, s);
+        }
+    h = clamp(h, mn, mx);
+    FragColor = vec4(mix(h, c, uAlpha), 1.0);
+}
+)GLSL";
+
+// F33: screen-space reflections — march the reflection ray in world space, compare
+// against the G-buffer position texture, sample the HDR color at the hit point.
+constexpr const char* kSsrFrag = R"GLSL(#version 330 core
+in vec2 vUV;
+out vec4 FragColor;
+uniform sampler2D uHdr;      // 0: base HDR color
+uniform sampler2D uPosition; // 1: world pos, alpha = geometry flag
+uniform sampler2D uNormal;   // 2
+uniform mat4 uView;
+uniform mat4 uViewProj;
+uniform vec3 uCamPos;
+uniform float uStrength;
+uniform int uSteps;
+uniform float uThickness;
+void main() {
+    vec3 base = texture(uHdr, vUV).rgb;
+    vec4 pos = texture(uPosition, vUV);
+    if (pos.a < 0.5) { FragColor = vec4(base, 1.0); return; } // sky: no reflections
+    vec3 worldPos = pos.rgb;
+    vec3 N = normalize(texture(uNormal, vUV).rgb * 2.0 - 1.0);
+    vec3 V = normalize(uCamPos - worldPos);
+    vec3 R = reflect(-V, N);
+    if (dot(R, N) <= 0.0) { FragColor = vec4(base, 1.0); return; }
+    float stepLen = max(length(worldPos - uCamPos) * 0.02, 0.01);
+    vec3 refl = vec3(0.0);
+    for (int i = 1; i <= 64; ++i) {
+        if (i > uSteps) break;
+        vec3 rp = worldPos + R * (stepLen * float(i));
+        vec4 clip = uViewProj * vec4(rp, 1.0);
+        if (clip.w <= 0.0) break;
+        vec2 uv = clip.xy / clip.w * 0.5 + 0.5;
+        if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) break;
+        vec4 sp = texture(uPosition, uv);
+        if (sp.a < 0.5) continue; // sky along the ray: keep marching
+        float dSurf = length(sp.rgb - worldPos);
+        float dRay = stepLen * float(i);
+        if (dRay > dSurf && dRay - dSurf < uThickness) {
+            float fade = 1.0 - float(i) / float(uSteps);
+            refl = texture(uHdr, uv).rgb * fade;
+            break;
+        }
+    }
+    FragColor = vec4(base + refl * uStrength, 1.0);
+}
+)GLSL";
+
+constexpr const char* kCopyFrag = R"GLSL(#version 330 core
+in vec2 vUV;
+out vec4 FragColor;
+uniform sampler2D uTex;
+void main() { FragColor = texture(uTex, vUV); }
+)GLSL";
+
 float lcg(unsigned& state) {
     state = state * 1664525u + 1013904223u;
     return static_cast<float>(state >> 8) / static_cast<float>(1u << 24);
@@ -159,31 +235,6 @@ bool compileFs(Material& mat, const std::string& fragSrc, const char* what) {
     mat.program().attach(vs);
     mat.program().attach(fs);
     if (!mat.program().link()) { std::fprintf(stderr, "DeferredRenderer: %s link: %s\n", what, mat.program().infoLog().c_str()); return false; }
-    return true;
-}
-
-void makeTargetTex(Texture& tex, gl::GLenum internal, int w, int h) {
-    tex = Texture(Texture::Target::Tex2D);
-    tex.bind();
-    tex.texStorage2D(1, internal, w, h);
-    tex.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR);
-    tex.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
-    tex.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
-    tex.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
-}
-
-bool makeFbo(Framebuffer& fbo, Texture& tex, gl::GLenum internal, int w, int h, const char* what) {
-    makeTargetTex(tex, internal, w, h);
-    fbo.create();
-    fbo.setSize(w, h);
-    fbo.bind();
-    fbo.attachTexture2D(0, tex);
-    if (!fbo.isComplete()) {
-        std::fprintf(stderr, "DeferredRenderer: %s FBO incomplete (0x%x)\n", what, fbo.status());
-        Framebuffer::unbind();
-        return false;
-    }
-    Framebuffer::unbind();
     return true;
 }
 
@@ -223,27 +274,68 @@ bool DeferredRenderer::create(int width, int height, int msaaSamples) {
 }
 
 bool DeferredRenderer::createPost(int w, int h) {
-    if (!makeFbo(ssaoFbo_, texSsao_, gl::GL_RGBA8, w, h, "ssao")) return false;
-    if (!makeFbo(blurFbo_, texBlur_, gl::GL_RGBA8, w, h, "blur")) return false;
-    if (!makeFbo(hdrFbo_, texHdr_, gl::GL_RGBA16F, w, h, "hdr")) return false;
-    if (!makeFbo(bloomFboA_, texBloomA_, gl::GL_RGBA16F, w, h, "bloomA")) return false;
-    if (!makeFbo(bloomFboB_, texBloomB_, gl::GL_RGBA16F, w, h, "bloomB")) return false;
-    if (!makeFbo(raysFbo_, texRays_, gl::GL_RGBA16F, w, h, "rays")) return false;
-
     const std::string ssaoSrc = std::string(kSsaoFragHead) + ssaoKernelGlsl(ssaoSamples) + kSsaoFragTail;
     if (!compileFs(ssaoMat_, ssaoSrc, "ssao")) return false;
     if (!compileFs(blurMat_, kBlurFrag, "blur")) return false;
     if (!compileFs(brightMat_, kBrightFrag, "bright")) return false;
     if (!compileFs(raysMat_, kRaysFrag, "rays")) return false;
     if (!compileFs(compositeMat_, kCompositeFrag, "composite")) return false;
-
+    if (!compileFs(taaMat_, kTaaFrag, "taa")) return false;
+    if (!compileFs(ssrMat_, kSsrFrag, "ssr")) return false;
+    if (!compileFs(copyMat_, kCopyFrag, "copy")) return false;
     if (!fsVao_.create()) return false;
     fsVao_.bind();
+
+    // --- build the post-processing render graph (F31) ---------------------------------
+    post_ = RenderGraph();
+    post_.addExternal("gAlbedo", &pipeline_.texAlbedo(), w, h);
+    post_.addExternal("gNormal", &pipeline_.texNormal(), w, h);
+    post_.addExternal("gPosition", &pipeline_.texPosition(), w, h);
+    post_.addExternal("gEmissive", &pipeline_.texEmissive(), w, h);
+    post_.addExternal("gPbr", &pipeline_.texPbr(), w, h);
+    post_.addResource("ssao", w, h, gl::GL_RGBA8);
+    post_.addResource("blur", w, h, gl::GL_RGBA8);
+    post_.addResource("hdr", w, h, gl::GL_RGBA16F);
+    post_.addResource("ssr", w, h, gl::GL_RGBA16F);
+    post_.addResource("taa", w, h, gl::GL_RGBA16F);
+    post_.addResource("bloomA", w, h, gl::GL_RGBA16F);
+    post_.addResource("bloomB", w, h, gl::GL_RGBA16F);
+    post_.addResource("rays", w, h, gl::GL_RGBA16F);
+
+    const float tx = 1.f / static_cast<float>(w), ty = 1.f / static_cast<float>(h);
+    post_.addPass("ssao", {"gPosition", "gNormal"}, {"ssao"}, [this](RenderGraph::PassContext& ctx) { drawSSAO(ctx); });
+    post_.addPass("ssaoBlurH", {"ssao"}, {"blur"}, [this, tx](RenderGraph::PassContext& ctx) { drawBlur(ctx, "ssao", {tx, 0.f}); });
+    post_.addPass("ssaoBlurV", {"blur"}, {"ssao"}, [this, ty](RenderGraph::PassContext& ctx) { drawBlur(ctx, "blur", {0.f, ty}); });
+    post_.addPass("lighting", {"gAlbedo", "gNormal", "gPosition", "gEmissive", "gPbr"}, {"hdr"},
+                  [this](RenderGraph::PassContext& ctx) { drawLighting(ctx); });
+    post_.addPass("ssr", {"hdr", "gPosition", "gNormal"}, {"ssr"}, [this](RenderGraph::PassContext& ctx) { drawSSR(ctx); });
+    post_.addPass("taa", {"ssr", "taa"}, {"taa"}, [this](RenderGraph::PassContext& ctx) { drawTAA(ctx); }, /*feedback=*/true);
+    post_.addPass("bright", {"taa"}, {"bloomA"}, [this](RenderGraph::PassContext& ctx) { drawBloomBright(ctx); });
+    // bloom blur ping-pong (2 passes per bloomBlurPasses)
+    std::string bloomCur = "bloomA";
+    for (int i = 0; i < bloomBlurPasses; ++i) {
+        const std::string next = (bloomCur == "bloomA") ? "bloomB" : "bloomA";
+        post_.addPass("bloomBlurH" + std::to_string(i), {bloomCur}, {next},
+                      [this, bloomCur, tx](RenderGraph::PassContext& ctx) { drawBlur(ctx, bloomCur, {tx, 0.f}); });
+        const std::string next2 = (next == "bloomA") ? "bloomB" : "bloomA";
+        post_.addPass("bloomBlurV" + std::to_string(i), {next}, {next2},
+                      [this, next, ty](RenderGraph::PassContext& ctx) { drawBlur(ctx, next, {0.f, ty}); });
+        bloomCur = next2;
+    }
+    bloomLast_ = bloomCur;
+    post_.addPass("rays", {"taa"}, {"rays"}, [this](RenderGraph::PassContext& ctx) { drawRays(ctx); });
+    post_.addPass("composite", {"taa", bloomLast_, "rays"}, {},
+                  [this](RenderGraph::PassContext& ctx) { drawComposite(ctx, bloomLast_); });
+    if (!post_.compile()) {
+        std::fprintf(stderr, "DeferredRenderer: post graph compile failed\n");
+        return false;
+    }
     return true;
 }
 
 void DeferredRenderer::resize(int width, int height) {
     if (width == width_ && height == height_) return;
+    // simplest correct approach: recreate everything (also rebuilds the post graph)
     *this = DeferredRenderer();
     create(width, height, msaa_);
 }
@@ -266,144 +358,128 @@ void DeferredRenderer::enableShadows(int mapSize) {
     }
 }
 
-void DeferredRenderer::beginPass(Framebuffer& fbo) {
-    fbo.bind();
-    const gl::GLenum buf[1] = {gl::GL_COLOR_ATTACHMENT0};
-    gl::drawBuffers(1, buf);
-    gl::viewport(0, 0, width_, height_);
-    gl::disable(gl::Cap::DepthTest);
-    gl::disable(gl::Cap::Blend);
+const Texture& DeferredRenderer::hdrTexture() const {
+    const Texture* t = post_.texture("hdr");
+    static const Texture fallback(Texture::Target::Tex2D);
+    return t ? *t : fallback;
 }
 
-void DeferredRenderer::endPass() { Framebuffer::unbind(); }
-
-void DeferredRenderer::drawFs(Material& mat) {
+void DeferredRenderer::drawFs(Material& mat, const std::function<void(Program&)>& setUniforms) {
+    gl::disable(gl::Cap::DepthTest);
+    gl::disable(gl::Cap::Blend);
     mat.bind();
+    if (setUniforms) setUniforms(mat.program());
     fsVao_.bind();
     gl::drawArrays(gl::Primitive::Triangles, 0, 3);
 }
 
-void DeferredRenderer::runSSAO(const SceneView& scene) {
-    ssaoMat_.setTexture(0, pipeline_.texPosition());
-    ssaoMat_.setTexture(1, pipeline_.texNormal());
-    beginPass(ssaoFbo_);
-    ssaoMat_.bind();
-    {
-        Program& p = ssaoMat_.program();
-        p.setUniform("uViewProj", scene.camera->viewProj(scene.aspect));
-        p.setUniform("uView", scene.camera->view());
+void DeferredRenderer::drawSSAO(RenderGraph::PassContext& ctx) {
+    const SceneView& s = *curScene_;
+    ctx.bindInput(0, "gPosition");
+    ctx.bindInput(1, "gNormal");
+    drawFs(ssaoMat_, [&](Program& p) {
+        p.setUniform("uViewProj", math::jitterViewProj(s.camera->viewProj(s.aspect), s.jitter));
+        p.setUniform("uView", s.camera->view());
         p.setUniform("uRadius", ssaoRadius);
         p.setUniform(p.uniformLocation("uPosition"), 0);
         p.setUniform(p.uniformLocation("uNormal"), 1);
-    }
-    fsVao_.bind();
-    gl::drawArrays(gl::Primitive::Triangles, 0, 3);
-    endPass();
-    // separable blur: H into blurFbo, V back into ssaoFbo
-    const float tx = 1.f / static_cast<float>(width_), ty = 1.f / static_cast<float>(height_);
-    blurMat_.setTexture(0, texSsao_);
-    beginPass(blurFbo_);
-    blurMat_.bind();
-    {
-        Program& p = blurMat_.program();
-        p.setUniform("uDir", math::Vec2(tx, 0.f));
-        p.setUniform(p.uniformLocation("uTex"), 0);
-    }
-    fsVao_.bind();
-    gl::drawArrays(gl::Primitive::Triangles, 0, 3);
-    endPass();
-    blurMat_.setTexture(0, texBlur_);
-    beginPass(ssaoFbo_);
-    blurMat_.bind();
-    {
-        Program& p = blurMat_.program();
-        p.setUniform("uDir", math::Vec2(0.f, ty));
-        p.setUniform(p.uniformLocation("uTex"), 0);
-    }
-    fsVao_.bind();
-    gl::drawArrays(gl::Primitive::Triangles, 0, 3);
-    endPass();
-    pipeline_.aoTexture = &texSsao_;
-    pipeline_.aoStrength = ssaoStrength;
+    });
 }
 
-void DeferredRenderer::runBloom() {
-    brightMat_.setTexture(0, texHdr_);
-    beginPass(bloomFboA_);
-    brightMat_.bind();
-    {
-        Program& p = brightMat_.program();
+void DeferredRenderer::drawBlur(RenderGraph::PassContext& ctx, std::string_view in, const math::Vec2& dir) {
+    ctx.bindInput(0, in);
+    drawFs(blurMat_, [&](Program& p) {
+        p.setUniform("uDir", dir);
+        p.setUniform(p.uniformLocation("uTex"), 0);
+    });
+}
+
+void DeferredRenderer::drawLighting(RenderGraph::PassContext& ctx) {
+    pipeline_.renderLighting(*curScene_, &ctx.framebuffer());
+}
+
+void DeferredRenderer::drawSSR(RenderGraph::PassContext& ctx) {
+    if (!ssrEnabled) {
+        drawCopy(ctx, "hdr");
+        return;
+    }
+    const SceneView& s = *curScene_;
+    ctx.bindInput(0, "hdr");
+    ctx.bindInput(1, "gPosition");
+    ctx.bindInput(2, "gNormal");
+    drawFs(ssrMat_, [&](Program& p) {
+        p.setUniform("uView", s.camera->view());
+        p.setUniform("uViewProj", math::jitterViewProj(s.camera->viewProj(s.aspect), s.jitter));
+        p.setUniform("uCamPos", s.camera->eye());
+        p.setUniform("uStrength", ssrStrength);
+        p.setUniform(p.uniformLocation("uSteps"), ssrMaxSteps);
+        p.setUniform("uThickness", ssrThickness);
+        p.setUniform(p.uniformLocation("uHdr"), 0);
+        p.setUniform(p.uniformLocation("uPosition"), 1);
+        p.setUniform(p.uniformLocation("uNormal"), 2);
+    });
+}
+
+void DeferredRenderer::drawTAA(RenderGraph::PassContext& ctx) {
+    if (!taaEnabled) {
+        drawCopy(ctx, "ssr");
+        return;
+    }
+    ctx.bindInput(0, "ssr");
+    ctx.bindInput(1, "taa"); // previous accumulated frame
+    drawFs(taaMat_, [&](Program& p) {
+        p.setUniform("uAlpha", frameIndex_ == 0 ? 1.f : taaBlend);
+        p.setUniform("uTexel", math::Vec2(1.f / static_cast<float>(width_), 1.f / static_cast<float>(height_)));
+        p.setUniform(p.uniformLocation("uCur"), 0);
+        p.setUniform(p.uniformLocation("uHist"), 1);
+    });
+}
+
+void DeferredRenderer::drawCopy(RenderGraph::PassContext& ctx, std::string_view in) {
+    ctx.bindInput(0, in);
+    drawFs(copyMat_, [](Program& p) { p.setUniform(p.uniformLocation("uTex"), 0); });
+}
+
+void DeferredRenderer::drawBloomBright(RenderGraph::PassContext& ctx) {
+    ctx.bindInput(0, "taa");
+    drawFs(brightMat_, [&](Program& p) {
         p.setUniform("uThreshold", bloomThreshold);
         p.setUniform(p.uniformLocation("uHdr"), 0);
-    }
-    fsVao_.bind();
-    gl::drawArrays(gl::Primitive::Triangles, 0, 3);
-    endPass();
-
-    const float tx = 1.f / static_cast<float>(width_), ty = 1.f / static_cast<float>(height_);
-    for (int i = 0; i < bloomBlurPasses; ++i) {
-        blurMat_.setTexture(0, texBloomA_);
-        beginPass(bloomFboB_);
-        blurMat_.bind();
-        {
-            Program& p = blurMat_.program();
-            p.setUniform("uDir", math::Vec2(tx, 0.f));
-            p.setUniform(p.uniformLocation("uTex"), 0);
-        }
-        fsVao_.bind();
-        gl::drawArrays(gl::Primitive::Triangles, 0, 3);
-        endPass();
-        blurMat_.setTexture(0, texBloomB_);
-        beginPass(bloomFboA_);
-        blurMat_.bind();
-        {
-            Program& p = blurMat_.program();
-            p.setUniform("uDir", math::Vec2(0.f, ty));
-            p.setUniform(p.uniformLocation("uTex"), 0);
-        }
-        fsVao_.bind();
-        gl::drawArrays(gl::Primitive::Triangles, 0, 3);
-        endPass();
-    }
+    });
 }
 
-void DeferredRenderer::runRays(const SceneView& scene) {
-    const math::Vec2 suv = sunScreenUV(*scene.camera, scene.sunDirection, width_, height_);
+void DeferredRenderer::drawRays(RenderGraph::PassContext& ctx) {
+    const SceneView& s = *curScene_;
+    const math::Vec2 suv = sunScreenUV(*s.camera, s.sunDirection, width_, height_);
     const bool visible = suv.x >= 0.f;
-    raysMat_.setTexture(0, texHdr_);
-    beginPass(raysFbo_);
-    raysMat_.bind();
-    {
-        Program& p = raysMat_.program();
+    ctx.bindInput(0, "taa");
+    drawFs(raysMat_, [&](Program& p) {
         p.setUniform("uSunUV", visible ? suv : math::Vec2(0.5f, 1.5f));
         p.setUniform("uDensity", rayDensity);
         p.setUniform("uDecay", rayDecay);
         p.setUniform("uWeight", (visible && godRaysEnabled) ? rayWeight : 0.f);
         p.setUniform(p.uniformLocation("uHdr"), 0);
-    }
-    fsVao_.bind();
-    gl::drawArrays(gl::Primitive::Triangles, 0, 3);
-    endPass();
+    });
 }
 
-void DeferredRenderer::runComposite() {
-    compositeMat_.setTexture(0, texHdr_);
-    compositeMat_.setTexture(1, texBloomA_);
-    compositeMat_.setTexture(2, texRays_);
-    beginPass(pipeline_.output());
-    compositeMat_.bind();
-    {
-        Program& p = compositeMat_.program();
+void DeferredRenderer::drawComposite(RenderGraph::PassContext& ctx, std::string_view bloomRes) {
+    (void)ctx;
+    pipeline_.output().bind();
+    const gl::GLenum buf[1] = {gl::GL_COLOR_ATTACHMENT0};
+    gl::drawBuffers(1, buf);
+    gl::viewport(0, 0, width_, height_);
+    compositeMat_.setTexture(0, *post_.texture("taa"));
+    compositeMat_.setTexture(1, *post_.texture(bloomRes));
+    compositeMat_.setTexture(2, *post_.texture("rays"));
+    drawFs(compositeMat_, [&](Program& p) {
         p.setUniform(p.uniformLocation("uScene"), 0);
         p.setUniform(p.uniformLocation("uBloom"), 1);
         p.setUniform(p.uniformLocation("uRays"), 2);
         p.setUniform("uExposure", exposure);
         p.setUniform("uBloomStrength", bloomStrength);
         p.setUniform("uRayScale", godRaysEnabled ? 1.f : 0.f);
-    }
-    fsVao_.bind();
-    gl::drawArrays(gl::Primitive::Triangles, 0, 3);
-    endPass();
+    });
+    Framebuffer::unbind();
 }
 
 void DeferredRenderer::render(const SceneView& scene) {
@@ -441,16 +517,26 @@ void DeferredRenderer::render(const SceneView& scene) {
             break;
         }
     }
+    // F32: Halton subpixel jitter (NDC units) for TAA — applied by the G-buffer pass
+    if (taaEnabled) {
+        const math::Vec2 hpt = math::halton(frameIndex_);
+        s.jitter = {(hpt.x - 0.5f) * 2.f / static_cast<float>(width_),
+                    (hpt.y - 0.5f) * 2.f / static_cast<float>(height_)};
+        ++frameIndex_;
+    } else {
+        s.jitter = {0.f, 0.f};
+        frameIndex_ = 0;
+    }
 
+    curScene_ = &s;
     pipeline_.renderGBuffer(s);
-    if (ssaoEnabled)
-        runSSAO(s);
-    else
-        pipeline_.aoTexture = nullptr;
-    pipeline_.renderLighting(s, &hdrFbo_);
-    runBloom();
-    runRays(s);
-    runComposite();
+    post_.setPassEnabled("ssao", ssaoEnabled);
+    post_.setPassEnabled("ssaoBlurH", ssaoEnabled);
+    post_.setPassEnabled("ssaoBlurV", ssaoEnabled);
+    pipeline_.aoTexture = ssaoEnabled ? post_.texture("ssao") : nullptr;
+    pipeline_.aoStrength = ssaoStrength;
+    post_.execute();
+    curScene_ = nullptr;
 }
 
 } // namespace fuhgl::render
