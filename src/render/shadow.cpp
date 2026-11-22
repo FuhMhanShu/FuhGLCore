@@ -1,3 +1,4 @@
+#include "fuhgl/render/lod.hpp"
 #include "fuhgl/render/shadow.hpp"
 #include "fuhgl/render/mesh.hpp"
 
@@ -95,10 +96,12 @@ void ShadowMap::render(const SceneView& scene, const math::Mat4& lightVP) {
     Program& p = depthMaterial_.program();
     p.setUniform("uLightVP", lightVP);
     for (const DrawItem& item : scene.items) {
-        if (!item.mesh) continue;
+        const Mesh* mesh = resolveLodMesh(item, scene.camera ? scene.camera->eye() : math::Vec3{0.f, 0.f, 0.f},
+                                          scene.lodEnabled); // F41
+        if (!mesh) continue;
         p.setUniform("uModel", item.model);
-        p.setUniform("uInstanced", item.mesh->instanceCount() > 0 ? 1 : 0);
-        item.mesh->draw();
+        p.setUniform("uInstanced", mesh->instanceCount() > 0 ? 1 : 0);
+        mesh->draw();
     }
 
     gl::cullFace(gl::Face::Back);
@@ -262,10 +265,11 @@ void CascadeShadowMap::render(const SceneView& scene, const Camera& camera, cons
         gl::clear(gl::ClearBit::Depth);
         p.setUniform("uLightVP", vps_[i]);
         for (const DrawItem& item : scene.items) {
-            if (!item.mesh) continue;
+            const Mesh* mesh = resolveLodMesh(item, camera.eye(), scene.lodEnabled); // F41
+            if (!mesh) continue;
             p.setUniform("uModel", item.model);
-            p.setUniform("uInstanced", item.mesh->instanceCount() > 0 ? 1 : 0);
-            item.mesh->draw();
+            p.setUniform("uInstanced", mesh->instanceCount() > 0 ? 1 : 0);
+            mesh->draw();
         }
     }
     gl::cullFace(gl::Face::Back);

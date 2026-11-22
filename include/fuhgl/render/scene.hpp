@@ -18,12 +18,14 @@ class Material;
 class ShadowMap;
 class CascadeShadowMap;
 class Environment;
+class LodMesh;
 
 /// @brief One drawable object: mesh + material + model matrix.
 struct DrawItem {
     const Mesh* mesh = nullptr;
     const Material* material = nullptr; ///< nullptr = pipeline default material
     math::Mat4 model{};                  ///< identity by default
+    const LodMesh* lod = nullptr;        ///< F41: when set, the pipelines pick the level by camera distance
 };
 
 /// @brief Everything a pipeline needs for one frame.
@@ -54,6 +56,9 @@ struct SceneView {
     const Environment* env = nullptr;       ///< nullptr = flat uAmbient term only
     // --- TAA (F32): subpixel jitter in NDC units, applied by the pipelines -----------
     math::Vec2 jitter{0.f, 0.f};            ///< 0 = off (no jitter)
+    // --- LOD (F41) ---------------------------------------------------------------------
+    bool lodEnabled = true;                 ///< false = always LOD level 0 (set by the renderers)
+    mutable int lastLodLevel = -1;          ///< level chosen for the last item with a LodMesh (introspection/tests)
 };
 
 /// @brief Vertex attribute layout for Mesh::setData.

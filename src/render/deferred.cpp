@@ -1,4 +1,5 @@
 #include "fuhgl/render/deferred.hpp"
+#include "fuhgl/render/lod.hpp"
 #include "fuhgl/render/shadow.hpp"
 #include "fuhgl/render/environment.hpp"
 #include "lighting_glsl.hpp"
@@ -355,13 +356,16 @@ void DeferredPipeline::renderGBuffer(const SceneView& scene) {
 
     const math::Mat4 viewProj = math::jitterViewProj(scene.camera->viewProj(scene.aspect), scene.jitter); // F32
     for (const DrawItem& item : scene.items) {
-        if (!item.mesh) continue;
-        detail::bindItem(defaultMaterial_, item, item.model, viewProj);
+        int lodLevel = -1;
+        const Mesh* mesh = resolveLodMesh(item, scene.camera->eye(), scene.lodEnabled, &lodLevel); // F41
+        if (!mesh) continue;
+        if (lodLevel >= 0) scene.lastLodLevel = lodLevel;
+        detail::bindItem(defaultMaterial_, item, mesh, item.model, viewProj);
         Program& prog = const_cast<Program&>(
             (item.material && item.material->builtinShader) ? defaultMaterial_.program()
                                                             : (item.material ? *item.material : defaultMaterial_).program());
         prog.setUniform("uCamPos", scene.camera->eye());
-        item.mesh->draw();
+        mesh->draw();
     }
 
     // --- MSAA resolve ---

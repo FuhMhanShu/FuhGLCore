@@ -7,6 +7,7 @@
 /// based vertex coloring and texturing UVs; heightAt() gives bilinear world-space
 /// heights for placing objects on the terrain.
 
+#include "lod.hpp"
 #include "mesh.hpp"
 #include "procedural.hpp"
 
@@ -16,6 +17,13 @@
 #include <vector>
 
 namespace fuhgl::render {
+
+/// @brief Builds a LodMesh (F41) from a heightmap with `levels` grid resolutions
+/// (w, w/2, w/4, ... by subsampling). Needs a current GL context (uploads the meshes).
+/// Switch distances come from LodMesh::defaultDistances(fovY, radius, fractions).
+LodMesh terrainLods(const float* heights, int w, int h,
+                    float sizeX, float sizeZ, float heightScale,
+                    int levels, float fovYDeg = 60.f);
 
 /// @brief Bilinear sample of a heightmap at normalized (u, v) in [0, 1] (clamped).
 float heightmapSample(const float* heights, int w, int h, float u, float v);

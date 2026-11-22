@@ -13,7 +13,7 @@ namespace fuhgl::render::detail {
 /// (uModel/uViewProj + material fields). Preset materials (builtinShader = true)
 /// drive the pipeline's default program via uAlbedo/uEmissive/uUseTex/uMatTex
 /// (albedo texture on kTextureUnitAlbedo); custom materials get their own program bound.
-inline void bindItem(const Material& defaultMat, const DrawItem& item,
+inline void bindItem(const Material& defaultMat, const DrawItem& item, const Mesh* mesh,
                      const math::Mat4& model, const math::Mat4& viewProj) {
     const Material* preset = (item.material && item.material->builtinShader) ? item.material : nullptr;
     const Material& mat = preset ? defaultMat : (item.material ? *item.material : defaultMat);
@@ -21,7 +21,7 @@ inline void bindItem(const Material& defaultMat, const DrawItem& item,
     Program& prog = const_cast<Program&>(mat.program());
     prog.setUniform("uModel", model);
     prog.setUniform("uViewProj", viewProj);
-    prog.setUniform("uInstanced", (item.mesh && item.mesh->instanceCount() > 0) ? 1 : 0); // F24
+    prog.setUniform("uInstanced", (mesh && mesh->instanceCount() > 0) ? 1 : 0); // F24 (mesh = LOD-resolved, F41)
     if (preset) {
         prog.setUniform("uAlbedo", preset->albedo);
         prog.setUniform("uEmissive", preset->emissive);

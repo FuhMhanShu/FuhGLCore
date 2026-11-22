@@ -520,6 +520,7 @@ void DeferredRenderer::applyCapabilities() {
     gate(Effect::VolFog, volFogEnabled);
     gate(Effect::Shadows, shadows_);
     gate(Effect::CsmShadows, csmEnabled_);
+    gate(Effect::Lod, lodEnabled); // CPU-side: always supported, gate is a no-op
 }
 
 void DeferredRenderer::setEffectEnabled(Effect e, bool on) {
@@ -533,6 +534,7 @@ void DeferredRenderer::setEffectEnabled(Effect e, bool on) {
         case Effect::VolFog: volFogEnabled = on; break;
         case Effect::Shadows: shadows_ = on; break;
         case Effect::CsmShadows: csmEnabled_ = on; break;
+        case Effect::Lod: lodEnabled = on; break;
         default: {
             const unsigned bit = 1u << static_cast<int>(e);
             if (on) requestedMask_ |= bit;
@@ -559,13 +561,14 @@ bool DeferredRenderer::effectEnabled(Effect e) const {
         case Effect::VolFog: return volFogEnabled;
         case Effect::Shadows: return shadows_;
         case Effect::CsmShadows: return csmEnabled_;
+        case Effect::Lod: return lodEnabled;
         default: return ((requestedMask_ >> static_cast<int>(e)) & 1u) != 0u;
     }
 }
 
 void DeferredRenderer::setAllEffects(bool on) {
     ssaoEnabled = bloomEnabled = godRaysEnabled = taaEnabled = ssrEnabled = dofEnabled =
-        volFogEnabled = shadows_ = csmEnabled_ = on;
+        volFogEnabled = shadows_ = csmEnabled_ = lodEnabled = on;
     requestedMask_ = on ? ((1u << kEffectCount) - 1u) : 0u;
     applyCapabilities();
 }
@@ -816,8 +819,10 @@ void DeferredRenderer::render(const SceneView& scene) {
         frameIndex_ = 0;
     }
 
+    s.lodEnabled = lodEnabled; // F41
     curScene_ = &s;
     pipeline_.renderGBuffer(s);
+    lastLodLevel_ = s.lastLodLevel;
     post_.setPassEnabled("ssao", ssaoEnabled);
     post_.setPassEnabled("ssaoBlurH", ssaoEnabled);
     post_.setPassEnabled("ssaoBlurV", ssaoEnabled);

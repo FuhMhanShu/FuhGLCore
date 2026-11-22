@@ -3,7 +3,7 @@
 // produce docs/images/tutorial-*.png artifacts.
 //
 // Usage: features --screenshot out.png --scene <name> [--width W] [--height H]
-// Scenes: noise | pbr | ibl | csm | taa | ssr | culling | bindless | dof | volfog | heightmap
+// Scenes: noise | pbr | ibl | csm | taa | ssr | culling | bindless | dof | volfog | heightmap | lod
 
 #include <fuhgl/fuhgl.hpp>
 #include <fuhgl/render.hpp>
@@ -429,6 +429,70 @@ bool sceneHeightmap(const Args& args) {
     return renderDef(d, args, 1);
 }
 
+// LOD scene (F41): the heightmap terrain split into 4x4 tiles, each a 3-level LodMesh —
+// near tiles render the full-resolution grid, distant tiles the coarse levels (visible
+// faceting); switch distances 8/16 world units. Toggle with renderer.lodEnabled = false.
+bool sceneLod(const Args& args) {
+    using namespace fuhgl::render;
+    DefScene d;
+    if (!buildDefScene(d, args.width, args.height, false)) return false;
+    d.renderer.enableCsmShadows(2048, 4);
+    d.renderer.setShadowZRange(0.5f, 90.f);
+    d.renderer.setShadowSceneBounds({0.f, 3.f, -10.f}, 28.f);
+    d.renderer.setShadowStrength(1.f);
+    d.scene.lights[0] = Light::directional({0.4f, -0.6f, 0.3f}, {1.f, 0.94f, 0.82f}, 2.6f);
+    d.scene.ambient = {0.15f, 0.16f, 0.19f};
+    d.scene.clearColor = {0.35f, 0.48f, 0.68f};
+    d.renderer.pipeline().skyTop = {0.25f, 0.42f, 0.78f};
+    d.renderer.pipeline().skyBottom = {0.72f, 0.78f, 0.88f};
+    d.cam.position = {0.f, 15.f, 24.f};
+    d.cam.yaw = 0.f;
+    d.cam.pitch = -0.42f;
+    d.floorMat = materials::pbr({1.f, 1.f, 1.f}, 0.f, 0.95f); // vertex colors carry the terrain tint
+
+    const int HW = 160;                 // heightmap 160x160
+    auto img = procedural::heightmap(HW, HW, 23u, 6, 0.05f);
+    std::vector<float> hs(size_t(HW) * HW);
+    for (size_t i = 0; i < hs.size(); ++i) hs[i] = img.rgba[i * 4] / 255.f;
+
+    // 4x4 tiles of 40x40 heightmap samples -> 11x11 world units each, terrain spans [-22, 22]^2
+    constexpr int kTiles = 4, kTileSamples = 40;
+    constexpr float kWorld = 44.f, kTileWorld = kWorld / kTiles; // 11
+    std::vector<LodMesh> tiles(size_t(kTiles) * kTiles); // pre-sized: element addresses stay stable
+    for (int tz = 0; tz < kTiles; ++tz)
+        for (int tx = 0; tx < kTiles; ++tx) {
+            std::vector<float> sub(size_t(kTileSamples) * kTileSamples);
+            for (int j = 0; j < kTileSamples; ++j)
+                for (int i = 0; i < kTileSamples; ++i)
+                    sub[size_t(j) * kTileSamples + i] =
+                        hs[size_t(tz * kTileSamples + j) * HW + (tx * kTileSamples + i)];
+            LodMesh& lm = tiles[size_t(tz) * kTiles + tx];
+            lm = terrainLods(sub.data(), kTileSamples, kTileSamples,
+                             kTileWorld, kTileWorld, 8.f, 3, 60.f);
+            lm.setDistances({8.f, 16.f}); // switch to coarser grids beyond 8 / 16 units
+            const float cx = -kWorld * 0.5f + kTileWorld * (tx + 0.5f);
+            const float cz = -kWorld * 0.5f + kTileWorld * (tz + 0.5f);
+            d.scene.items.push_back({&lm.level(0), &d.floorMat,
+                                     fuhgl::math::translate({cx, 0.f, cz}), &lm});
+        }
+    // a few pines on the near tiles for scale
+    auto pineSolid = makeCylinder(0.09f, 1.3f)
+                     | translated(makeCone(0.9f, 2.2f), {0.f, 2.0f, 0.f})
+                     | translated(makeCone(0.6f, 1.7f), {0.f, 3.3f, 0.f});
+    Mesh treeMesh = pineSolid->buildMesh(16, {1.f, 1.f, 1.f});
+    Material leafMat = materials::matte({0.13f, 0.34f, 0.14f});
+    for (int i = 0; i < 8; ++i) {
+        const float x = -14.f + 4.2f * i;
+        const float z = 8.f - 2.5f * (i % 3);
+        const float y = heightmapSample(hs.data(), HW, HW,
+                                         (x + kWorld * 0.5f) / kWorld, (z + kWorld * 0.5f) / kWorld) * 8.f;
+        d.scene.items.push_back({&treeMesh, &leafMat,
+                                 fuhgl::math::translate({x, y - 0.05f, z}) *
+                                 fuhgl::math::rotateY(0.7f * i) * fuhgl::math::scale({0.9f, 1.2f, 0.9f})});
+    }
+    return renderDef(d, args, 1);
+}
+
 // GPU culling scene (F34): grid of boxes, half of them behind the camera
 bool sceneCulling(const Args& args) {
     using namespace fuhgl::render;
@@ -542,6 +606,7 @@ int main(int argc, char** argv) {
     else if (s == "dof") ok = sceneDof(args);
     else if (s == "volfog") ok = sceneVolFog(args);
     else if (s == "heightmap") ok = sceneHeightmap(args);
+    else if (s == "lod") ok = sceneLod(args);
     else {
         std::fprintf(stderr, "features: unknown scene '%s'\n", s.c_str());
         return 2;

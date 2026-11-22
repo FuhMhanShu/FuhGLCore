@@ -132,6 +132,7 @@ jobs:
           FUHGL_BACKEND=surfaceless ./build-egl/examples/features --screenshot docs/images/tutorial-dof.png --scene dof --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/features --screenshot docs/images/tutorial-volfog.png --scene volfog --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/features --screenshot docs/images/tutorial-heightmap.png --scene heightmap --width 800 --height 600
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/features --screenshot docs/images/tutorial-lod.png --scene lod --width 800 --height 600
 
       - name: Upload Doxygen HTML artifact
         # Pinned to the v4.6.2 commit SHA (immutable) — a moving tag could be repointed.

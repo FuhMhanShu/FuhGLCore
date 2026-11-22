@@ -104,6 +104,9 @@ fog, TAA, SSR; the night look adds an IBL environment and lamp reflections) — 
   entry; `setEffectEnabled()` / `effectEnabled()` / `setAllEffects()` on both renderers, and
   unsupported features are skipped automatically on old GPUs — see
   [tutorial 42](docs/en/tutorials/42-effects-capabilities.md).
+- **Level of detail (LOD)** — `render::LodMesh` with per-item distance-based level selection
+  in all pipelines; toggle with `renderer.lodEnabled` — see
+  [tutorial 43](docs/en/tutorials/43-lod.md).
 - **PBR materials** — metallic-roughness shading (Cook-Torrance GGX) in both pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, stored per pixel in a 5th G-buffer
   attachment in the deferred path — see [tutorial 31](docs/en/tutorials/31-pbr-materials.md).

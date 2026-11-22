@@ -50,6 +50,7 @@ Screenshots in `docs/images/` werden headless von der CI (`docs`-Job) gerendert
 | 40 | Volumetrischer Nebel / Lichtschächte: Raymarching mit Single-Scattering, HG-Phase, Höhennebel | [40-volfog.md](40-volfog.md) |
 | 41 | Heightmap-Terrain: Landschafts-Mesh aus einer Heightmap, Gefälle-Färbung, heightAt-Platzierung | [41-heightmap-terrain.md](41-heightmap-terrain.md) |
 | 42 | Effekt-Schalter + GPU-Fallback: Effect-Enum, setEffectEnabled, graceful degradation | [42-effects-capabilities.md](42-effects-capabilities.md) |
+| 43 | Level of Detail: LodMesh-Stufen + entfernungsbasierte Wahl in allen Pipelines, schaltbar | [43-lod.md](43-lod.md) |
 
 Voraussetzung für alle: Bibliothek bauen und `FuhGLCore::fuhglcore` linken
 (siehe [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

@@ -89,6 +89,11 @@ public:
         return render::effectSupported(e, glMajor_, glMinor_, hasBindless_, hasCompute_);
     }
 
+    // --- LOD (F41): DrawItem::lod level selection by camera distance ----------------------
+    bool lodEnabled = true;                 ///< false = always LOD level 0
+    /// @brief LOD level chosen for the last drawn item that had a LodMesh (-1 = none).
+    int lastLodLevel() const { return lastLodLevel_; }
+
     // --- rendering -------------------------------------------------------------------
     /// @brief Renders one frame: shadow depth pass (when enabled, from the first
     /// directional/spot light) + forward pass with lights/fog/shadows.
@@ -131,6 +136,7 @@ private:
     bool hasBindless_ = false, hasCompute_ = false;
     unsigned warnedMask_ = 0;
     unsigned requestedMask_ = 0;
+    int lastLodLevel_ = -1;                 ///< F41
 };
 
 } // namespace fuhgl::render

@@ -5,6 +5,39 @@
 
 namespace fuhgl::render {
 
+LodMesh terrainLods(const float* heights, int w, int h,
+                    float sizeX, float sizeZ, float heightScale,
+                    int levels, float fovYDeg) {
+    LodMesh out;
+    if (!heights || w < 2 || h < 2 || levels < 1) return out;
+    levels = std::min(levels, 8);
+    std::vector<Mesh> meshes;
+    meshes.reserve(static_cast<size_t>(levels));
+    for (int l = 0; l < levels; ++l) {
+        const int step = 1 << l;
+        const int wl = (w - 1) / step + 1;
+        const int hl = (h - 1) / step + 1;
+        if (wl < 2 || hl < 2) break;
+        std::vector<float> sub(static_cast<size_t>(wl) * hl);
+        for (int j = 0; j < hl; ++j)
+            for (int i = 0; i < wl; ++i)
+                sub[static_cast<size_t>(j) * wl + i] =
+                    heights[static_cast<size_t>(j * step) * w + i * step];
+        MeshData data = heightmapTerrainData(sub.data(), wl, hl, sizeX, sizeZ, heightScale);
+        Mesh m;
+        if (!m.create()) return LodMesh{};
+        m.setMeshData(data);
+        meshes.push_back(std::move(m));
+    }
+    const float radius = 0.5f * std::sqrt(sizeX * sizeX + sizeZ * sizeZ) + std::abs(heightScale);
+    std::vector<float> fractions;
+    for (size_t i = 1; i < meshes.size(); ++i)
+        fractions.push_back(0.55f / static_cast<float>(i)); // 0.55, 0.275, 0.18, ...
+    std::vector<float> dists = LodMesh::defaultDistances(math::radians(fovYDeg), radius, fractions);
+    out.create(std::move(meshes), dists);
+    return out;
+}
+
 float heightmapSample(const float* heights, int w, int h, float u, float v) {
     if (!heights || w < 2 || h < 2) return 0.f;
     u = math::clamp(u, 0.f, 1.f);

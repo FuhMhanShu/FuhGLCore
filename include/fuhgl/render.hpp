@@ -18,6 +18,7 @@
 #include "render/culling.hpp"
 #include "render/procedural.hpp"
 #include "render/terrain.hpp"
+#include "render/lod.hpp"
 #include "render/solid.hpp"
 #include "render/pipeline.hpp"
 #include "render/forward_pipeline.hpp"

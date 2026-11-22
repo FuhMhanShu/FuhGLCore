@@ -130,7 +130,15 @@ All notable changes to FuhGLCore are documented here. The format follows
   `render::Effect` enum + `setEffectEnabled()` / `effectEnabled()` (requested AND
   supported) / `setAllEffects()` / `effectSupported()`; the existing public fields stay
   valid and are routed through the same gating; `DeferredRenderer` gained `bloomEnabled`.
-  Tutorial 42 (en + de).;
+  Tutorial 42 (en + de).
+- F41 — level of detail: `render::LodMesh` (render/lod.hpp) holds the detail levels +
+  ascending switch distances (`selectLevel`/`select`, `defaultDistances()` screen-space
+  heuristic, `setDistances()`); all pipelines resolve `DrawItem::lod` per item by camera
+  distance (`resolveLodMesh()` in the deferred G-buffer, forward and both shadow passes);
+  both renderers expose `lodEnabled` (also `Effect::Lod`, always supported — CPU-side) and
+  `lastLodLevel()`; `terrainLods()` builds a multi-resolution terrain LodMesh from a
+  heightmap. Tests: `test_lod.cpp` (unit), `gl_smoke_lod.cpp` (gl_context); screenshot
+  `examples/features --scene lod`; tutorial 43 (en + de).
 
 ### Changed
 - Showcase reworked into an organic landscape: noise heightfield terrain with a clearing

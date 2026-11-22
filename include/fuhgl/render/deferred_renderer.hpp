@@ -95,6 +95,10 @@ public:
     bool volFogShadows = false;               ///< attenuate in-scattering by the shadow map/CSM
     int volFogSteps = 24;                     ///< raymarch steps per pixel
     float volFogMaxDist = 150.f;              ///< clamp of the marched ray length
+    // --- LOD (F41): DrawItem::lod level selection by camera distance ----------------------
+    bool lodEnabled = true;                   ///< false = always LOD level 0
+    /// @brief LOD level chosen for the last drawn item that had a LodMesh (-1 = none). Tests/introspection.
+    int lastLodLevel() const { return lastLodLevel_; }
 
     // --- effects: uniform toggle API + capability gating (F39/F40) ---------------------
     /// @brief Enables/disables one effect by enum. Unsupported effects are refused with a
@@ -170,7 +174,8 @@ private:
     int glMajor_ = 0, glMinor_ = 0;
     bool hasBindless_ = false, hasCompute_ = false;
     unsigned warnedMask_ = 0;   ///< effects already warned about (bit = Effect index)
-    unsigned requestedMask_ = 0; ///< requested bits for effects without an own field (Lod, ...)
+    unsigned requestedMask_ = 0; ///< requested bits for effects without an own field
+    int lastLodLevel_ = -1;     ///< F41: last selected LOD level (copied from SceneView)
 };
 
 } // namespace fuhgl::render

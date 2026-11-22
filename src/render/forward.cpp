@@ -1,4 +1,5 @@
 #include "fuhgl/render/forward_pipeline.hpp"
+#include "fuhgl/render/lod.hpp"
 #include "fuhgl/render/shadow.hpp"
 #include "fuhgl/render/environment.hpp"
 #include "lighting_glsl.hpp"
@@ -179,8 +180,11 @@ void ForwardPipeline::render(const SceneView& scene) {
         gl::functions().glBindTexture(gl::GL_TEXTURE_2D, scene.env->brdfLut().id());
     }
     for (const DrawItem& item : scene.items) {
-        if (!item.mesh) continue;
-        detail::bindItem(defaultMaterial_, item, item.model, viewProj);
+        int lodLevel = -1;
+        const Mesh* mesh = resolveLodMesh(item, scene.camera->eye(), scene.lodEnabled, &lodLevel); // F41
+        if (!mesh) continue;
+        if (lodLevel >= 0) scene.lastLodLevel = lodLevel;
+        detail::bindItem(defaultMaterial_, item, mesh, item.model, viewProj);
         Program& prog = const_cast<Program&>(
             (item.material && item.material->builtinShader) ? defaultMaterial_.program()
                                                             : (item.material ? *item.material : defaultMaterial_).program());
@@ -199,7 +203,7 @@ void ForwardPipeline::render(const SceneView& scene) {
             prog.setUniform("uPrefilterMaxLod", static_cast<float>(scene.env->prefilterMaxLod()));
             prog.setUniform("uEnvIntensity", scene.env->intensity);
         }
-        item.mesh->draw();
+        mesh->draw();
     }
 
     if (target_ && target_->id()) Framebuffer::unbind(Framebuffer::Target::Draw);
