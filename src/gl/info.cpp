@@ -172,6 +172,11 @@ DeviceInfo queryDeviceInfo() {
     l.maxVertexOutputComponents = geti(GL_MAX_VERTEX_OUTPUT_COMPONENTS);
     l.maxFragmentInputComponents = geti(GL_MAX_FRAGMENT_INPUT_COMPONENTS);
     l.maxAnisotropy = info.features.anisotropicFiltering ? geti(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
+
+    // Some limit enums are invalid on older contexts (e.g. compute limits below GL 4.3),
+    // which sets the error flag — drain it so callers can rely on a clean glGetError().
+    if (functions().glGetError)
+        while (functions().glGetError() != GL_NO_ERROR) {}
     return info;
 }
 
