@@ -310,43 +310,46 @@ bool sceneVolFog(const Args& args) {
     d.renderer.setShadowZRange(0.5f, 80.f);
     d.renderer.setShadowSceneBounds({0.f, 1.f, -8.f}, 16.f);
     d.renderer.setShadowStrength(1.f);
-    // low warm sun from behind the camera -> long shadows + forward-scattering shafts
-    d.scene.lights[0] = Light::directional({0.15f, -0.32f, 0.55f}, {1.f, 0.85f, 0.62f}, 3.0f);
+    // low warm sun into the frame (left, elevation ~20 deg) -> visible sun disk, long
+    // shadows and forward-scattering shafts around the trees
+    d.scene.lights[0] = Light::directional({0.55f, -0.28f, 0.35f}, {1.f, 0.82f, 0.55f}, 3.2f);
     d.scene.ambient = {0.10f, 0.11f, 0.15f};
     d.scene.clearColor = {0.42f, 0.52f, 0.68f};
-    d.cam.position = {0.f, 1.9f, 10.f};
-    d.cam.pitch = -0.10f;
+    d.renderer.pipeline().skyTop = {0.30f, 0.45f, 0.72f};
+    d.renderer.pipeline().skyBottom = {0.76f, 0.79f, 0.86f}; // blends into the fog color
+    d.cam.position = {0.f, 1.6f, 9.f};
+    d.cam.pitch = -0.08f;
     // long grass-ish ground
-    shapes::box(d.floorMesh, {30.f, 0.25f, 30.f}, {1.f, 1.f, 1.f});
+    shapes::box(d.floorMesh, {40.f, 0.25f, 40.f}, {1.f, 1.f, 1.f});
     d.floorMat = materials::pbr({0.36f, 0.42f, 0.28f}, 0.f, 0.95f);
-    d.scene.items[0] = {&d.floorMesh, &d.floorMat, fuhgl::math::translate({0.f, -0.25f, -6.f})};
+    d.scene.items[0] = {&d.floorMesh, &d.floorMat, fuhgl::math::translate({0.f, -0.25f, -8.f})};
     // one CSG tree (trunk | two stacked cones), placed in a jittered row receding away
-    auto treeSolid = makeCylinder(0.07f, 1.0f) | translated(makeCone(0.55f, 1.5f), {0.f, 1.9f, 0.f})
-                     | translated(makeCone(0.40f, 1.2f), {0.f, 2.9f, 0.f});
+    auto treeSolid = makeCylinder(0.09f, 1.3f) | translated(makeCone(0.75f, 1.8f), {0.f, 2.4f, 0.f})
+                     | translated(makeCone(0.55f, 1.4f), {0.f, 3.6f, 0.f});
     Mesh treeMesh = treeSolid->buildMesh(20, {1.f, 1.f, 1.f});
-    Material trunkMat = materials::matte({0.30f, 0.22f, 0.14f});
-    Material leafMat = materials::matte({0.16f, 0.34f, 0.14f});
-    for (int i = 0; i < 7; ++i) {
-        const float x = -3.6f + 1.2f * i;
-        const float z = -2.f - 3.1f * i;
-        const float s = 0.8f + 0.35f * ((i * 37 % 10) / 10.f);
-        d.scene.items.push_back({&treeMesh, (i % 2 == 0) ? &leafMat : &trunkMat,
+    Material leafMat = materials::matte({0.14f, 0.32f, 0.13f});
+    for (int i = 0; i < 8; ++i) {
+        const float x = -4.2f + 1.25f * i + 0.5f * ((i * 29 % 7) / 7.f - 0.5f);
+        const float z = -1.f - 2.4f * i;
+        const float s = 0.9f + 0.5f * ((i * 37 % 10) / 10.f);
+        d.scene.items.push_back({&treeMesh, &leafMat,
                                  fuhgl::math::translate({x, 0.f, z}) * fuhgl::math::rotateY(0.4f * i) *
                                  fuhgl::math::scale({s, s, s})});
     }
-    // a rock for the foreground
+    // rocks in the foreground
     auto rockSolid = makeSphere(0.55f) - translated(makeSphere(0.34f), {0.28f, 0.22f, 0.12f});
     Mesh rockMesh = rockSolid->buildMesh(18, {1.f, 1.f, 1.f});
     d.scene.items.push_back({&rockMesh, nullptr, fuhgl::math::translate({1.6f, 0.1f, 3.5f})});
+    d.scene.items.push_back({&rockMesh, nullptr, fuhgl::math::translate({-2.2f, 0.05f, 5.f}) * fuhgl::math::scale({0.7f, 0.6f, 0.7f})});
     d.renderer.volFogEnabled = true;
-    d.renderer.volFogDensity = 0.030f;
-    d.renderer.volFogColor = {0.82f, 0.84f, 0.90f};
-    d.renderer.volFogAnisotropy = 0.55f; // strong forward scattering -> shafts
-    d.renderer.volFogHeight = 0.4f;      // ground mist
-    d.renderer.volFogFalloff = 0.30f;
-    d.renderer.volFogShadows = true;     // CSM-attenuated in-scattering
+    d.renderer.volFogDensity = 0.011f;
+    d.renderer.volFogColor = {0.78f, 0.81f, 0.89f};
+    d.renderer.volFogAnisotropy = 0.6f; // strong forward scattering -> shafts around the sun
+    d.renderer.volFogHeight = 0.3f;     // ground mist
+    d.renderer.volFogFalloff = 0.22f;
+    d.renderer.volFogShadows = true;    // CSM-attenuated in-scattering
     d.renderer.volFogSteps = 32;
-    d.renderer.volFogMaxDist = 90.f;
+    d.renderer.volFogMaxDist = 100.f;
     return renderDef(d, args, 1);
 }
 
