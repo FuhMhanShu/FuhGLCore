@@ -106,6 +106,10 @@ Rays, Nebel, TAA, SSR; der Nacht-Look ergaenzt ein IBL-Environment und Lampen-Sp
 - **Heightmap-Terrain** — `render::HeightmapTerrain` erzeugt aus einer Heightmap (Float-Grid
   oder Graustufenbild) ein Landschafts-Mesh mit Gefälle-Färbung; `heightAt()` platziert
   Objekte darauf — siehe [Tutorial 41](docs/de/tutorials/41-heightmap-terrain.md).
+- **Effekt-Schalter + GPU-Kompatibilitäts-Fallback** — jedes Feature hat einen
+  `render::Effect`-Eintrag; `setEffectEnabled()` / `effectEnabled()` / `setAllEffects()` an
+  beiden Renderern, nicht unterstützte Features werden auf alten GPUs automatisch
+  übersprungen — siehe [Tutorial 42](docs/de/tutorials/42-effects-capabilities.md).
 - **PBR-Materialien** — Metallic-Roughness-Shading (Cook-Torrance GGX) in beiden Pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, im Deferred-Pfad pro Pixel in einem
   5. G-Buffer-Attachment gespeichert — siehe [Tutorial 31](docs/de/tutorials/31-pbr-materials.md).

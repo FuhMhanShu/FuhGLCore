@@ -6,6 +6,7 @@
 /// and an optional shadow map that is re-rendered automatically from the first
 /// directional/spot light every frame.
 
+#include "effects.hpp"
 #include "light.hpp"
 #include "forward_pipeline.hpp"
 #include "shadow.hpp"
@@ -75,6 +76,19 @@ public:
     bool csmShadowsEnabled() const { return csmEnabled_; }
     CascadeShadowMap* cascadeShadowMap() { return csmEnabled_ ? &csm_ : nullptr; }
 
+    // --- effects: uniform toggle API + capability gating (F39/F40) ---------------------
+    /// @brief Enables/disables one effect by enum. Unsupported effects are refused with a
+    /// warning (they stay off — graceful degradation on old GPUs).
+    void setEffectEnabled(Effect e, bool on);
+    /// @brief True when the effect is both requested and supported by the current GPU.
+    bool effectEnabled(Effect e) const;
+    /// @brief Enables/disables all renderer-owned effects at once (still capability-gated).
+    void setAllEffects(bool on);
+    /// @brief True when the current GPU can run this effect at all (pure mapping, F39).
+    bool effectSupported(Effect e) const {
+        return render::effectSupported(e, glMajor_, glMinor_, hasBindless_, hasCompute_);
+    }
+
     // --- rendering -------------------------------------------------------------------
     /// @brief Renders one frame: shadow depth pass (when enabled, from the first
     /// directional/spot light) + forward pass with lights/fog/shadows.
@@ -109,6 +123,14 @@ private:
     float shadowRadius_ = 10.f;
     float shadowStrength_ = 1.f;
     int width_ = 0, height_ = 0;
+
+    // F39: capabilities captured at create() time; applyCapabilities() clears unsupported
+    void applyCapabilities();
+    void gate(Effect e, bool& flag);
+    int glMajor_ = 0, glMinor_ = 0;
+    bool hasBindless_ = false, hasCompute_ = false;
+    unsigned warnedMask_ = 0;
+    unsigned requestedMask_ = 0;
 };
 
 } // namespace fuhgl::render

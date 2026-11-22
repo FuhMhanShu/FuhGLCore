@@ -11,6 +11,7 @@
 /// Optional volumetric fog (F37) raymarches the world-space view ray per pixel after DoF.
 
 #include "deferred.hpp"
+#include "effects.hpp"
 #include "graph.hpp"
 #include "light.hpp"
 #include "shadow.hpp"
@@ -95,6 +96,19 @@ public:
     int volFogSteps = 24;                     ///< raymarch steps per pixel
     float volFogMaxDist = 150.f;              ///< clamp of the marched ray length
 
+    // --- effects: uniform toggle API + capability gating (F39/F40) ---------------------
+    /// @brief Enables/disables one effect by enum. Unsupported effects are refused with a
+    /// warning (they stay off — graceful degradation on old GPUs).
+    void setEffectEnabled(Effect e, bool on);
+    /// @brief True when the effect is both requested and supported by the current GPU.
+    bool effectEnabled(Effect e) const;
+    /// @brief Enables/disables all renderer-owned effects at once (still capability-gated).
+    void setAllEffects(bool on);
+    /// @brief True when the current GPU can run this effect at all (pure mapping, F39).
+    bool effectSupported(Effect e) const {
+        return render::effectSupported(e, glMajor_, glMinor_, hasBindless_, hasCompute_);
+    }
+
     // --- shadows (same model as ForwardRenderer) ---------------------------------------
     void enableShadows(int mapSize = 2048);
     void disableShadows() { shadows_ = false; }
@@ -137,6 +151,8 @@ private:
     unsigned frameIndex_ = 0;
     std::string bloomLast_; ///< bloom resource the composite pass reads
 
+    bool bloomEnabled = true; ///< F40: bloom toggle (strength still scales the effect)
+
     bool shadows_ = false;
     bool csmEnabled_ = false;
     float shadowZNear_ = 0.5f, shadowZFar_ = 200.f;
@@ -147,6 +163,14 @@ private:
 
     Material ssaoMat_, blurMat_, brightMat_, raysMat_, compositeMat_, taaMat_, ssrMat_, dofMat_, volfogMat_, copyMat_;
     VertexArray fsVao_;
+
+    // F39: capabilities captured at create() time; applyCapabilities() clears unsupported
+    void applyCapabilities();
+    void gate(Effect e, bool& flag);
+    int glMajor_ = 0, glMinor_ = 0;
+    bool hasBindless_ = false, hasCompute_ = false;
+    unsigned warnedMask_ = 0;   ///< effects already warned about (bit = Effect index)
+    unsigned requestedMask_ = 0; ///< requested bits for effects without an own field (Lod, ...)
 };
 
 } // namespace fuhgl::render

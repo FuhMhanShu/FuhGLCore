@@ -7,6 +7,7 @@
 /// ready-to-use one-call renderers (owned target + shadows + post FX).
 
 #include "render/scene.hpp"
+#include "render/effects.hpp"
 #include "render/light.hpp"
 #include "render/mesh.hpp"
 #include "render/shadow.hpp"

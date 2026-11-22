@@ -135,6 +135,8 @@ DeviceInfo queryDeviceInfo() {
     info.features.debugOutput = info.version.atLeast(4, 3) || hasExt("GL_KHR_debug");
     info.features.anisotropicFiltering = hasExt("GL_EXT_texture_filter_anisotropic");
     info.features.shaderStorage = info.version.atLeast(4, 3) || hasExt("GL_ARB_shader_storage_buffer_object");
+    info.features.textureArrays = info.version.atLeast(3, 0) || hasExt("GL_EXT_texture_array") || hasExt("GL_ARB_texture_array");
+    info.features.bindlessTextures = hasExt("GL_ARB_bindless_texture");
 
     Limits& l = info.limits;
     l.maxTextureSize2D = geti(GL_MAX_TEXTURE_SIZE);

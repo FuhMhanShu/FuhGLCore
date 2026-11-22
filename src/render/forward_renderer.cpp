@@ -1,6 +1,7 @@
 #include "fuhgl/render/forward_renderer.hpp"
 #include "fuhgl/render/mesh.hpp"
 
+#include "fuhgl/gl/info.hpp"
 #include "fuhgl/gl/state.hpp"
 
 #include <cstdio>
@@ -18,6 +19,14 @@ bool ForwardRenderer::create(int width, int height) {
     if (!pipeline_.create(width, height)) {
         std::fprintf(stderr, "ForwardRenderer: pipeline create failed\n");
         return false;
+    }
+    // F39: capture capabilities once — used to gate effects (graceful degradation)
+    {
+        const gl::DeviceInfo di = gl::queryDeviceInfo();
+        glMajor_ = di.version.major;
+        glMinor_ = di.version.minor;
+        hasBindless_ = di.hasExtension("GL_ARB_bindless_texture");
+        hasCompute_ = di.features.compute;
     }
     width_ = width;
     height_ = height;
@@ -77,9 +86,70 @@ void ForwardRenderer::enableCsmShadows(int mapSize, int cascades) {
     }
 }
 
+void ForwardRenderer::gate(Effect e, bool& flag) {
+    if (flag && !effectSupported(e)) {
+        const unsigned bit = 1u << static_cast<int>(e);
+        if (!(warnedMask_ & bit)) {
+            warnUnsupported("ForwardRenderer", e, glMajor_, glMinor_);
+            warnedMask_ |= bit;
+        }
+        flag = false;
+    }
+}
+
+void ForwardRenderer::applyCapabilities() {
+    gate(Effect::Shadows, shadows_);
+    gate(Effect::CsmShadows, csmEnabled_);
+}
+
+void ForwardRenderer::setEffectEnabled(Effect e, bool on) {
+    switch (e) {
+        case Effect::Shadows: shadows_ = on; break;
+        case Effect::CsmShadows: csmEnabled_ = on; break;
+        default: {
+            const unsigned bit = 1u << static_cast<int>(e);
+            if (on) requestedMask_ |= bit;
+            else requestedMask_ &= ~bit;
+            break;
+        }
+    }
+    if (on && !effectSupported(e) && !((warnedMask_ >> static_cast<int>(e)) & 1u)) {
+        warnUnsupported("ForwardRenderer", e, glMajor_, glMinor_);
+        warnedMask_ |= 1u << static_cast<int>(e);
+    }
+    applyCapabilities();
+}
+
+bool ForwardRenderer::effectEnabled(Effect e) const {
+    if (!effectSupported(e)) return false;
+    switch (e) {
+        case Effect::Shadows: return shadows_;
+        case Effect::CsmShadows: return csmEnabled_;
+        default: return ((requestedMask_ >> static_cast<int>(e)) & 1u) != 0u;
+    }
+}
+
+void ForwardRenderer::setAllEffects(bool on) {
+    shadows_ = csmEnabled_ = on;
+    requestedMask_ = on ? ((1u << kEffectCount) - 1u) : 0u;
+    applyCapabilities();
+}
+
 void ForwardRenderer::render(const Camera& camera, const std::vector<DrawItem>& items, int width, int height) {
     SceneView scene;
     scene.camera = &camera;
+    // F39: graceful degradation — effects the GPU cannot run are skipped (warned once)
+    applyCapabilities();
+    if (env_ && !effectSupported(Effect::Ibl)) {
+        const unsigned bit = 1u << static_cast<int>(Effect::Ibl);
+        if (!(warnedMask_ & bit)) {
+            warnUnsupported("ForwardRenderer", Effect::Ibl, glMajor_, glMinor_);
+            warnedMask_ |= bit;
+        }
+        scene.env = nullptr;
+    } else {
+        scene.env = env_; // F29
+    }
     scene.width = width;
     scene.height = height;
     scene.aspect = height > 0 ? static_cast<float>(width) / static_cast<float>(height) : 1.f;
@@ -89,7 +159,6 @@ void ForwardRenderer::render(const Camera& camera, const std::vector<DrawItem>& 
     scene.fogDensity = fogDensity_;
     scene.items = items;
     scene.lights = lights_;
-    scene.env = env_; // F29
 
     // shadow depth pass from the first directional/spot light (single map) or
     // first directional light (CSM, F30)

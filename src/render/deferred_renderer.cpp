@@ -1,6 +1,7 @@
 #include "fuhgl/render/deferred_renderer.hpp"
 #include "fuhgl/render/mesh.hpp"
 
+#include "fuhgl/gl/info.hpp"
 #include "fuhgl/gl/state.hpp"
 
 #include "lighting_glsl.hpp"
@@ -373,6 +374,14 @@ bool DeferredRenderer::create(int width, int height, int msaaSamples) {
         std::fprintf(stderr, "DeferredRenderer: pipeline create failed\n");
         return false;
     }
+    // F39: capture capabilities once — used to gate effects (graceful degradation)
+    {
+        const gl::DeviceInfo di = gl::queryDeviceInfo();
+        glMajor_ = di.version.major;
+        glMinor_ = di.version.minor;
+        hasBindless_ = di.hasExtension("GL_ARB_bindless_texture");
+        hasCompute_ = di.features.compute;
+    }
     if (!createPost(width, height)) return false;
     if (shadows_ && !shadowMap_.create(shadowSize_)) {
         std::fprintf(stderr, "DeferredRenderer: shadow map create failed\n");
@@ -488,6 +497,77 @@ const Texture& DeferredRenderer::hdrTexture() const {
     const Texture* t = post_.texture("hdr");
     static const Texture fallback(Texture::Target::Tex2D);
     return t ? *t : fallback;
+}
+
+void DeferredRenderer::gate(Effect e, bool& flag) {
+    if (flag && !effectSupported(e)) {
+        const unsigned bit = 1u << static_cast<int>(e);
+        if (!(warnedMask_ & bit)) {
+            warnUnsupported("DeferredRenderer", e, glMajor_, glMinor_);
+            warnedMask_ |= bit;
+        }
+        flag = false;
+    }
+}
+
+void DeferredRenderer::applyCapabilities() {
+    gate(Effect::Ssao, ssaoEnabled);
+    gate(Effect::Bloom, bloomEnabled);
+    gate(Effect::GodRays, godRaysEnabled);
+    gate(Effect::Taa, taaEnabled);
+    gate(Effect::Ssr, ssrEnabled);
+    gate(Effect::DoF, dofEnabled);
+    gate(Effect::VolFog, volFogEnabled);
+    gate(Effect::Shadows, shadows_);
+    gate(Effect::CsmShadows, csmEnabled_);
+}
+
+void DeferredRenderer::setEffectEnabled(Effect e, bool on) {
+    switch (e) {
+        case Effect::Ssao: ssaoEnabled = on; break;
+        case Effect::Bloom: bloomEnabled = on; break;
+        case Effect::GodRays: godRaysEnabled = on; break;
+        case Effect::Taa: taaEnabled = on; break;
+        case Effect::Ssr: ssrEnabled = on; break;
+        case Effect::DoF: dofEnabled = on; break;
+        case Effect::VolFog: volFogEnabled = on; break;
+        case Effect::Shadows: shadows_ = on; break;
+        case Effect::CsmShadows: csmEnabled_ = on; break;
+        default: {
+            const unsigned bit = 1u << static_cast<int>(e);
+            if (on) requestedMask_ |= bit;
+            else requestedMask_ &= ~bit;
+            break;
+        }
+    }
+    if (on && !effectSupported(e) && !((warnedMask_ >> static_cast<int>(e)) & 1u)) {
+        warnUnsupported("DeferredRenderer", e, glMajor_, glMinor_);
+        warnedMask_ |= 1u << static_cast<int>(e);
+    }
+    applyCapabilities();
+}
+
+bool DeferredRenderer::effectEnabled(Effect e) const {
+    if (!effectSupported(e)) return false;
+    switch (e) {
+        case Effect::Ssao: return ssaoEnabled;
+        case Effect::Bloom: return bloomEnabled;
+        case Effect::GodRays: return godRaysEnabled;
+        case Effect::Taa: return taaEnabled;
+        case Effect::Ssr: return ssrEnabled;
+        case Effect::DoF: return dofEnabled;
+        case Effect::VolFog: return volFogEnabled;
+        case Effect::Shadows: return shadows_;
+        case Effect::CsmShadows: return csmEnabled_;
+        default: return ((requestedMask_ >> static_cast<int>(e)) & 1u) != 0u;
+    }
+}
+
+void DeferredRenderer::setAllEffects(bool on) {
+    ssaoEnabled = bloomEnabled = godRaysEnabled = taaEnabled = ssrEnabled = dofEnabled =
+        volFogEnabled = shadows_ = csmEnabled_ = on;
+    requestedMask_ = on ? ((1u << kEffectCount) - 1u) : 0u;
+    applyCapabilities();
 }
 
 void DeferredRenderer::drawFs(Material& mat, const std::function<void(Program&)>& setUniforms) {
@@ -675,7 +755,7 @@ void DeferredRenderer::drawComposite(RenderGraph::PassContext& ctx, std::string_
         p.setUniform(p.uniformLocation("uBloom"), 1);
         p.setUniform(p.uniformLocation("uRays"), 2);
         p.setUniform("uExposure", exposure);
-        p.setUniform("uBloomStrength", bloomStrength);
+        p.setUniform("uBloomStrength", bloomEnabled ? bloomStrength : 0.f);
         p.setUniform("uRayScale", godRaysEnabled ? 1.f : 0.f);
     });
     Framebuffer::unbind();
@@ -684,6 +764,16 @@ void DeferredRenderer::drawComposite(RenderGraph::PassContext& ctx, std::string_
 void DeferredRenderer::render(const SceneView& scene) {
     if (!scene.camera || width_ <= 0) return;
     SceneView s = scene;
+    // F39: graceful degradation — effects the GPU cannot run are skipped (warned once)
+    applyCapabilities();
+    if (s.env && !effectSupported(Effect::Ibl)) {
+        const unsigned bit = 1u << static_cast<int>(Effect::Ibl);
+        if (!(warnedMask_ & bit)) {
+            warnUnsupported("DeferredRenderer", Effect::Ibl, glMajor_, glMinor_);
+            warnedMask_ |= bit;
+        }
+        s.env = nullptr;
+    }
 
     // shadow depth pass: CSM (F30, first directional light) or single map (first directional/spot)
     if (csmEnabled_ && csm_.cascadeCount() > 0) {
@@ -731,6 +821,8 @@ void DeferredRenderer::render(const SceneView& scene) {
     post_.setPassEnabled("ssao", ssaoEnabled);
     post_.setPassEnabled("ssaoBlurH", ssaoEnabled);
     post_.setPassEnabled("ssaoBlurV", ssaoEnabled);
+    // bloom stays in the graph when disabled (unwritten resources could hold NaN);
+    // the composite just multiplies by 0 — see drawComposite
     pipeline_.aoTexture = ssaoEnabled ? post_.texture("ssao") : nullptr;
     pipeline_.aoStrength = ssaoStrength;
     post_.execute();

@@ -55,6 +55,8 @@ struct Features {
     bool debugOutput = false;          ///< GL >= 4.3 or GL_KHR_debug
     bool anisotropicFiltering = false; ///< GL_EXT_texture_filter_anisotropic
     bool shaderStorage = false;        ///< GL >= 4.3 or GL_ARB_shader_storage_buffer_object
+    bool textureArrays = false;        ///< GL >= 3.0 (sampler2DArray, CSM depth arrays)
+    bool bindlessTextures = false;     ///< GL_ARB_bindless_texture (F35)
 };
 
 /// @brief Everything queryable about the current context / GPU. Value type.

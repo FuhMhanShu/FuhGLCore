@@ -49,6 +49,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 39 | Depth of field (bokeh): focus plane + CoC gather pass after TAA | [39-dof.md](39-dof.md) |
 | 40 | Volumetric fog / light shafts: raymarched single scattering, HG phase, height fog, shadowed in-scattering | [40-volfog.md](40-volfog.md) |
 | 41 | Heightmap terrain: landscape mesh from a heightmap, slope coloring, heightAt placement | [41-heightmap-terrain.md](41-heightmap-terrain.md) |
+| 42 | Effect toggles + GPU capability fallback: Effect enum, setEffectEnabled, graceful degradation | [42-effects-capabilities.md](42-effects-capabilities.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

@@ -22,3 +22,4 @@ void runCullingTests();
 void runDofTests();
 void runVolFogTests();
 void runTerrainTests();
+void runEffectsTests();

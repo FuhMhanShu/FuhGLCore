@@ -119,6 +119,18 @@ All notable changes to FuhGLCore are documented here. The format follows
   as a deterministic seeded fBm heightmap source. Tests: `test_terrain.cpp` (unit),
   `gl_smoke_terrain.cpp` (gl_context); screenshot `examples/features --scene heightmap`;
   tutorial 41 (en + de).
+- F39 — backward compatibility via capability detection: `render::effectSupported()`
+  (render/effects.hpp) is a pure, unit-tested mapping from (GL version, bindless, compute)
+  to feature support; `gl::Features` gained `textureArrays` + `bindlessTextures`. Both
+  renderers capture `gl::queryDeviceInfo()` at `create()` and clear unsupported effect
+  flags in `render()` (`applyCapabilities()`, one-time `warnUnsupported()` warning; the IBL
+  environment is dropped the same way) — features are simply not used when the GPU cannot
+  run them. Tests: `test_effects.cpp` (unit), `gl_smoke_effects.cpp` (gl_context).
+- F40 — uniform effect toggle API on `DeferredRenderer` AND `ForwardRenderer`:
+  `render::Effect` enum + `setEffectEnabled()` / `effectEnabled()` (requested AND
+  supported) / `setAllEffects()` / `effectSupported()`; the existing public fields stay
+  valid and are routed through the same gating; `DeferredRenderer` gained `bloomEnabled`.
+  Tutorial 42 (en + de).;
 
 ### Changed
 - Showcase reworked into an organic landscape: noise heightfield terrain with a clearing

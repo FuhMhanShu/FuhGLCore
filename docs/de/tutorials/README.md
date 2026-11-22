@@ -49,6 +49,7 @@ Screenshots in `docs/images/` werden headless von der CI (`docs`-Job) gerendert
 | 39 | Depth of Field (Bokeh): Schärfeebene + CoC-Gather nach dem TAA | [39-dof.md](39-dof.md) |
 | 40 | Volumetrischer Nebel / Lichtschächte: Raymarching mit Single-Scattering, HG-Phase, Höhennebel | [40-volfog.md](40-volfog.md) |
 | 41 | Heightmap-Terrain: Landschafts-Mesh aus einer Heightmap, Gefälle-Färbung, heightAt-Platzierung | [41-heightmap-terrain.md](41-heightmap-terrain.md) |
+| 42 | Effekt-Schalter + GPU-Fallback: Effect-Enum, setEffectEnabled, graceful degradation | [42-effects-capabilities.md](42-effects-capabilities.md) |
 
 Voraussetzung für alle: Bibliothek bauen und `FuhGLCore::fuhglcore` linken
 (siehe [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).
