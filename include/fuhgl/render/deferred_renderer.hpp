@@ -8,6 +8,7 @@
 /// image, then bloom (bright-pass + separable blur), crepuscular "god" rays from the
 /// sun's screen position, and ACES tone mapping + gamma into the LDR output.
 /// Parallax/bump mapping live in the G-buffer pass (material maps).
+/// Optional volumetric fog (F37) raymarches the world-space view ray per pixel after DoF.
 
 #include "deferred.hpp"
 #include "graph.hpp"
@@ -45,7 +46,8 @@ public:
     void resize(int width, int height);
 
     /// @brief Full frame: shadow depth pass (if enabled) -> G-buffer -> post graph
-    /// (SSAO -> lighting -> [SSR] -> [TAA] -> [DoF] -> bloom -> god rays -> composite into output()).
+    /// (SSAO -> lighting -> [SSR] -> [TAA] -> [DoF] -> [volumetric fog] -> bloom -> god rays
+    /// -> composite into output()).
     void render(const SceneView& scene);
 
     Framebuffer& output() { return pipeline_.output(); }
@@ -82,6 +84,16 @@ public:
     float dofFocusRange = 6.f;  ///< distance over which the CoC grows to dofStrength
     float dofStrength = 12.f;   ///< max circle of confusion in pixels
     int dofTaps = 16;           ///< gather taps (golden-angle spiral)
+    // --- volumetric fog (F37): raymarched single scattering along the view ray -----------
+    bool volFogEnabled = false;
+    float volFogDensity = 0.02f;              ///< extinction coefficient (1 / world unit)
+    math::Vec3 volFogColor{0.75f, 0.80f, 0.88f}; ///< scattering albedo tint
+    float volFogAnisotropy = 0.3f;            ///< Henyey-Greenstein g (forward scattering)
+    float volFogHeight = 0.f;                 ///< if > 0: exponential height fog from this height
+    float volFogFalloff = 0.15f;              ///< height fog falloff (exp(-(y-h) * falloff))
+    bool volFogShadows = false;               ///< attenuate in-scattering by the shadow map/CSM
+    int volFogSteps = 24;                     ///< raymarch steps per pixel
+    float volFogMaxDist = 150.f;              ///< clamp of the marched ray length
 
     // --- shadows (same model as ForwardRenderer) ---------------------------------------
     void enableShadows(int mapSize = 2048);
@@ -110,6 +122,7 @@ private:
     void drawSSR(RenderGraph::PassContext& ctx);
     void drawTAA(RenderGraph::PassContext& ctx);
     void drawDoF(RenderGraph::PassContext& ctx);
+    void drawVolFog(RenderGraph::PassContext& ctx);
     void drawCopy(RenderGraph::PassContext& ctx, std::string_view in);
     void drawBloomBright(RenderGraph::PassContext& ctx);
     void drawRays(RenderGraph::PassContext& ctx);
@@ -132,7 +145,7 @@ private:
     float shadowRadius_ = 10.f;
     float shadowStrength_ = 1.f;
 
-    Material ssaoMat_, blurMat_, brightMat_, raysMat_, compositeMat_, taaMat_, ssrMat_, dofMat_, copyMat_;
+    Material ssaoMat_, blurMat_, brightMat_, raysMat_, compositeMat_, taaMat_, ssrMat_, dofMat_, volfogMat_, copyMat_;
     VertexArray fsVao_;
 };
 

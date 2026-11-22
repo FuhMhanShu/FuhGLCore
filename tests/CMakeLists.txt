@@ -18,6 +18,7 @@ add_executable(fuhgl_tests
     test_graph.cpp
     test_culling.cpp
     test_dof.cpp
+    test_volfog.cpp
 )
 target_link_libraries(fuhgl_tests PRIVATE fuhglcore)
 add_test(NAME fuhgl_tests COMMAND fuhgl_tests)
@@ -158,6 +159,12 @@ add_executable(fuhgl_gl_smoke_dof gl_smoke_dof.cpp)
 target_link_libraries(fuhgl_gl_smoke_dof PRIVATE fuhglcore)
 add_test(NAME gl_smoke_dof COMMAND fuhgl_gl_smoke_dof)
 
+# F37 volumetric fog smoke test: far pixels shift toward the fog color with fog on and
+# stay put up close; with volFogShadows the shadowed region gets less in-scattering.
+add_executable(fuhgl_gl_smoke_volfog gl_smoke_volfog.cpp)
+target_link_libraries(fuhgl_gl_smoke_volfog PRIVATE fuhglcore)
+add_test(NAME gl_smoke_volfog COMMAND fuhgl_gl_smoke_volfog)
+
 # --- test semantics (F26) ---------------------------------------------------------------
 # "unit": pure CPU tests, no GL context required.
 # "gl_context": needs a GL context; the test exits with code 77 ("Skipped" via
@@ -169,5 +176,5 @@ set_tests_properties(
     gl_smoke gl_smoke_deferred gl_smoke_buffers gl_smoke_solids gl_smoke_state gl_smoke_lights
     gl_smoke_shadows gl_smoke_forward gl_smoke_deferred_fx gl_smoke_dsa gl_smoke_text
     gl_smoke_wireframe gl_smoke_p3 gl_smoke_reflection gl_smoke_instancing gl_smoke_pbr gl_smoke_csm gl_smoke_graph gl_smoke_taa gl_smoke_ssr
-    gl_smoke_culling gl_smoke_bindless gl_smoke_dof
+    gl_smoke_culling gl_smoke_bindless gl_smoke_dof gl_smoke_volfog
     PROPERTIES LABELS "gl_context" SKIP_RETURN_CODE 77)

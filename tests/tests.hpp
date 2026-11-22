@@ -20,3 +20,4 @@ void runEnvironmentTests();
 void runGraphTests();
 void runCullingTests();
 void runDofTests();
+void runVolFogTests();

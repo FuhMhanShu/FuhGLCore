@@ -3,6 +3,8 @@
 
 #include "fuhgl/gl/state.hpp"
 
+#include "lighting_glsl.hpp"
+
 #include <cmath>
 #include <cstdio>
 #include <string>
@@ -187,6 +189,70 @@ void main() {
 }
 )GLSL";
 
+// F37: volumetric fog — raymarch the world-space view ray (G-buffer depth or far plane
+// for sky) and accumulate single scattering from the sun with a Henyey-Greenstein phase
+// function (math::henyeyGreenstein on the CPU side). The shadow uniforms/functions
+// (kShadowUniforms + kShadowFunc) are spliced in between head and tail, so light shafts
+// work with the single shadow map (F15) or the CSM array (F30) when volFogShadows is on.
+constexpr const char* kVolFogFragHead = R"GLSL(#version 330 core
+in vec2 vUV;
+out vec4 FragColor;
+uniform sampler2D uSrc;      // 0: HDR scene (dof output)
+uniform sampler2D uPosition; // 1: world pos, alpha = geometry flag
+uniform mat4 uInvViewProj;
+uniform vec3 uCamPos;
+uniform vec3 uSunDir;   // direction TO the sun
+uniform vec3 uSunColor; // HDR sun radiance
+uniform float uDensity;
+uniform vec3 uFogColor; // scattering albedo tint
+uniform float uAnisotropy;
+uniform vec2 uHeightFog; // x = base height, y = falloff (y <= 0 disables height fog)
+uniform int uSteps;
+uniform float uMaxDist;
+)GLSL";
+
+constexpr const char* kVolFogFragTail = R"GLSL(
+float hgPhase(float cosT, float g) {
+    float g2 = g * g;
+    float d = 1.0 + g2 - 2.0 * g * cosT;
+    return (1.0 - g2) / (4.0 * 3.14159265 * d * sqrt(d));
+}
+void main() {
+    vec4 gp = texture(uPosition, vUV);
+    vec3 farPos;
+    float maxDist;
+    if (gp.a > 0.5) { // geometry: march only up to the surface
+        farPos = gp.rgb;
+        maxDist = length(farPos - uCamPos);
+    } else { // sky: march to the far plane
+        vec4 wp = uInvViewProj * vec4(vUV * 2.0 - 1.0, 1.0, 1.0);
+        farPos = wp.xyz / wp.w;
+        maxDist = length(farPos - uCamPos);
+    }
+    maxDist = min(maxDist, uMaxDist);
+    vec3 src = texture(uSrc, vUV).rgb;
+    if (maxDist < 1e-3) { FragColor = vec4(src, 1.0); return; }
+    vec3 dir = (farPos - uCamPos) / maxDist;
+    float stepLen = maxDist / float(uSteps);
+    float phase = hgPhase(dot(dir, uSunDir), uAnisotropy);
+    float T = 1.0;
+    vec3 insc = vec3(0.0);
+    for (int i = 0; i < 64; ++i) {
+        if (i >= uSteps) break;
+        vec3 p = uCamPos + dir * ((float(i) + 0.5) * stepLen);
+        float sigma = uDensity;
+        if (uHeightFog.y > 0.0)
+            sigma *= exp(-max(p.y - uHeightFog.x, 0.0) * uHeightFog.y);
+        float sh = 1.0;
+        if (uShadowEnabled == 1)
+            sh = shadowFactor(p, vec3(0.0, 1.0, 0.0), uSunDir);
+        insc += uSunColor * (phase * uFogColor) * (sigma * sh) * T * stepLen;
+        T *= exp(-sigma * stepLen);
+    }
+    FragColor = vec4(src * T + insc, 1.0);
+}
+)GLSL";
+
 // F33: screen-space reflections — march the reflection ray in world space, compare
 // against the G-buffer position texture, sample the HDR color at the hit point.
 constexpr const char* kSsrFrag = R"GLSL(#version 330 core
@@ -278,7 +344,11 @@ bool compileFs(Material& mat, const std::string& fragSrc, const char* what) {
 
 } // namespace
 
-struct DeferredRenderer::Impl {};
+struct DeferredRenderer::Impl {
+    // F37: 1x1 dummies so the volfog pass's shadow samplers stay complete when shadows are off
+    Texture dummyShadowTex{Texture::Target::Tex2D};
+    Texture dummyShadowArrayTex{Texture::Target::Tex2DArray};
+};
 
 DeferredRenderer::DeferredRenderer() : impl_(std::make_unique<Impl>()) {}
 DeferredRenderer::~DeferredRenderer() = default;
@@ -313,6 +383,7 @@ bool DeferredRenderer::create(int width, int height, int msaaSamples) {
 
 bool DeferredRenderer::createPost(int w, int h) {
     const std::string ssaoSrc = std::string(kSsaoFragHead) + ssaoKernelGlsl(ssaoSamples) + kSsaoFragTail;
+    const std::string volFogSrc = std::string(kVolFogFragHead) + kShadowUniforms + kShadowFunc + kVolFogFragTail;
     if (!compileFs(ssaoMat_, ssaoSrc, "ssao")) return false;
     if (!compileFs(blurMat_, kBlurFrag, "blur")) return false;
     if (!compileFs(brightMat_, kBrightFrag, "bright")) return false;
@@ -320,10 +391,22 @@ bool DeferredRenderer::createPost(int w, int h) {
     if (!compileFs(compositeMat_, kCompositeFrag, "composite")) return false;
     if (!compileFs(taaMat_, kTaaFrag, "taa")) return false;
     if (!compileFs(dofMat_, kDofFrag, "dof")) return false;
+    if (!compileFs(volfogMat_, volFogSrc, "volfog")) return false;
     if (!compileFs(ssrMat_, kSsrFrag, "ssr")) return false;
     if (!compileFs(copyMat_, kCopyFrag, "copy")) return false;
     if (!fsVao_.create()) return false;
     fsVao_.bind();
+    // F37: 1x1 dummy depth textures keep the volfog shadow samplers complete when off
+    impl_->dummyShadowTex.bind();
+    impl_->dummyShadowTex.texStorage2D(1, gl::GL_DEPTH_COMPONENT24, 1, 1);
+    impl_->dummyShadowTex.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_NEAREST);
+    impl_->dummyShadowTex.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
+    impl_->dummyShadowTex.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
+    impl_->dummyShadowTex.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
+    impl_->dummyShadowArrayTex.bind();
+    impl_->dummyShadowArrayTex.texStorage3D(1, gl::GL_DEPTH_COMPONENT24, 1, 1, 1);
+    impl_->dummyShadowArrayTex.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_NEAREST);
+    impl_->dummyShadowArrayTex.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
 
     // --- build the post-processing render graph (F31) ---------------------------------
     post_ = RenderGraph();
@@ -351,6 +434,8 @@ bool DeferredRenderer::createPost(int w, int h) {
     post_.addPass("taa", {"ssr", "taa"}, {"taa"}, [this](RenderGraph::PassContext& ctx) { drawTAA(ctx); }, /*feedback=*/true);
     post_.addResource("dof", w, h, gl::GL_RGBA16F);
     post_.addPass("dof", {"taa", "gPosition"}, {"dof"}, [this](RenderGraph::PassContext& ctx) { drawDoF(ctx); });
+    post_.addResource("volfog", w, h, gl::GL_RGBA16F);
+    post_.addPass("volfog", {"dof", "gPosition"}, {"volfog"}, [this](RenderGraph::PassContext& ctx) { drawVolFog(ctx); });
     post_.addPass("bright", {"taa"}, {"bloomA"}, [this](RenderGraph::PassContext& ctx) { drawBloomBright(ctx); });
     // bloom blur ping-pong (2 passes per bloomBlurPasses)
     std::string bloomCur = "bloomA";
@@ -365,7 +450,7 @@ bool DeferredRenderer::createPost(int w, int h) {
     }
     bloomLast_ = bloomCur;
     post_.addPass("rays", {"taa"}, {"rays"}, [this](RenderGraph::PassContext& ctx) { drawRays(ctx); });
-    post_.addPass("composite", {"dof", bloomLast_, "rays"}, {},
+    post_.addPass("composite", {"volfog", bloomLast_, "rays"}, {},
                   [this](RenderGraph::PassContext& ctx) { drawComposite(ctx, bloomLast_); });
     if (!post_.compile()) {
         std::fprintf(stderr, "DeferredRenderer: post graph compile failed\n");
@@ -496,6 +581,59 @@ void DeferredRenderer::drawDoF(RenderGraph::PassContext& ctx) {
     });
 }
 
+void DeferredRenderer::drawVolFog(RenderGraph::PassContext& ctx) {
+    if (!volFogEnabled) {
+        drawCopy(ctx, "dof");
+        return;
+    }
+    const SceneView& s = *curScene_;
+    ctx.bindInput(0, "dof");
+    ctx.bindInput(1, "gPosition");
+    // shadow samplers on the same units as the lighting pass (dummies when off)
+    const bool csm = s.cascades && s.cascades->cascadeCount() > 0;
+    const bool shadowed = volFogShadows && (csm || s.shadowMap);
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMap);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D,
+                                  s.shadowMap ? s.shadowMap->textureId() : impl_->dummyShadowTex.id());
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMapArray);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D_ARRAY,
+                                  csm ? s.cascades->textureId() : impl_->dummyShadowArrayTex.id());
+    drawFs(volfogMat_, [&](Program& p) {
+        p.setUniform("uCamPos", s.camera->eye());
+        p.setUniform("uInvViewProj", s.camera->viewProj(s.aspect).inverse());
+        p.setUniform("uView", s.camera->view());
+        p.setUniform("uSunDir", s.sunDirection);
+        p.setUniform("uSunColor", s.sunColor);
+        p.setUniform("uDensity", volFogDensity);
+        p.setUniform("uFogColor", volFogColor);
+        p.setUniform("uAnisotropy", volFogAnisotropy);
+        p.setUniform("uHeightFog", math::Vec2(volFogHeight, volFogHeight > 0.f ? volFogFalloff : 0.f));
+        p.setUniform(p.uniformLocation("uSteps"), math::clamp(volFogSteps, 1, 64));
+        p.setUniform("uMaxDist", volFogMaxDist);
+        p.setUniform(p.uniformLocation("uSrc"), 0);
+        p.setUniform(p.uniformLocation("uPosition"), 1);
+        p.setUniform(p.uniformLocation("uShadowMap"), kTextureUnitShadowMap);
+        p.setUniform(p.uniformLocation("uShadowMapArray"), kTextureUnitShadowMapArray);
+        if (shadowed) {
+            p.setUniform(p.uniformLocation("uShadowEnabled"), 1);
+            if (csm) {
+                p.setUniform(p.uniformLocation("uShadowMode"), 1);
+                p.setUniform(p.uniformLocation("uCascadeCount"), s.cascades->cascadeCount());
+                p.setUniform(p.uniformLocation("uCascadeSplits"), s.cascades->cascadeCount() + 1,
+                             s.cascades->splits().data());
+                p.setUniform(p.uniformLocation("uLightVPs"), s.cascades->cascadeCount(),
+                             &s.cascades->cascadeVP(0));
+            } else {
+                p.setUniform(p.uniformLocation("uShadowMode"), 0);
+                p.setUniform("uLightVP", s.lightVP);
+            }
+        } else {
+            p.setUniform(p.uniformLocation("uShadowEnabled"), 0);
+            p.setUniform(p.uniformLocation("uShadowMode"), 0);
+        }
+    });
+}
+
 void DeferredRenderer::drawCopy(RenderGraph::PassContext& ctx, std::string_view in) {
     ctx.bindInput(0, in);
     drawFs(copyMat_, [](Program& p) { p.setUniform(p.uniformLocation("uTex"), 0); });
@@ -529,7 +667,7 @@ void DeferredRenderer::drawComposite(RenderGraph::PassContext& ctx, std::string_
     const gl::GLenum buf[1] = {gl::GL_COLOR_ATTACHMENT0};
     gl::drawBuffers(1, buf);
     gl::viewport(0, 0, width_, height_);
-    compositeMat_.setTexture(0, *post_.texture("dof"));
+    compositeMat_.setTexture(0, *post_.texture("volfog"));
     compositeMat_.setTexture(1, *post_.texture(bloomRes));
     compositeMat_.setTexture(2, *post_.texture("rays"));
     drawFs(compositeMat_, [&](Program& p) {

@@ -3,7 +3,7 @@
 // produce docs/images/tutorial-*.png artifacts.
 //
 // Usage: features --screenshot out.png --scene <name> [--width W] [--height H]
-// Scenes: noise | pbr | ibl | csm | taa | ssr | culling | bindless
+// Scenes: noise | pbr | ibl | csm | taa | ssr | culling | bindless | dof | volfog
 
 #include <fuhgl/fuhgl.hpp>
 #include <fuhgl/render.hpp>
@@ -300,6 +300,56 @@ bool sceneDof(const Args& args) {
     return renderDef(d, args, 1);
 }
 
+// Volumetric fog scene (F37): low warm sun behind a row of CSG trees -> light shafts
+// through the CSM-attenuated fog, height fog near the ground, aerial perspective far away.
+bool sceneVolFog(const Args& args) {
+    using namespace fuhgl::render;
+    DefScene d;
+    if (!buildDefScene(d, args.width, args.height, false)) return false;
+    d.renderer.enableCsmShadows(2048, 4);
+    d.renderer.setShadowZRange(0.5f, 80.f);
+    d.renderer.setShadowSceneBounds({0.f, 1.f, -8.f}, 16.f);
+    d.renderer.setShadowStrength(1.f);
+    // low warm sun from behind the camera -> long shadows + forward-scattering shafts
+    d.scene.lights[0] = Light::directional({0.15f, -0.32f, 0.55f}, {1.f, 0.85f, 0.62f}, 3.0f);
+    d.scene.ambient = {0.10f, 0.11f, 0.15f};
+    d.scene.clearColor = {0.42f, 0.52f, 0.68f};
+    d.cam.position = {0.f, 1.9f, 10.f};
+    d.cam.pitch = -0.10f;
+    // long grass-ish ground
+    shapes::box(d.floorMesh, {30.f, 0.25f, 30.f}, {1.f, 1.f, 1.f});
+    d.floorMat = materials::pbr({0.36f, 0.42f, 0.28f}, 0.f, 0.95f);
+    d.scene.items[0] = {&d.floorMesh, &d.floorMat, fuhgl::math::translate({0.f, -0.25f, -6.f})};
+    // one CSG tree (trunk | two stacked cones), placed in a jittered row receding away
+    auto treeSolid = makeCylinder(0.07f, 1.0f) | translated(makeCone(0.55f, 1.5f), {0.f, 1.9f, 0.f})
+                     | translated(makeCone(0.40f, 1.2f), {0.f, 2.9f, 0.f});
+    Mesh treeMesh = treeSolid->buildMesh(20, {1.f, 1.f, 1.f});
+    Material trunkMat = materials::matte({0.30f, 0.22f, 0.14f});
+    Material leafMat = materials::matte({0.16f, 0.34f, 0.14f});
+    for (int i = 0; i < 7; ++i) {
+        const float x = -3.6f + 1.2f * i;
+        const float z = -2.f - 3.1f * i;
+        const float s = 0.8f + 0.35f * ((i * 37 % 10) / 10.f);
+        d.scene.items.push_back({&treeMesh, (i % 2 == 0) ? &leafMat : &trunkMat,
+                                 fuhgl::math::translate({x, 0.f, z}) * fuhgl::math::rotateY(0.4f * i) *
+                                 fuhgl::math::scale({s, s, s})});
+    }
+    // a rock for the foreground
+    auto rockSolid = makeSphere(0.55f) - translated(makeSphere(0.34f), {0.28f, 0.22f, 0.12f});
+    Mesh rockMesh = rockSolid->buildMesh(18, {1.f, 1.f, 1.f});
+    d.scene.items.push_back({&rockMesh, nullptr, fuhgl::math::translate({1.6f, 0.1f, 3.5f})});
+    d.renderer.volFogEnabled = true;
+    d.renderer.volFogDensity = 0.030f;
+    d.renderer.volFogColor = {0.82f, 0.84f, 0.90f};
+    d.renderer.volFogAnisotropy = 0.55f; // strong forward scattering -> shafts
+    d.renderer.volFogHeight = 0.4f;      // ground mist
+    d.renderer.volFogFalloff = 0.30f;
+    d.renderer.volFogShadows = true;     // CSM-attenuated in-scattering
+    d.renderer.volFogSteps = 32;
+    d.renderer.volFogMaxDist = 90.f;
+    return renderDef(d, args, 1);
+}
+
 // GPU culling scene (F34): grid of boxes, half of them behind the camera
 bool sceneCulling(const Args& args) {
     using namespace fuhgl::render;
@@ -411,6 +461,7 @@ int main(int argc, char** argv) {
     else if (s == "ssr") ok = sceneSsr(args);
     else if (s == "culling") ok = sceneCulling(args);
     else if (s == "dof") ok = sceneDof(args);
+    else if (s == "volfog") ok = sceneVolFog(args);
     else {
         std::fprintf(stderr, "features: unknown scene '%s'\n", s.c_str());
         return 2;

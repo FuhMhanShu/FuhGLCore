@@ -100,6 +100,9 @@ Rays, Nebel, TAA, SSR; der Nacht-Look ergaenzt ein IBL-Environment und Lampen-Sp
   `gl::ext::BindlessTexture` — siehe [Tutorials 37–38](docs/de/tutorials/37-gpu-culling-indirect.md).
 - **Depth of Field (Bokeh)** — `DeferredRenderer::dofEnabled` mit Schärfeebene und
   Circle-of-Confusion-Gather auf dem HDR-Bild — siehe [Tutorial 39](docs/de/tutorials/39-dof.md).
+- **Volumetrischer Nebel / Lichtschächte** — `DeferredRenderer::volFogEnabled`: Raymarching
+  mit Single-Scattering, Henyey-Greenstein-Phase, Höhennebel und schattengemapptem
+  In-Scattering — siehe [Tutorial 40](docs/de/tutorials/40-volfog.md).
 - **PBR-Materialien** — Metallic-Roughness-Shading (Cook-Torrance GGX) in beiden Pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, im Deferred-Pfad pro Pixel in einem
   5. G-Buffer-Attachment gespeichert — siehe [Tutorial 31](docs/de/tutorials/31-pbr-materials.md).

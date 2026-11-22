@@ -123,6 +123,16 @@ inline float cocRadius(float dist, float focusDist, float focusRange) {
     return t < 0.f ? -t : t;
 }
 
+/// @brief Henyey-Greenstein phase function for volumetric scattering (F37),
+/// normalized so that the integral over the unit sphere is 1:
+/// p(cosTheta) = (1 - g^2) / (4*pi * (1 + g^2 - 2*g*cosTheta)^(3/2)).
+/// g in [-1, 1]: 0 = isotropic, > 0 = forward scattering (light shafts), < 0 = backscatter.
+inline float henyeyGreenstein(float cosTheta, float g) {
+    const float g2 = g * g;
+    const float d = 1.f + g2 - 2.f * g * cosTheta;
+    return (1.f - g2) / (4.f * kPi * d * std::sqrt(d));
+}
+
 /// @brief Returns viewProj with a subpixel jitter applied in clip space:
 /// clip' = T(jitterNdc) * viewProj * world (jitterNdc in NDC units, e.g. from halton()).
 inline Mat4 jitterViewProj(const Mat4& viewProj, const Vec2& jitterNdc) {

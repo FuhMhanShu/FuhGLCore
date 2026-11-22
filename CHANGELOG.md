@@ -99,6 +99,17 @@ All notable changes to FuhGLCore are documented here. The format follows
   `max(tapCoC, ownCoC)`; the composite reads `dof`. Tests: `test_dof.cpp` (unit),
   `gl_smoke_dof.cpp` (gl_context); screenshot `examples/features --scene dof`; tutorial 39
   (en + de).
+- F37 — volumetric fog / light shafts in `DeferredRenderer`: `volFogEnabled`,
+  `volFogDensity`, `volFogColor`, `volFogAnisotropy`, `volFogHeight`/`volFogFalloff`,
+  `volFogShadows`, `volFogSteps`, `volFogMaxDist`. New `volfog` pass in the post graph
+  (after DoF) raymarches the world-space view ray per pixel (G-buffer depth for geometry,
+  far plane for sky) and accumulates single scattering from the sun with the pure,
+  unit-tested `math::henyeyGreenstein()` phase function; optional exponential height fog;
+  optional shadow-map/CSM attenuation of the in-scattering (reuses `kShadowUniforms` +
+  `kShadowFunc` from `lighting_glsl.hpp`, texture units 4/10 with 1x1 dummies when off).
+  The composite reads `volfog`; disabled = copy. Tests: `test_volfog.cpp` (unit),
+  `gl_smoke_volfog.cpp` (gl_context); screenshot `examples/features --scene volfog`;
+  tutorial 40 (en + de).
 
 ### Changed
 - Screenshots reworked: new `examples/features` renders one deterministic headless PNG
