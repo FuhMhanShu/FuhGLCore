@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
         float h = 2.6f * fuhgl::math::fbm2(x * 0.045f, z * 0.045f, 4, 7u)
                 + 0.55f * fuhgl::math::fbm2(x * 0.17f, z * 0.17f, 3, 13u);
         h *= fuhgl::math::smoothstep(2.5f, 10.f, d); // clearing around the scene center
-        const float pdx = x - 7.f, pdz = z + 9.f;     // pond basin at (7, -9)
+        const float pdx = x - 4.5f, pdz = z + 5.5f;   // pond basin at (4.5, -5.5)
         const float pd = std::sqrt(pdx * pdx + pdz * pdz);
         const float basin = fuhgl::math::smoothstep(7.f, 2.5f, pd);
         h = h * (1.f - basin) + (-1.3f) * basin;
@@ -94,9 +94,9 @@ int main(int argc, char** argv) {
 
     // --- renderer with the full effect stack -------------------------------------------
     fuhgl::FirstPersonCamera cam;
-    cam.position = {0.f, terrainH(0.f, 16.f) + 2.3f, 16.f};
-    cam.yaw = -0.2f;   // aim at the monolith / pond
-    cam.pitch = -0.14f;
+    cam.position = {0.f, terrainH(0.f, 17.f) + 3.0f, 17.f};
+    cam.yaw = -0.10f;  // aim between monolith and pond
+    cam.pitch = -0.16f;
 
     DeferredRenderer renderer;
     if (!renderer.create(args.width, args.height)) {
@@ -263,7 +263,7 @@ int main(int argc, char** argv) {
         const float x = (hash01(i, 8, 31) - 0.5f) * 46.f;
         const float z = (hash01(i, 9, 32) - 0.5f) * 46.f - 5.f;
         if (std::sqrt(x * x + (z + 2.f) * (z + 2.f)) < 2.2f) continue;          // keep the clearing walkable
-        if (std::sqrt((x - 7.f) * (x - 7.f) + (z + 9.f) * (z + 9.f)) < 3.5f) continue; // keep out of the pond
+        if (std::sqrt((x - 4.5f) * (x - 4.5f) + (z + 5.5f) * (z + 5.5f)) < 3.5f) continue; // keep out of the pond
         const float y = terrainH(x, z);
         const fuhgl::math::Mat4 m = fuhgl::math::translate({x, y, z}) *
                                     fuhgl::math::rotateY(hash01(i, 10, 33) * 6.2831853f) *
@@ -292,7 +292,7 @@ int main(int argc, char** argv) {
                             : fuhgl::math::Vec3{0.65f, 0.75f, 0.90f};
     scene.fogDensity = night ? 0.004f : sunset ? 0.005f : 0.003f;
     scene.items.push_back({&terrainMesh, &terrainMat, fuhgl::math::Mat4{}});
-    scene.items.push_back({&waterMesh, &waterMat, fuhgl::math::translate({7.f, -1.02f, -9.f})});
+    scene.items.push_back({&waterMesh, &waterMat, fuhgl::math::translate({4.5f, -1.02f, -5.5f})});
     const fuhgl::math::Vec3 monoPos{-4.5f, terrainH(-4.5f, -6.f) + 2.4f, -6.f};
     scene.items.push_back({&monoMesh, &stoneMat, fuhgl::math::translate(monoPos) * fuhgl::math::rotateY(0.5f)});
 
@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
         const float z = (hash01(i, 4, 22) - 0.5f) * 52.f - 6.f;
         if (std::abs(x) > 26.f || std::abs(z) > 26.f) continue;
         if (std::sqrt(x * x + (z + 2.f) * (z + 2.f)) < 3.5f) continue;
-        if (std::sqrt((x - 7.f) * (x - 7.f) + (z + 9.f) * (z + 9.f)) < 4.5f) continue;
+        if (std::sqrt((x - 4.5f) * (x - 4.5f) + (z + 5.5f) * (z + 5.5f)) < 4.5f) continue;
         const float y = terrainH(x, z);
         const float s = 0.7f + hash01(i, 5, 23) * 0.9f;
         const fuhgl::math::Mat4 t = fuhgl::math::translate({x, y - 0.05f, z}) *
@@ -320,7 +320,7 @@ int main(int argc, char** argv) {
         const float x = (hash01(i, 13, 41) - 0.5f) * 44.f;
         const float z = (hash01(i, 14, 42) - 0.5f) * 44.f - 5.f;
         if (std::sqrt(x * x + (z + 2.f) * (z + 2.f)) < 2.6f) continue;
-        if (std::sqrt((x - 7.f) * (x - 7.f) + (z + 9.f) * (z + 9.f)) < 3.8f) continue;
+        if (std::sqrt((x - 4.5f) * (x - 4.5f) + (z + 5.5f) * (z + 5.5f)) < 3.8f) continue;
         const float s = 0.5f + hash01(i, 15, 43) * 0.9f;
         Mesh& bm = (i % 2 == 0) ? bushMeshA : bushMeshB;
         scene.items.push_back({&bm, &bushMat,
@@ -332,7 +332,7 @@ int main(int argc, char** argv) {
         const float x = (hash01(i, 1, 15) - 0.5f) * 48.f;
         const float z = (hash01(i, 2, 16) - 0.5f) * 48.f - 5.f;
         if (std::sqrt(x * x + (z + 2.f) * (z + 2.f)) < 2.4f) continue;
-        if (std::sqrt((x - 7.f) * (x - 7.f) + (z + 9.f) * (z + 9.f)) < 3.6f) continue;
+        if (std::sqrt((x - 4.5f) * (x - 4.5f) + (z + 5.5f) * (z + 5.5f)) < 3.6f) continue;
         const float s = 0.4f + hash01(i, 17, 45) * 1.4f;
         Mesh& rm = (i % 2 == 0) ? rockMeshA : rockMeshB;
         scene.items.push_back({&rm, &rockMat,
