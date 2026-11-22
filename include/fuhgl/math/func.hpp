@@ -113,6 +113,16 @@ inline Vec2 halton(std::uint32_t i, std::uint32_t b1 = 2u, std::uint32_t b2 = 3u
     return {radInv(i, b1), radInv(i, b2)};
 }
 
+/// @brief Circle-of-confusion radius for depth of field (F36), normalized to [0, 1]:
+/// 0 at the focus distance, growing linearly to 1 at focusDist +/- focusRange (clamped),
+/// symmetric in front of and behind the focus plane. Multiply by the max CoC (in pixels
+/// or UV units) for the actual blur radius.
+inline float cocRadius(float dist, float focusDist, float focusRange) {
+    const float r = focusRange > 1e-4f ? focusRange : 1e-4f;
+    const float t = clamp((dist - focusDist) / r, -1.f, 1.f);
+    return t < 0.f ? -t : t;
+}
+
 /// @brief Returns viewProj with a subpixel jitter applied in clip space:
 /// clip' = T(jitterNdc) * viewProj * world (jitterNdc in NDC units, e.g. from halton()).
 inline Mat4 jitterViewProj(const Mat4& viewProj, const Vec2& jitterNdc) {

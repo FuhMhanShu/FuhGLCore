@@ -277,6 +277,29 @@ bool sceneSsr(const Args& args) {
     return renderDef(d, args, 1);
 }
 
+// DoF scene (F36): near box on the focus plane (sharp), far boxes blurred by the bokeh
+bool sceneDof(const Args& args) {
+    using namespace fuhgl::render;
+    DefScene d;
+    if (!buildDefScene(d, args.width, args.height, true)) return false;
+    d.cam.position = {0.f, 1.4f, 4.5f};
+    d.cam.pitch = -0.18f;
+    const fuhgl::math::Vec3 nearPos{-1.3f, 0.6f, -1.5f};
+    const float focus = fuhgl::math::length(nearPos - d.cam.position);
+    d.renderer.dofEnabled = true;
+    d.renderer.dofFocusDist = focus;
+    d.renderer.dofFocusRange = 2.5f;
+    d.renderer.dofStrength = 18.f;
+    d.renderer.dofTaps = 24;
+    shapes::box(d.boxA, {0.6f, 0.6f, 0.6f}, {0.85f, 0.35f, 0.25f});
+    shapes::box(d.boxB, {0.5f, 0.5f, 0.5f}, {0.3f, 0.5f, 0.85f});
+    shapes::box(d.boxC, {0.4f, 0.4f, 0.4f}, {0.35f, 0.75f, 0.4f});
+    d.scene.items.push_back({&d.boxA, nullptr, fuhgl::math::translate(nearPos)});
+    d.scene.items.push_back({&d.boxB, nullptr, fuhgl::math::translate({1.4f, 0.5f, -6.5f})});
+    d.scene.items.push_back({&d.boxC, nullptr, fuhgl::math::translate({-0.5f, 0.4f, -9.5f}) * fuhgl::math::scale({1.f, 1.f, 1.f})});
+    return renderDef(d, args, 1);
+}
+
 // GPU culling scene (F34): grid of boxes, half of them behind the camera
 bool sceneCulling(const Args& args) {
     using namespace fuhgl::render;
@@ -387,6 +410,7 @@ int main(int argc, char** argv) {
     else if (s == "taa") ok = sceneTaa(args);
     else if (s == "ssr") ok = sceneSsr(args);
     else if (s == "culling") ok = sceneCulling(args);
+    else if (s == "dof") ok = sceneDof(args);
     else {
         std::fprintf(stderr, "features: unknown scene '%s'\n", s.c_str());
         return 2;

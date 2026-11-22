@@ -92,6 +92,8 @@ fog, TAA, SSR; the night look adds an IBL environment and lamp reflections) — 
   (compute shader + bounding spheres) and draws the visible ones with one indirect
   instanced draw; **bindless textures** (`GL_ARB_bindless_texture`) via
   `gl::ext::BindlessTexture` — see [tutorials 37–38](docs/en/tutorials/37-gpu-culling-indirect.md).
+- **Depth of field (bokeh)** — `DeferredRenderer::dofEnabled` with a focus plane and
+  circle-of-confusion gather on the HDR image — see [tutorial 39](docs/en/tutorials/39-dof.md).
 - **PBR materials** — metallic-roughness shading (Cook-Torrance GGX) in both pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, stored per pixel in a 5th G-buffer
   attachment in the deferred path — see [tutorial 31](docs/en/tutorials/31-pbr-materials.md).

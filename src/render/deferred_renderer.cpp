@@ -149,6 +149,44 @@ void main() {
 }
 )GLSL";
 
+// F36: depth of field — CoC from the G-buffer depth (math::cocRadius), bokeh gather on a
+// golden-angle spiral; in-focus pixels keep their weight so they stay sharp.
+constexpr const char* kDofFrag = R"GLSL(#version 330 core
+in vec2 vUV;
+out vec4 FragColor;
+uniform sampler2D uSrc;      // 0: HDR scene (taa output)
+uniform sampler2D uPosition; // 1: world pos, alpha = geometry flag
+uniform vec3 uCamPos;
+uniform float uFocusDist;
+uniform float uFocusRange;
+uniform vec2 uMaxCoc;  // max CoC in UV units (x, y)
+uniform int uTaps;
+float cocAt(vec2 uv) {
+    vec4 p = texture(uPosition, uv);
+    float dist = p.a > 0.5 ? length(p.xyz - uCamPos) : 1.0e6; // sky: far -> max blur
+    float t = clamp((dist - uFocusDist) / max(uFocusRange, 1.0e-4), -1.0, 1.0);
+    return abs(t);
+}
+void main() {
+    const float coc = cocAt(vUV);            // 0..1
+    const vec2 radius = uMaxCoc * coc;       // own blur radius in UV
+    vec4 acc = texture(uSrc, vUV) * max(0.05, coc * 8.0);
+    float wsum = max(0.05, coc * 8.0);
+    for (int i = 0; i < 32; ++i) {
+        if (i >= uTaps) break;
+        const float fi = float(i) + 0.5;
+        const float r = sqrt(fi / float(uTaps));
+        const float theta = fi * 2.39996323; // golden angle
+        const vec2 uv2 = vUV + vec2(cos(theta), sin(theta)) * r * radius;
+        const float coc2 = cocAt(uv2);
+        const float w2 = max(0.05, max(coc2, coc) * 8.0);
+        acc += texture(uSrc, uv2) * w2;
+        wsum += w2;
+    }
+    FragColor = vec4(acc / wsum, 1.0);
+}
+)GLSL";
+
 // F33: screen-space reflections — march the reflection ray in world space, compare
 // against the G-buffer position texture, sample the HDR color at the hit point.
 constexpr const char* kSsrFrag = R"GLSL(#version 330 core
@@ -281,6 +319,7 @@ bool DeferredRenderer::createPost(int w, int h) {
     if (!compileFs(raysMat_, kRaysFrag, "rays")) return false;
     if (!compileFs(compositeMat_, kCompositeFrag, "composite")) return false;
     if (!compileFs(taaMat_, kTaaFrag, "taa")) return false;
+    if (!compileFs(dofMat_, kDofFrag, "dof")) return false;
     if (!compileFs(ssrMat_, kSsrFrag, "ssr")) return false;
     if (!compileFs(copyMat_, kCopyFrag, "copy")) return false;
     if (!fsVao_.create()) return false;
@@ -310,6 +349,8 @@ bool DeferredRenderer::createPost(int w, int h) {
                   [this](RenderGraph::PassContext& ctx) { drawLighting(ctx); });
     post_.addPass("ssr", {"hdr", "gPosition", "gNormal"}, {"ssr"}, [this](RenderGraph::PassContext& ctx) { drawSSR(ctx); });
     post_.addPass("taa", {"ssr", "taa"}, {"taa"}, [this](RenderGraph::PassContext& ctx) { drawTAA(ctx); }, /*feedback=*/true);
+    post_.addResource("dof", w, h, gl::GL_RGBA16F);
+    post_.addPass("dof", {"taa", "gPosition"}, {"dof"}, [this](RenderGraph::PassContext& ctx) { drawDoF(ctx); });
     post_.addPass("bright", {"taa"}, {"bloomA"}, [this](RenderGraph::PassContext& ctx) { drawBloomBright(ctx); });
     // bloom blur ping-pong (2 passes per bloomBlurPasses)
     std::string bloomCur = "bloomA";
@@ -324,7 +365,7 @@ bool DeferredRenderer::createPost(int w, int h) {
     }
     bloomLast_ = bloomCur;
     post_.addPass("rays", {"taa"}, {"rays"}, [this](RenderGraph::PassContext& ctx) { drawRays(ctx); });
-    post_.addPass("composite", {"taa", bloomLast_, "rays"}, {},
+    post_.addPass("composite", {"dof", bloomLast_, "rays"}, {},
                   [this](RenderGraph::PassContext& ctx) { drawComposite(ctx, bloomLast_); });
     if (!post_.compile()) {
         std::fprintf(stderr, "DeferredRenderer: post graph compile failed\n");
@@ -435,6 +476,26 @@ void DeferredRenderer::drawTAA(RenderGraph::PassContext& ctx) {
     });
 }
 
+void DeferredRenderer::drawDoF(RenderGraph::PassContext& ctx) {
+    if (!dofEnabled) {
+        drawCopy(ctx, "taa");
+        return;
+    }
+    const SceneView& s = *curScene_;
+    ctx.bindInput(0, "taa");
+    ctx.bindInput(1, "gPosition");
+    drawFs(dofMat_, [&](Program& p) {
+        p.setUniform("uCamPos", s.camera->eye());
+        p.setUniform("uFocusDist", dofFocusDist);
+        p.setUniform("uFocusRange", dofFocusRange);
+        p.setUniform("uMaxCoc", math::Vec2(dofStrength / static_cast<float>(width_),
+                                            dofStrength / static_cast<float>(height_)));
+        p.setUniform(p.uniformLocation("uTaps"), dofTaps);
+        p.setUniform(p.uniformLocation("uSrc"), 0);
+        p.setUniform(p.uniformLocation("uPosition"), 1);
+    });
+}
+
 void DeferredRenderer::drawCopy(RenderGraph::PassContext& ctx, std::string_view in) {
     ctx.bindInput(0, in);
     drawFs(copyMat_, [](Program& p) { p.setUniform(p.uniformLocation("uTex"), 0); });
@@ -468,7 +529,7 @@ void DeferredRenderer::drawComposite(RenderGraph::PassContext& ctx, std::string_
     const gl::GLenum buf[1] = {gl::GL_COLOR_ATTACHMENT0};
     gl::drawBuffers(1, buf);
     gl::viewport(0, 0, width_, height_);
-    compositeMat_.setTexture(0, *post_.texture("taa"));
+    compositeMat_.setTexture(0, *post_.texture("dof"));
     compositeMat_.setTexture(1, *post_.texture(bloomRes));
     compositeMat_.setTexture(2, *post_.texture("rays"));
     drawFs(compositeMat_, [&](Program& p) {

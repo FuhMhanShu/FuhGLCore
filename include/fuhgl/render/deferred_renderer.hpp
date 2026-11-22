@@ -45,7 +45,7 @@ public:
     void resize(int width, int height);
 
     /// @brief Full frame: shadow depth pass (if enabled) -> G-buffer -> post graph
-    /// (SSAO -> lighting -> [SSR] -> [TAA] -> bloom -> god rays -> composite into output()).
+    /// (SSAO -> lighting -> [SSR] -> [TAA] -> [DoF] -> bloom -> god rays -> composite into output()).
     void render(const SceneView& scene);
 
     Framebuffer& output() { return pipeline_.output(); }
@@ -76,6 +76,12 @@ public:
     float ssrStrength = 0.6f;
     int ssrMaxSteps = 32;
     float ssrThickness = 0.3f;
+    // --- DoF (F36): depth of field, bokeh gather pass after TAA --------------------------
+    bool dofEnabled = false;
+    float dofFocusDist = 8.f;   ///< world-space distance of the focus plane
+    float dofFocusRange = 6.f;  ///< distance over which the CoC grows to dofStrength
+    float dofStrength = 12.f;   ///< max circle of confusion in pixels
+    int dofTaps = 16;           ///< gather taps (golden-angle spiral)
 
     // --- shadows (same model as ForwardRenderer) ---------------------------------------
     void enableShadows(int mapSize = 2048);
@@ -103,6 +109,7 @@ private:
     void drawLighting(RenderGraph::PassContext& ctx);
     void drawSSR(RenderGraph::PassContext& ctx);
     void drawTAA(RenderGraph::PassContext& ctx);
+    void drawDoF(RenderGraph::PassContext& ctx);
     void drawCopy(RenderGraph::PassContext& ctx, std::string_view in);
     void drawBloomBright(RenderGraph::PassContext& ctx);
     void drawRays(RenderGraph::PassContext& ctx);
@@ -125,7 +132,7 @@ private:
     float shadowRadius_ = 10.f;
     float shadowStrength_ = 1.f;
 
-    Material ssaoMat_, blurMat_, brightMat_, raysMat_, compositeMat_, taaMat_, ssrMat_, copyMat_;
+    Material ssaoMat_, blurMat_, brightMat_, raysMat_, compositeMat_, taaMat_, ssrMat_, dofMat_, copyMat_;
     VertexArray fsVao_;
 };
 

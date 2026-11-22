@@ -19,3 +19,4 @@ void runWireframeTests();
 void runEnvironmentTests();
 void runGraphTests();
 void runCullingTests();
+void runDofTests();

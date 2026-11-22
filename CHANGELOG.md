@@ -91,6 +91,15 @@ All notable changes to FuhGLCore are documented here. The format follows
 - Tests: `test_graph.cpp` (unit), `gl_smoke_graph.cpp` / `gl_smoke_taa.cpp` /
   `gl_smoke_ssr.cpp` (gl_context); tutorials 34–36 (en + de).
 
+### Added
+- F36 — depth of field (bokeh) in `DeferredRenderer`: `dofEnabled`, `dofFocusDist`,
+  `dofFocusRange`, `dofStrength`, `dofTaps`. New `dof` pass in the post graph (after TAA)
+  computes the circle of confusion from the G-buffer position via the pure, unit-tested
+  `math::cocRadius()` and gathers on a golden-angle spiral weighted by
+  `max(tapCoC, ownCoC)`; the composite reads `dof`. Tests: `test_dof.cpp` (unit),
+  `gl_smoke_dof.cpp` (gl_context); screenshot `examples/features --scene dof`; tutorial 39
+  (en + de).
+
 ### Changed
 - Screenshots reworked: new `examples/features` renders one deterministic headless PNG
   per feature scene (`--scene noise|pbr|ibl|csm|taa|ssr|culling|bindless`) for tutorials
