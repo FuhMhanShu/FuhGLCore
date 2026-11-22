@@ -37,5 +37,8 @@ target_link_libraries(instancing PRIVATE fuhglcore)
 add_executable(showcase showcase/main.cpp)
 target_link_libraries(showcase PRIVATE fuhglcore)
 
+add_executable(mine mine/main.cpp)
+target_link_libraries(mine PRIVATE fuhglcore)
+
 add_executable(features features/main.cpp)
 target_link_libraries(features PRIVATE fuhglcore)
