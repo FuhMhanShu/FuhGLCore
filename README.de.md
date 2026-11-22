@@ -103,6 +103,9 @@ Rays, Nebel, TAA, SSR; der Nacht-Look ergaenzt ein IBL-Environment und Lampen-Sp
 - **Volumetrischer Nebel / Lichtschächte** — `DeferredRenderer::volFogEnabled`: Raymarching
   mit Single-Scattering, Henyey-Greenstein-Phase, Höhennebel und schattengemapptem
   In-Scattering — siehe [Tutorial 40](docs/de/tutorials/40-volfog.md).
+- **Heightmap-Terrain** — `render::HeightmapTerrain` erzeugt aus einer Heightmap (Float-Grid
+  oder Graustufenbild) ein Landschafts-Mesh mit Gefälle-Färbung; `heightAt()` platziert
+  Objekte darauf — siehe [Tutorial 41](docs/de/tutorials/41-heightmap-terrain.md).
 - **PBR-Materialien** — Metallic-Roughness-Shading (Cook-Torrance GGX) in beiden Pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, im Deferred-Pfad pro Pixel in einem
   5. G-Buffer-Attachment gespeichert — siehe [Tutorial 31](docs/de/tutorials/31-pbr-materials.md).

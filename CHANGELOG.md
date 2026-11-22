@@ -110,6 +110,15 @@ All notable changes to FuhGLCore are documented here. The format follows
   The composite reads `volfog`; disabled = copy. Tests: `test_volfog.cpp` (unit),
   `gl_smoke_volfog.cpp` (gl_context); screenshot `examples/features --scene volfog`;
   tutorial 40 (en + de).
+- F38 — heightmap terrain (`render/terrain.hpp`): `render::HeightmapTerrain` builds a
+  landscape mesh from a heightmap (float grid or grayscale `procedural::Image`) — grid
+  mesh with finite-difference normals, height/slope vertex coloring (low→high, steep→rock),
+  texturing UVs, +Y CCW winding; `heightAt(x, z)` gives bilinear world-space heights for
+  placing objects. Free helpers: `heightmapSample()` (float grid + Image),
+  `heightmapTerrainData()` (raw `MeshData`), and `procedural::heightmap(w, h, seed, ...)`
+  as a deterministic seeded fBm heightmap source. Tests: `test_terrain.cpp` (unit),
+  `gl_smoke_terrain.cpp` (gl_context); screenshot `examples/features --scene heightmap`;
+  tutorial 41 (en + de).
 
 ### Changed
 - Showcase reworked into an organic landscape: noise heightfield terrain with a clearing

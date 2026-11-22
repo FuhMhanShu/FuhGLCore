@@ -21,3 +21,4 @@ void runGraphTests();
 void runCullingTests();
 void runDofTests();
 void runVolFogTests();
+void runTerrainTests();

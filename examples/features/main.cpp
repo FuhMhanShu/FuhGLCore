@@ -3,7 +3,7 @@
 // produce docs/images/tutorial-*.png artifacts.
 //
 // Usage: features --screenshot out.png --scene <name> [--width W] [--height H]
-// Scenes: noise | pbr | ibl | csm | taa | ssr | culling | bindless | dof | volfog
+// Scenes: noise | pbr | ibl | csm | taa | ssr | culling | bindless | dof | volfog | heightmap
 
 #include <fuhgl/fuhgl.hpp>
 #include <fuhgl/render.hpp>
@@ -11,6 +11,7 @@
 
 #include "../screenshot/png_writer.hpp"
 
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -356,6 +357,78 @@ bool sceneVolFog(const Args& args) {
     return renderDef(d, args, 1);
 }
 
+// Heightmap terrain scene (F38): procedural heightmap -> render::HeightmapTerrain,
+// trees + rocks placed via heightAt(), CSM shadows and volumetric fog for depth.
+bool sceneHeightmap(const Args& args) {
+    using namespace fuhgl::render;
+    DefScene d;
+    if (!buildDefScene(d, args.width, args.height, false)) return false;
+    d.renderer.enableCsmShadows(2048, 4);
+    d.renderer.setShadowZRange(0.5f, 90.f);
+    d.renderer.setShadowSceneBounds({0.f, 2.f, -4.f}, 22.f);
+    d.renderer.setShadowStrength(1.f);
+    auto img = procedural::heightmap(192, 192, 11u, 6, 0.045f);
+    HeightmapTerrain terrain;
+    if (!terrain.create(img, 36.f, 36.f, 7.f)) {
+        std::fprintf(stderr, "features: heightmap terrain create failed\n");
+        return false;
+    }
+    // vertex colors carry the green->rock gradient, so use a white PBR material
+    d.floorMat = materials::pbr({1.f, 1.f, 1.f}, 0.f, 0.95f);
+    d.scene.items[0] = {&terrain.mesh(), &d.floorMat, fuhgl::math::Mat4{}};
+    d.scene.lights[0] = Light::directional({0.45f, -0.55f, 0.35f}, {1.f, 0.92f, 0.78f}, 2.8f);
+    d.scene.ambient = {0.14f, 0.15f, 0.18f};
+    d.scene.clearColor = {0.35f, 0.48f, 0.68f};
+    d.renderer.pipeline().skyTop = {0.25f, 0.42f, 0.78f};
+    d.renderer.pipeline().skyBottom = {0.72f, 0.78f, 0.88f};
+    d.cam.position = {0.f, terrain.heightAt(0.f, 14.f) + 3.6f, 14.f};
+    d.cam.yaw = 0.35f;
+    d.cam.pitch = -0.28f;
+    // pine trees + rocks placed on the terrain via heightAt
+    auto pineSolid = makeCylinder(0.09f, 1.3f)
+                     | translated(makeCone(0.9f, 2.2f), {0.f, 2.0f, 0.f})
+                     | translated(makeCone(0.6f, 1.7f), {0.f, 3.3f, 0.f});
+    Mesh treeMesh = pineSolid->buildMesh(16, {1.f, 1.f, 1.f});
+    Material leafMat = materials::matte({0.13f, 0.34f, 0.14f});
+    auto rockSolid = makeSphere(0.6f) - translated(makeSphere(0.38f), {0.3f, 0.25f, 0.15f});
+    Mesh rockMesh = rockSolid->buildMesh(14, {1.f, 1.f, 1.f});
+    Material rockMat = materials::matte({0.42f, 0.40f, 0.37f});
+    auto hash = [](int i, int j, int seed) {
+        const float s = std::sin(i * 12.9898f + j * 78.233f + seed * 37.719f) * 43758.5453f;
+        return s - std::floor(s);
+    };
+    for (int i = 0; i < 16; ++i) {
+        const float x = (hash(i, 1, 51) - 0.5f) * 30.f;
+        const float z = (hash(i, 2, 52) - 0.5f) * 30.f - 4.f;
+        if (std::sqrt(x * x + z * z) < 4.f) continue; // keep the view corridor clear
+        const float s = 0.7f + hash(i, 3, 53) * 0.8f;
+        d.scene.items.push_back({&treeMesh, &leafMat,
+                                 fuhgl::math::translate({x, terrain.heightAt(x, z) - 0.05f, z}) *
+                                 fuhgl::math::rotateY(hash(i, 4, 54) * 6.2831853f) *
+                                 fuhgl::math::scale({s, s, s})});
+    }
+    for (int i = 0; i < 10; ++i) {
+        const float x = (hash(i, 5, 55) - 0.5f) * 32.f;
+        const float z = (hash(i, 6, 56) - 0.5f) * 32.f - 4.f;
+        if (std::sqrt(x * x + z * z) < 3.f) continue;
+        const float s = 0.4f + hash(i, 7, 57) * 1.0f;
+        d.scene.items.push_back({&rockMesh, &rockMat,
+                                 fuhgl::math::translate({x, terrain.heightAt(x, z) + 0.05f * s, z}) *
+                                 fuhgl::math::rotateY(hash(i, 8, 58) * 6.2831853f) *
+                                 fuhgl::math::scale({s, s * 0.75f, s})});
+    }
+    d.renderer.volFogEnabled = true;
+    d.renderer.volFogDensity = 0.008f;
+    d.renderer.volFogColor = {0.74f, 0.78f, 0.87f};
+    d.renderer.volFogAnisotropy = 0.4f;
+    d.renderer.volFogHeight = 0.5f;
+    d.renderer.volFogFalloff = 0.12f;
+    d.renderer.volFogShadows = true;
+    d.renderer.volFogSteps = 24;
+    d.renderer.volFogMaxDist = 80.f;
+    return renderDef(d, args, 1);
+}
+
 // GPU culling scene (F34): grid of boxes, half of them behind the camera
 bool sceneCulling(const Args& args) {
     using namespace fuhgl::render;
@@ -468,6 +541,7 @@ int main(int argc, char** argv) {
     else if (s == "culling") ok = sceneCulling(args);
     else if (s == "dof") ok = sceneDof(args);
     else if (s == "volfog") ok = sceneVolFog(args);
+    else if (s == "heightmap") ok = sceneHeightmap(args);
     else {
         std::fprintf(stderr, "features: unknown scene '%s'\n", s.c_str());
         return 2;

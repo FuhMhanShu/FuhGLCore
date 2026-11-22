@@ -97,6 +97,9 @@ fog, TAA, SSR; the night look adds an IBL environment and lamp reflections) — 
 - **Volumetric fog / light shafts** — `DeferredRenderer::volFogEnabled`: raymarched single
   scattering with Henyey-Greenstein phase, height fog and shadow-mapped in-scattering —
   see [tutorial 40](docs/en/tutorials/40-volfog.md).
+- **Heightmap terrain** — `render::HeightmapTerrain` builds a landscape mesh from a
+  heightmap (float grid or grayscale image) with slope-based coloring; `heightAt()` places
+  objects on it — see [tutorial 41](docs/en/tutorials/41-heightmap-terrain.md).
 - **PBR materials** — metallic-roughness shading (Cook-Torrance GGX) in both pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, stored per pixel in a 5th G-buffer
   attachment in the deferred path — see [tutorial 31](docs/en/tutorials/31-pbr-materials.md).

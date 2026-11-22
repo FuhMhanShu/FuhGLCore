@@ -54,6 +54,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Bindless textures (GL_ARB_bindless_texture) | `gl::ext::BindlessTexture`, `gl::ext::setUniformHandle()` | [38](en/tutorials/38-bindless-textures.md) |
 | Depth of field (bokeh, focus plane + CoC) | `DeferredRenderer::dofEnabled`, `dofFocusDist/Range/Strength` | [39](en/tutorials/39-dof.md) |
 | Volumetric fog / light shafts (raymarched) | `DeferredRenderer::volFogEnabled`, `volFogDensity/Color/Anisotropy/Shadows` | [40](en/tutorials/40-volfog.md) |
+| Heightmap terrain (landscape from a heightmap) | `render::HeightmapTerrain`, `procedural::heightmap()` | [41](en/tutorials/41-heightmap-terrain.md) |
 | PBR materials (metallic-roughness, GGX) | `materials::pbr(...)`, `Material::metallic/roughness/ao` | [31](en/tutorials/31-pbr-materials.md) |
 | IBL environment (irradiance / prefilter / BRDF LUT) | `render::Environment`, `SceneView::env` | [32](en/tutorials/32-ibl-environment.md) |
 | Default forward renderer | `render::ForwardRenderer` (lights + auto shadows + fog) | [22](en/tutorials/22-forward-renderer.md) |

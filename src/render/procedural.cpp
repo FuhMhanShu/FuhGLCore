@@ -133,6 +133,17 @@ Image noise(int w, int h, unsigned seed, int octaves, const math::Vec3& c1, cons
     return img;
 }
 
+Image heightmap(int w, int h, unsigned seed, int octaves, float scale) {
+    Image img;
+    fill(img, w, h);
+    for (int y = 0; y < h; ++y)
+        for (int x = 0; x < w; ++x) {
+            const float v = fbm(static_cast<float>(x) * scale, static_cast<float>(y) * scale, seed, octaves);
+            put(img, x, y, {v, v, v});
+        }
+    return img;
+}
+
 Image voronoi(int w, int h, int cells, unsigned seed, const math::Vec3& c1, const math::Vec3& c2) {
     Image img;
     fill(img, w, h);

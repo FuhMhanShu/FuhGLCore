@@ -36,6 +36,11 @@ Image voronoi(int w, int h, int cells, unsigned seed,
 /// Requires a current GL context (call after Window::create).
 Texture makeTexture(const Image& img, bool mipmaps = true);
 
+/// @brief Grayscale heightmap image (F38): seeded fBm noise mapped to [0, 1] in the red
+/// channel (green/blue identical, alpha 255) — ready source for terrain heightmaps.
+/// Deterministic per seed. `scale` = noise frequency in pixels.
+Image heightmap(int w, int h, unsigned seed, int octaves = 5, float scale = 0.08f);
+
 /// @brief Derives a tangent-space normal map (RGBA8, rgb = normal*0.5+0.5) from a grayscale
 /// height Image (uses its red channel). `strength` scales the height gradient. CPU-side, deterministic.
 Image normalFromHeight(const Image& height, float strength = 1.f);

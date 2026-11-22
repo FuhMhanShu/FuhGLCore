@@ -48,6 +48,7 @@ Screenshots in `docs/images/` werden headless von der CI (`docs`-Job) gerendert
 | 38 | Bindless Textures (GL_ARB_bindless_texture): 64-Bit-Handles in uint64_t-Uniforms | [38-bindless-textures.md](38-bindless-textures.md) |
 | 39 | Depth of Field (Bokeh): Schärfeebene + CoC-Gather nach dem TAA | [39-dof.md](39-dof.md) |
 | 40 | Volumetrischer Nebel / Lichtschächte: Raymarching mit Single-Scattering, HG-Phase, Höhennebel | [40-volfog.md](40-volfog.md) |
+| 41 | Heightmap-Terrain: Landschafts-Mesh aus einer Heightmap, Gefälle-Färbung, heightAt-Platzierung | [41-heightmap-terrain.md](41-heightmap-terrain.md) |
 
 Voraussetzung für alle: Bibliothek bauen und `FuhGLCore::fuhglcore` linken
 (siehe [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

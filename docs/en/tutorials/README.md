@@ -48,6 +48,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 38 | Bindless textures (GL_ARB_bindless_texture): 64-bit handles in uint64_t uniforms | [38-bindless-textures.md](38-bindless-textures.md) |
 | 39 | Depth of field (bokeh): focus plane + CoC gather pass after TAA | [39-dof.md](39-dof.md) |
 | 40 | Volumetric fog / light shafts: raymarched single scattering, HG phase, height fog, shadowed in-scattering | [40-volfog.md](40-volfog.md) |
+| 41 | Heightmap terrain: landscape mesh from a heightmap, slope coloring, heightAt placement | [41-heightmap-terrain.md](41-heightmap-terrain.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).
