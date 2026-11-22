@@ -112,9 +112,15 @@ All notable changes to FuhGLCore are documented here. The format follows
   tutorial 40 (en + de).
 
 ### Changed
+- Showcase reworked into an organic landscape: noise heightfield terrain with a clearing
+  and a pond basin, 40 CSG trees (pine + broadleaf), 22 bushes, 14 rocks, the monolith,
+  3000 instanced grass blades (`Mesh::setInstanceData`, F24) and a metallic pond slab
+  reflecting the sky via SSR; the renderer now also runs F36 DoF (focus on the monolith)
+  and F37 volumetric fog (mode-dependent, shadowed shafts on day/sunset).
+  `readme-showcase-{day,sunset,night}.png` re-rendered by the CI `docs` job.
 - Screenshots reworked: new `examples/features` renders one deterministic headless PNG
-  per feature scene (`--scene noise|pbr|ibl|csm|taa|ssr|culling|bindless`) for tutorials
-  30–38; the CI `docs` job renders them plus a new `readme-showcase-night.png`.
+  per feature scene (`--scene noise|pbr|ibl|csm|taa|ssr|culling|bindless|dof|volfog`) for
+  tutorials 30–40; the CI `docs` job renders them plus a new `readme-showcase-night.png`.
   `examples/showcase` gained `--mode night` (dark sky, IBL environment baked from a
   gradient cubemap, emissive lamp posts reflected via SSR) and now uses CSM shadows, TAA
   and SSR in all modes (headless renders 8 frames so the TAA history accumulates).
