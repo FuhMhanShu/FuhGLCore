@@ -30,6 +30,8 @@ public:
         return {std::sin(yaw) * cp, std::sin(pitch), std::cos(yaw) * cp};
     }
     math::Vec3 eye() const override { return target + eyeDir() * distance; }
+    float zNear() const override { return nearPlane; }
+    float zFar() const override { return farPlane; }
     math::Vec3 forward() const { return -eyeDir(); }
     math::Vec3 right() const { return math::normalize(math::cross(forward(), {0.f, 1.f, 0.f})); }
     math::Vec3 up() const { return math::normalize(math::cross(right(), forward())); }

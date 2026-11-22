@@ -12,6 +12,7 @@ add_executable(fuhgl_tests
     test_light.cpp
     test_mesh.cpp
     test_shadow.cpp
+    test_shadow_kit.cpp
     test_text.cpp
     test_wireframe.cpp
     test_environment.cpp
@@ -173,6 +174,21 @@ add_test(NAME gl_smoke_volfog COMMAND fuhgl_gl_smoke_volfog)
 add_executable(fuhgl_gl_smoke_terrain gl_smoke_terrain.cpp)
 target_link_libraries(fuhgl_gl_smoke_terrain PRIVATE fuhglcore)
 add_test(NAME gl_smoke_terrain COMMAND fuhgl_gl_smoke_terrain)
+
+
+# F45 shadow-kit smoke test: ShadowTarget (2D/array/cube, VSM moments) render +
+# readback, CubeShadowMap faces, ShadowAtlas layers, and the public GLSL kit
+# (kSkUniforms + kSkFuncs) compiled and sampled in a custom shader. Skips without GL >= 3.3.
+add_executable(fuhgl_gl_smoke_shadow_kit gl_smoke_shadow_kit.cpp)
+target_link_libraries(fuhgl_gl_smoke_shadow_kit PRIVATE fuhglcore)
+add_test(NAME gl_smoke_shadow_kit COMMAND fuhgl_gl_smoke_shadow_kit)
+
+
+# F46 smoke test: DeferredRenderer with the shadow kit — CSM filters (poisson/PCSS/VSM),
+# texel-snapped + blended cascades, point-light cube shadow, contact shadows. Skips without GL >= 3.3.
+add_executable(fuhgl_gl_smoke_deferred_kit gl_smoke_deferred_kit.cpp)
+target_link_libraries(fuhgl_gl_smoke_deferred_kit PRIVATE fuhglcore)
+add_test(NAME gl_smoke_deferred_kit COMMAND fuhgl_gl_smoke_deferred_kit)
 
 # F39/F40 smoke test: effect toggle API + capability gating on both renderers.
 add_executable(fuhgl_gl_smoke_effects gl_smoke_effects.cpp)

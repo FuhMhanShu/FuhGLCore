@@ -84,6 +84,13 @@ fog, TAA, SSR; the night look adds an IBL environment and lamp reflections) — 
 - **Cascaded shadow maps (CSM)** — `render::CascadeShadowMap` (depth texture array, one layer
   per cascade, fitted per camera-frustum slice) via `ForwardRenderer::enableCsmShadows()` /
   `SceneView::cascades` — see [tutorial 33](docs/en/tutorials/33-cascaded-shadow-maps.md).
+- **Shadow kit + advanced shadows in the deferred renderer** — building blocks for realistic
+  light/shadow effects: `render::ShadowTarget` (2D/array/cube depth targets with optional VSM
+  moments), `CubeShadowMap`, `ShadowAtlas`, texel-snapping (`snapLightVPToTexels()`), the public
+  GLSL kit (`render/shadow_glsl.hpp`: PCSS, VSM, cascade blending, contact shadows) — and the
+  `DeferredRenderer` uses them via `shadowFilter` (poisson PCF / PCSS / VSM), cascade
+  snap+blend, `enablePointShadow()` and `contactShadowsEnabled` —
+  see [tutorial 45](docs/en/tutorials/45-shadow-kit.md).
 - **Render graph + TAA + SSR** — the deferred post chain runs through `render::RenderGraph`
   (declarative passes, auto-ordered, per-pass FBOs); optional temporal AA (Halton jitter +
   history accumulation, `taaEnabled`) and screen-space reflections (`ssrEnabled`) —

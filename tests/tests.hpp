@@ -14,6 +14,7 @@ void runSolidTests();
 void runLightTests();
 void runMeshTests();
 void runShadowTests();
+void runShadowKitTests();
 void runTextTests();
 void runWireframeTests();
 void runEnvironmentTests();

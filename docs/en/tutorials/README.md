@@ -52,6 +52,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 42 | Effect toggles + GPU capability fallback: Effect enum, setEffectEnabled, graceful degradation | [42-effects-capabilities.md](42-effects-capabilities.md) |
 | 43 | Level of detail: LodMesh levels + distance-based selection in all pipelines, toggleable | [43-lod.md](43-lod.md) |
 | 44 | Forward renderer post FX: PostChain over an HDR pass (bloom, god rays, TAA, DoF, vol fog) | [44-forward-postfx.md](44-forward-postfx.md) |
+| 45 | Shadow kit: depth targets (2D/array/cube, VSM moments), cube + atlas shadow maps, texel snapping, public GLSL sampling kit (PCSS/VSM/contact shadows) + DeferredRenderer integration (filter modes, cascade blend, point shadows, contact shadows) | [45-shadow-kit.md](45-shadow-kit.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

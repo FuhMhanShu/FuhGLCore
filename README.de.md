@@ -90,6 +90,13 @@ Rays, Nebel, TAA, SSR; der Nacht-Look ergaenzt ein IBL-Environment und Lampen-Sp
 - **Cascaded Shadow Maps (CSM)** — `render::CascadeShadowMap` (Depth-Textur-Array, eine Ebene
   pro Kaskade, passend pro Kamera-Frustum-Slice) über `ForwardRenderer::enableCsmShadows()` /
   `SceneView::cascades` — siehe [Tutorial 33](docs/de/tutorials/33-cascaded-shadow-maps.md).
+- **Shadow-Kit + fortgeschrittene Schatten im Deferred-Renderer** — Bausteine für realistische
+  Licht-/Schatteneffekte: `render::ShadowTarget` (2D/Array/Cube-Depth-Targets mit optionalen
+  VSM-Momenten), `CubeShadowMap`, `ShadowAtlas`, Texel-Snapping (`snapLightVPToTexels()`), das
+  öffentliche GLSL-Kit (`render/shadow_glsl.hpp`: PCSS, VSM, Kaskaden-Blending, Contact
+  Shadows) — und der `DeferredRenderer` nutzt sie über `shadowFilter` (Poisson-PCF / PCSS /
+  VSM), Kaskaden-Snap+Blend, `enablePointShadow()` und `contactShadowsEnabled` —
+  siehe [Tutorial 45](docs/de/tutorials/45-shadow-kit.md).
 - **Render Graph + TAA + SSR** — die Post-Kette des Deferred-Renderers läuft über
   `render::RenderGraph` (deklarative Pässe, auto-sortiert, FBO pro Pass); optionales
   Temporal AA (Halton-Jitter + History-Akkumulation, `taaEnabled`) und Screen-Space

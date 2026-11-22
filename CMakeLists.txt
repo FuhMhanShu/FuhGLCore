@@ -33,6 +33,7 @@ add_library(fuhglcore STATIC
     src/render/graph.cpp
     src/render/light.cpp
     src/render/shadow.cpp
+    src/render/shadow_kit.cpp
     src/render/forward_renderer.cpp
     src/render/deferred_renderer.cpp
     src/render/forward.cpp

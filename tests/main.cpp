@@ -16,6 +16,7 @@ int main() {
     runLightTests();
     runMeshTests();
     runShadowTests();
+    runShadowKitTests();
     runTextTests();
     runWireframeTests();
     runEnvironmentTests();

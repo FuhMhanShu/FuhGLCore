@@ -1,9 +1,6 @@
-#include "fuhgl/render/lod.hpp"
 #include "fuhgl/render/shadow.hpp"
-#include "fuhgl/render/mesh.hpp"
 
 #include "fuhgl/cam/camera.hpp"
-#include "fuhgl/gl/state.hpp"
 
 #include <cmath>
 
@@ -12,22 +9,6 @@
 namespace fuhgl::render {
 namespace {
 
-constexpr const char* kDepthVert = R"GLSL(#version 330 core
-layout(location = 0) in vec3 aPos;
-layout(location = 4) in mat4 aInstanceModel; // F24 instancing (unused when uInstanced == 0)
-uniform mat4 uModel;
-uniform mat4 uLightVP;
-uniform int uInstanced;
-void main() {
-    mat4 model = (uInstanced == 1) ? (uModel * aInstanceModel) : uModel;
-    gl_Position = uLightVP * model * vec4(aPos, 1.0);
-}
-)GLSL";
-
-constexpr const char* kDepthFrag = R"GLSL(#version 330 core
-void main() {}
-)GLSL";
-
 math::Vec3 safeUp(const math::Vec3& dir) {
     // avoid a degenerate lookAt when the light looks straight down/up
     return std::fabs(dir.y) > 0.99f ? math::Vec3{1.f, 0.f, 0.f} : math::Vec3{0.f, 1.f, 0.f};
@@ -35,77 +16,15 @@ math::Vec3 safeUp(const math::Vec3& dir) {
 
 } // namespace
 
-struct ShadowMap::Impl {};
+// F46: ShadowMap/CascadeShadowMap are thin wrappers over ShadowTarget (shadow_kit.cpp)
 
-ShadowMap::ShadowMap() : impl_(std::make_unique<Impl>()) {}
-ShadowMap::~ShadowMap() = default;
-ShadowMap::ShadowMap(ShadowMap&&) noexcept = default;
-ShadowMap& ShadowMap::operator=(ShadowMap&&) noexcept = default;
-
-bool ShadowMap::create(int size) {
-    size_ = size;
-    depthTex_.bind();
-    depthTex_.texStorage2D(1, gl::GL_DEPTH_COMPONENT24, size, size);
-    depthTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR); // HW 2x2 PCF on top of the shader 3x3
-    depthTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
-    depthTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
-    depthTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
-
-    fbo_.create();
-    fbo_.setSize(size, size);
-    fbo_.bind();
-    fbo_.attachTexture2D(Framebuffer::Attachment::Depth, depthTex_);
-    gl::drawBuffer(gl::GL_NONE); // depth-only FBO
-    gl::readBuffer(gl::GL_NONE);
-    if (!fbo_.isComplete()) {
-        std::fprintf(stderr, "ShadowMap: FBO incomplete (0x%x)\n", fbo_.status());
-        Framebuffer::unbind();
-        return false;
-    }
-    Framebuffer::unbind();
-
-    if (!depthMaterial_.create()) return false;
-    Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
-    if (!vs.compile(kDepthVert)) { std::fprintf(stderr, "ShadowMap: depth VS: %s\n", vs.infoLog().c_str()); return false; }
-    if (!fs.compile(kDepthFrag)) { std::fprintf(stderr, "ShadowMap: depth FS: %s\n", fs.infoLog().c_str()); return false; }
-    depthMaterial_.program().attach(vs);
-    depthMaterial_.program().attach(fs);
-    if (!depthMaterial_.program().link()) {
-        std::fprintf(stderr, "ShadowMap: depth link: %s\n", depthMaterial_.program().infoLog().c_str());
-        return false;
-    }
-    return true;
+bool ShadowMap::create(int size, bool moments) {
+    return target_.create(ShadowTargetKind::Tex2D, size, 1, moments);
 }
 
 void ShadowMap::render(const SceneView& scene, const math::Mat4& lightVP) {
-    if (!fbo_.id() || size_ <= 0) return;
     lightVP_ = lightVP;
-
-    fbo_.bind(Framebuffer::Target::Draw);
-    gl::viewport(0, 0, size_, size_);
-    gl::clear(gl::ClearBit::Depth);
-
-    gl::enable(gl::Cap::DepthTest);
-    gl::depthFunc(gl::CompareFunc::Less);
-    gl::depthMask(true);
-    gl::enable(gl::Cap::CullFace);
-    gl::cullFace(gl::Face::Front); // draw back faces: less shadow acne
-    gl::frontFace(true);
-
-    depthMaterial_.bind();
-    Program& p = depthMaterial_.program();
-    p.setUniform("uLightVP", lightVP);
-    for (const DrawItem& item : scene.items) {
-        const Mesh* mesh = resolveLodMesh(item, scene.camera ? scene.camera->eye() : math::Vec3{0.f, 0.f, 0.f},
-                                          scene.lodEnabled); // F41
-        if (!mesh) continue;
-        p.setUniform("uModel", item.model);
-        p.setUniform("uInstanced", mesh->instanceCount() > 0 ? 1 : 0);
-        mesh->draw();
-    }
-
-    gl::cullFace(gl::Face::Back);
-    Framebuffer::unbind(Framebuffer::Target::Draw);
+    target_.render(scene, lightVP, 0);
 }
 
 math::Mat4 lightView(const Light& light, const math::Vec3& sceneCenter, float sceneRadius, float nearPlane) {
@@ -197,83 +116,23 @@ math::Mat4 cascadeViewProj(const Light& light, const Camera& camera, float aspec
     return math::ortho(mn.x - pad, mx.x + pad, mn.y - pad, mx.y + pad, -mx.z, -mn.z + pad) * lv;
 }
 
-struct CascadeShadowMap::Impl {};
-
-CascadeShadowMap::CascadeShadowMap() : impl_(std::make_unique<Impl>()) {}
-CascadeShadowMap::~CascadeShadowMap() = default;
-CascadeShadowMap::CascadeShadowMap(CascadeShadowMap&&) noexcept = default;
-CascadeShadowMap& CascadeShadowMap::operator=(CascadeShadowMap&&) noexcept = default;
-
-bool CascadeShadowMap::create(int size, int cascades) {
-    size_ = size;
-    cascades_ = math::clamp(cascades, 1, kMaxCascades);
-
-    depthArray_.bind();
-    depthArray_.texStorage3D(1, gl::GL_DEPTH_COMPONENT24, size, size, cascades_);
-    depthArray_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR);
-    depthArray_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
-    depthArray_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
-    depthArray_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
-
-    fbo_.create();
-    fbo_.setSize(size, size);
-    fbo_.bind();
-    gl::framebufferTextureLayer(gl::GL_FRAMEBUFFER, gl::GL_DEPTH_ATTACHMENT, depthArray_.id(), 0, 0);
-    gl::drawBuffer(gl::GL_NONE);
-    gl::readBuffer(gl::GL_NONE);
-    if (!fbo_.isComplete()) {
-        std::fprintf(stderr, "CascadeShadowMap: FBO incomplete (0x%x)\n", fbo_.status());
-        Framebuffer::unbind();
-        return false;
-    }
-    Framebuffer::unbind();
-
-    if (!depthMaterial_.create()) return false;
-    Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
-    if (!vs.compile(kDepthVert)) { std::fprintf(stderr, "CascadeShadowMap: depth VS: %s\n", vs.infoLog().c_str()); return false; }
-    if (!fs.compile(kDepthFrag)) { std::fprintf(stderr, "CascadeShadowMap: depth FS: %s\n", fs.infoLog().c_str()); return false; }
-    depthMaterial_.program().attach(vs);
-    depthMaterial_.program().attach(fs);
-    if (!depthMaterial_.program().link()) {
-        std::fprintf(stderr, "CascadeShadowMap: depth link: %s\n", depthMaterial_.program().infoLog().c_str());
-        return false;
-    }
-    return true;
+bool CascadeShadowMap::create(int size, int cascades, bool moments) {
+    return target_.create(ShadowTargetKind::Tex2DArray, size, cascades, moments);
 }
 
 void CascadeShadowMap::render(const SceneView& scene, const Camera& camera, const Light& light,
                               const math::Vec3& sceneCenter, float sceneRadius, float zNear, float zFar) {
-    if (!fbo_.id() || size_ <= 0 || cascades_ <= 0) return;
-    splits_ = cascadeSplits(zNear, zFar, cascades_);
+    const int cascades = cascadeCount();
+    if (target_.textureId() == 0 || cascades <= 0) return;
+    splits_ = cascadeSplits(zNear, zFar, cascades);
     const float aspect = scene.height > 0 ? static_cast<float>(scene.width) / scene.height : 1.f;
-    for (int i = 0; i < cascades_; ++i)
+    for (int i = 0; i < cascades; ++i) {
         vps_[i] = cascadeViewProj(light, camera, aspect, splits_[i], splits_[i + 1], sceneCenter, sceneRadius);
-
-    gl::enable(gl::Cap::DepthTest);
-    gl::depthFunc(gl::CompareFunc::Less);
-    gl::depthMask(true);
-    gl::enable(gl::Cap::CullFace);
-    gl::cullFace(gl::Face::Front); // back faces: less shadow acne
-    gl::frontFace(true);
-
-    fbo_.bind(Framebuffer::Target::Draw);
-    depthMaterial_.bind();
-    Program& p = depthMaterial_.program();
-    for (int i = 0; i < cascades_; ++i) {
-        gl::framebufferTextureLayer(gl::GL_DRAW_FRAMEBUFFER, gl::GL_DEPTH_ATTACHMENT, depthArray_.id(), 0, i);
-        gl::viewport(0, 0, size_, size_);
-        gl::clear(gl::ClearBit::Depth);
-        p.setUniform("uLightVP", vps_[i]);
-        for (const DrawItem& item : scene.items) {
-            const Mesh* mesh = resolveLodMesh(item, camera.eye(), scene.lodEnabled); // F41
-            if (!mesh) continue;
-            p.setUniform("uModel", item.model);
-            p.setUniform("uInstanced", mesh->instanceCount() > 0 ? 1 : 0);
-            mesh->draw();
-        }
+        if (snapToTexels) // F46: stabilize the cascade on the texel grid (less swimming)
+            vps_[i] = snapLightVPToTexels(vps_[i], target_.size(), sceneCenter);
     }
-    gl::cullFace(gl::Face::Back);
-    Framebuffer::unbind(Framebuffer::Target::Draw);
+    for (int i = 0; i < cascades; ++i)
+        target_.render(scene, vps_[i], i);
 }
 
 } // namespace fuhgl::render

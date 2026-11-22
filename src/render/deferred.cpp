@@ -276,7 +276,10 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
     {
         Shader vs(Shader::Type::Vertex), fs(Shader::Type::Fragment);
         if (!vs.compile(kLightVert)) { std::fprintf(stderr, "DeferredPipeline: light VS: %s\n", vs.infoLog().c_str()); return false; }
-        const std::string fragSrc = std::string(kLightFragHead) + kLightingUniforms + kShadowUniforms + kShadowFunc +
+        // F46: the deferred lighting pass is assembled with FUHGL_SHADOW_KIT so shade()
+        // uses the shadow-kit sampling (filter modes, cascade blend, cube + contact shadows)
+        const std::string fragSrc = std::string(kLightFragHead) + "#define FUHGL_SHADOW_KIT 1\n" + kLightingUniforms +
+                                    kShadowUniforms + kShadowKitUniforms + kShadowFunc + kShadowKitFuncs +
                                     kEnvUniforms + kPbrFuncs + kLightingLoop + kLightFragTail;
         if (!fs.compile(fragSrc.c_str())) { std::fprintf(stderr, "DeferredPipeline: light FS: %s\n", fs.infoLog().c_str()); return false; }
         lightingMaterial_.program().attach(vs);
@@ -309,9 +312,50 @@ bool DeferredPipeline::create(int width, int height, int msaaSamples) {
     dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
     dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
     dummyShadowArrayTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
+    // F46: 1x1 dummies for the shadow-kit samplers (moments 2D/array, cube, cube moments, scene depth)
+    dummyMomentsTex_.bind();
+    dummyMomentsTex_.texStorage2D(1, gl::GL_RGBA32F, 1, 1);
+    dummyMomentsTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR);
+    dummyMomentsTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
+    dummyMomentsArrayTex_.bind();
+    dummyMomentsArrayTex_.texStorage3D(1, gl::GL_RGBA32F, 1, 1, 1);
+    dummyMomentsArrayTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR);
+    dummyMomentsArrayTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
+    dummyCubeTex_.bind();
+    dummyCubeTex_.texStorage2D(1, gl::GL_DEPTH_COMPONENT24, 1, 1); // cube target: 6 faces of 1x1
+    dummyCubeTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_NEAREST);
+    dummyCubeTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
+    dummyCubeMomentsTex_.bind();
+    dummyCubeMomentsTex_.texStorage2D(1, gl::GL_RGBA32F, 1, 1);
+    dummyCubeMomentsTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR);
+    dummyCubeMomentsTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
+    dummySceneDepthTex_.bind();
+    dummySceneDepthTex_.texStorage2D(1, gl::GL_DEPTH_COMPONENT24, 1, 1);
+    dummySceneDepthTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_NEAREST);
+    dummySceneDepthTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
+    dummySceneDepthTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
+    dummySceneDepthTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
     fullscreenVao_.create();
     fullscreenVao_.bind();
     return true;
+}
+
+bool DeferredPipeline::ensureSampleableDepth() {
+    if (msaa_ > 0 || width_ <= 0 || height_ <= 0) return false; // MSAA depth lives in a renderbuffer
+    if (depthTex_.id()) return true;
+    depthTex_.bind();
+    depthTex_.texStorage2D(1, gl::GL_DEPTH_COMPONENT24, width_, height_);
+    depthTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_NEAREST);
+    depthTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
+    depthTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
+    depthTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
+    gbuffer_.bind();
+    gbuffer_.attachTexture2D(Framebuffer::Attachment::Depth, depthTex_); // replaces the renderbuffer
+    const gl::GLenum st = gbuffer_.status();
+    const bool ok = st == gl::GL_FRAMEBUFFER_COMPLETE;
+    Framebuffer::unbind();
+    if (!ok) std::fprintf(stderr, "DeferredPipeline: sampleable depth attach failed (0x%x)\n", st);
+    return ok;
 }
 
 void DeferredPipeline::resize(int width, int height) {
@@ -465,6 +509,45 @@ void DeferredPipeline::renderLighting(const SceneView& scene, Framebuffer* targe
     }
     lp.setUniform(lp.uniformLocation("uShadowLightIndex"), scene.shadowLightIndex);
     lp.setUniform("uShadowStrength", scene.shadowStrength);
+    // F46: shadow-kit samplers on units 11..15 (dummies when the feature is off)
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMoments);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D,
+                                  scene.shadowMomentsTex ? scene.shadowMomentsTex : dummyMomentsTex_.id());
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowMomentsArray);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D_ARRAY,
+                                  scene.shadowMomentsArrayTex ? scene.shadowMomentsArrayTex : dummyMomentsArrayTex_.id());
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowCube);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_CUBE_MAP,
+                                  scene.shadowCubeTex ? scene.shadowCubeTex : dummyCubeTex_.id());
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitShadowCubeMoments);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_CUBE_MAP,
+                                  scene.shadowCubeMomentsTex ? scene.shadowCubeMomentsTex : dummyCubeMomentsTex_.id());
+    gl::activeTexture(gl::GL_TEXTURE0 + kTextureUnitSceneDepth);
+    gl::functions().glBindTexture(gl::GL_TEXTURE_2D,
+                                  scene.sceneDepthTex ? scene.sceneDepthTex : dummySceneDepthTex_.id());
+    lp.setUniform(lp.uniformLocation("uShadowMoments"), kTextureUnitShadowMoments);
+    lp.setUniform(lp.uniformLocation("uShadowMomentsArray"), kTextureUnitShadowMomentsArray);
+    lp.setUniform(lp.uniformLocation("uShadowCube"), kTextureUnitShadowCube);
+    lp.setUniform(lp.uniformLocation("uShadowCubeMoments"), kTextureUnitShadowCubeMoments);
+    lp.setUniform(lp.uniformLocation("uSceneDepth"), kTextureUnitSceneDepth);
+    lp.setUniform(lp.uniformLocation("uShadowFilterMode"), scene.shadowFilterMode);
+    lp.setUniform(lp.uniformLocation("uShadowCascadeBlend"), scene.shadowCascadeBlend);
+    lp.setUniform(lp.uniformLocation("uShadowLightSize"), scene.shadowLightSize);
+    lp.setUniform(lp.uniformLocation("uShadowWorldWidth"), scene.shadowWorldWidth);
+    lp.setUniform(lp.uniformLocation("uMinVariance"), scene.shadowMinVariance);
+    lp.setUniform(lp.uniformLocation("uPointShadows"), scene.pointShadows);
+    lp.setUniform(lp.uniformLocation("uPointShadowLightIndex"), scene.pointShadowLightIndex);
+    lp.setUniform(lp.uniformLocation("uPointShadowStrength"), scene.pointShadowStrength);
+    lp.setUniform("uPointLightPos", scene.pointLightPos);
+    lp.setUniform(lp.uniformLocation("uPointShadowFar"), scene.pointShadowFar);
+    lp.setUniform(lp.uniformLocation("uContactShadows"), scene.contactShadows);
+    lp.setUniform(lp.uniformLocation("uContactShadowStrength"), scene.contactShadowStrength);
+    lp.setUniform(lp.uniformLocation("uContactShadowMaxDist"), scene.contactShadowMaxDist);
+    lp.setUniform(lp.uniformLocation("uContactShadowThickness"), scene.contactShadowThickness);
+    lp.setUniform(lp.uniformLocation("uContactShadowSteps"), scene.contactShadowSteps);
+    lp.setUniform("uProj", scene.camera->projection(scene.aspect));
+    lp.setUniform("uCamZNear", scene.camera->zNear());
+    lp.setUniform("uCamZFar", scene.camera->zFar());
     lp.setUniform("uFogColor", scene.fogColor);
     lp.setUniform("uFogDensity", scene.fogDensity);
     // SSAO map (F17)
