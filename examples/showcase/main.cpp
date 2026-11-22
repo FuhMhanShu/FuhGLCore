@@ -86,9 +86,9 @@ int main(int argc, char** argv) {
         h *= fuhgl::math::smoothstep(2.5f, 10.f, d); // clearing around the scene center
         const float pdx = x - 4.5f, pdz = z + 5.5f;   // pond basin at (4.5, -5.5)
         const float pd = std::sqrt(pdx * pdx + pdz * pdz);
-        const float basin = fuhgl::math::smoothstep(7.f, 2.5f, pd);
-        h = h * (1.f - basin) + (-1.3f) * basin;
-        h -= 0.9f * std::exp(-(pdx * pdx + pdz * pdz) / 22.f);
+        const float basin = fuhgl::math::smoothstep(8.f, 3.f, pd);
+        h = h * (1.f - basin) + (-1.45f) * basin;
+        h -= 1.1f * std::exp(-(pdx * pdx + pdz * pdz) / 30.f);
         return h;
     };
 
@@ -235,8 +235,8 @@ int main(int argc, char** argv) {
 
     // --- pond: metallic mirror-smooth water slab (SSR sky reflection) ------------------------
     Mesh waterMesh;
-    shapes::box(waterMesh, {3.4f, 0.06f, 2.6f}, {1.f, 1.f, 1.f});
-    Material waterMat = materials::pbr({0.06f, 0.13f, 0.19f}, 1.0f, 0.06f);
+    shapes::box(waterMesh, {4.6f, 0.06f, 3.6f}, {1.f, 1.f, 1.f});
+    Material waterMat = materials::pbr({0.06f, 0.13f, 0.19f}, 1.0f, 0.04f);
 
     // --- grass: two thin blade meshes, thousands of F24 instances -----------------------------
     auto makeBlade = [](float w, float h) {
@@ -292,7 +292,7 @@ int main(int argc, char** argv) {
                             : fuhgl::math::Vec3{0.65f, 0.75f, 0.90f};
     scene.fogDensity = night ? 0.004f : sunset ? 0.005f : 0.003f;
     scene.items.push_back({&terrainMesh, &terrainMat, fuhgl::math::Mat4{}});
-    scene.items.push_back({&waterMesh, &waterMat, fuhgl::math::translate({4.5f, -1.02f, -5.5f})});
+    scene.items.push_back({&waterMesh, &waterMat, fuhgl::math::translate({4.5f, -0.98f, -5.5f})});
     const fuhgl::math::Vec3 monoPos{-4.5f, terrainH(-4.5f, -6.f) + 2.4f, -6.f};
     scene.items.push_back({&monoMesh, &stoneMat, fuhgl::math::translate(monoPos) * fuhgl::math::rotateY(0.5f)});
 
