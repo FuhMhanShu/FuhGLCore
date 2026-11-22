@@ -189,6 +189,12 @@ add_executable(fuhgl_gl_smoke_forward_fx gl_smoke_forward_fx.cpp)
 target_link_libraries(fuhgl_gl_smoke_forward_fx PRIVATE fuhglcore)
 add_test(NAME gl_smoke_forward_fx COMMAND fuhgl_gl_smoke_forward_fx)
 
+# Headless test for F43: render::DemoScene drives both renderers (deferred full FX +
+# forward post chain) from one scene; pixel + wiring checks.
+add_executable(fuhgl_gl_smoke_demo gl_smoke_demo.cpp)
+target_link_libraries(fuhgl_gl_smoke_demo PRIVATE fuhglcore)
+add_test(NAME gl_smoke_demo COMMAND fuhgl_gl_smoke_demo)
+
 # --- test semantics (F26) ---------------------------------------------------------------
 # "unit": pure CPU tests, no GL context required.
 # "gl_context": needs a GL context; the test exits with code 77 ("Skipped" via
@@ -201,5 +207,5 @@ set_tests_properties(
     gl_smoke_shadows gl_smoke_forward gl_smoke_deferred_fx gl_smoke_dsa gl_smoke_text
     gl_smoke_wireframe gl_smoke_p3 gl_smoke_reflection gl_smoke_instancing gl_smoke_pbr gl_smoke_csm gl_smoke_graph gl_smoke_taa gl_smoke_ssr
     gl_smoke_culling gl_smoke_bindless gl_smoke_dof gl_smoke_volfog gl_smoke_terrain gl_smoke_effects gl_smoke_lod
-    gl_smoke_forward_fx
+    gl_smoke_forward_fx gl_smoke_demo
     PROPERTIES LABELS "gl_context" SKIP_RETURN_CODE 77)

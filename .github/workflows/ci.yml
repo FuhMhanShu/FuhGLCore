@@ -155,6 +155,8 @@ jobs:
           FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-day.png --mode day --width 960 --height 540
           FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-sunset.png --mode sunset --width 960 --height 540
           FUHGL_BACKEND=surfaceless ./build-egl/examples/showcase --screenshot docs/images/readme-showcase-night.png --mode night --width 960 --height 540
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/demo --screenshot docs/images/tutorial-renderer-demo-deferred.png --renderer deferred --mode day --width 960 --height 540
+          FUHGL_BACKEND=surfaceless ./build-egl/examples/demo --screenshot docs/images/tutorial-renderer-demo-forward.png --renderer forward --mode day --width 960 --height 540
           FUHGL_BACKEND=surfaceless ./build-egl/examples/solids --screenshot docs/images/tutorial-solids-textured.png --textured --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/instancing --screenshot docs/images/tutorial-instancing.png --width 800 --height 600
           FUHGL_BACKEND=surfaceless ./build-egl/examples/features --screenshot docs/images/tutorial-noise.png --scene noise --width 800 --height 600

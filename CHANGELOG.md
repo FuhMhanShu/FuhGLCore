@@ -176,6 +176,22 @@ All notable changes to FuhGLCore are documented here. The format follows
   and SSR in all modes (headless renders 8 frames so the TAA history accumulates).
   Tutorials 12, 29–38 (en + de) and both READMEs reference the new images.
 
+### Added
+- F43 — renderer demo: `render::DemoScene` (`render/demo.hpp`, PIMPL in
+  `src/render/demo.cpp`) owns the whole showcase landscape (noise heightfield terrain +
+  pond, CSG trees/bushes/rocks/monolith, procedural voronoi/noise textures, 3000 instanced
+  grass blades, PBR water, sun + point lights, emissive night lamps, baked IBL environment)
+  and runs it through BOTH ready-to-use renderers — `configure(ForwardRenderer&)` (CSM +
+  HDR post chain F42: bloom/god rays/TAA/DoF/vol fog) and `configure(DeferredRenderer&)`
+  (CSM + SSAO + HDR + bloom/god rays/TAA/SSR/DoF/vol fog + gradient sky); `fillScene()`
+  provides the per-frame `SceneView`, `DemoMode` day/sunset/night, `demoModeFromName()`.
+  New `examples/demo` (`--renderer forward|deferred --mode ... --screenshot ...`);
+  `examples/showcase` is now a thin deferred-only wrapper over `DemoScene` (identical CI
+  screenshots). Test `gl_smoke_demo.cpp` (gl_context: both renderers render the demo scene
+  lit, wiring + night IBL + no GL errors). CI docs job renders
+  `tutorial-renderer-demo-{deferred,forward}.png`. Tutorial 45 (en + de) maps every single
+  tutorial onto the demo; README.md / README.de.md updated.
+
 ## [0.1.0] — initial release
 
 Zero-dependency C++17 OpenGL wrapper + built-in render layer. Highlights:

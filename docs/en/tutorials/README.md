@@ -52,6 +52,7 @@ Screenshots in `docs/images/` are rendered headless by the CI `docs` job
 | 42 | Effect toggles + GPU capability fallback: Effect enum, setEffectEnabled, graceful degradation | [42-effects-capabilities.md](42-effects-capabilities.md) |
 | 43 | Level of detail: LodMesh levels + distance-based selection in all pipelines, toggleable | [43-lod.md](43-lod.md) |
 | 44 | Forward renderer post FX: PostChain over an HDR pass (bloom, god rays, TAA, DoF, vol fog) | [44-forward-postfx.md](44-forward-postfx.md) |
+| 45 | Renderer demo: one DemoScene, both renderers (summary of the single tutorials) | [45-renderer-demo.md](45-renderer-demo.md) |
 
 Prerequisite for all: build the library and link `FuhGLCore::fuhglcore`
 (see [DEVELOPMENT.md](../../DEVELOPMENT.md#build-options)).

@@ -27,6 +27,8 @@ separate engine project.
 Landscape rendered with the `DeferredRenderer` (CSM shadows, SSAO, HDR + bloom, god rays,
 fog, TAA, SSR; the night look adds an IBL environment and lamp reflections) — see
 `examples/showcase` and [tutorial 29](docs/en/tutorials/29-showcase-scene.md).
+The same scene runs through both renderers via `render::DemoScene` + `examples/demo`
+(`--renderer forward|deferred`) — see [tutorial 45](docs/en/tutorials/45-renderer-demo.md).
 
 ![first triangle](docs/images/tutorial-first-triangle.png)
 ![isometric skybox](docs/images/tutorial-isometric-skybox.png)

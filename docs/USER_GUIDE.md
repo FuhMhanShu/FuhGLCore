@@ -68,6 +68,7 @@ library gives you safe, modern-C++ handles for GL objects:
 | Program reflection (uniforms/attributes/UBOs) | `Program::activeUniforms()`, `activeAttributes()`, `uniformBlocks()` | [27](en/tutorials/27-program-reflection.md) |
 | Instancing (one draw call per mesh, many copies) | `Mesh::setInstanceData(models, n)`, `updateInstanceData()`, `instanceCount()` | [28](en/tutorials/28-instancing.md) |
 | Showcase scene (README hero images) | `examples/showcase` — DeferredRenderer landscape, day/sunset | [29](en/tutorials/29-showcase-scene.md) |
+| Renderer demo: one scene, both renderers | `render::DemoScene` + `examples/demo --renderer forward|deferred` | [45](en/tutorials/45-renderer-demo.md) |
 
 ![deferred rendering](images/tutorial-deferred.png)
 

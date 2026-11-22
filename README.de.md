@@ -29,6 +29,9 @@ Landschaft, gerendert mit dem `DeferredRenderer` (CSM-Schatten, SSAO, HDR + Bloo
 Rays, Nebel, TAA, SSR; der Nacht-Look ergaenzt ein IBL-Environment und Lampen-Spiegelungen)
 — siehe `examples/showcase` und
 [Tutorial 29](docs/de/tutorials/29-showcase-scene.md).
+Dieselbe Szene läuft über `render::DemoScene` + `examples/demo`
+(`--renderer forward|deferred`) durch beide Renderer —
+siehe [Tutorial 45](docs/de/tutorials/45-renderer-demo.md).
 
 ![erstes Dreieck](docs/images/tutorial-first-triangle.png)
 ![isometrische Skybox](docs/images/tutorial-isometric-skybox.png)
