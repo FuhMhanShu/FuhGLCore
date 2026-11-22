@@ -7,6 +7,8 @@ All notable changes to FuhGLCore are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-alpha.1] - 2026-11-22
+
 - qmake support so FuhGLCore can be consumed as a dependency from Qt/qmake projects:
   `fuhglcore.pro` builds the standalone static library (`qmake6 fuhglcore.pro && make`),
   `fuhglcore.pri` is the include-as-dependency file (`include($$FUHGLCORE_DIR/fuhglcore.pri)`
