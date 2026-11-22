@@ -34,7 +34,11 @@ jobs:
       - name: qmake smoke build (Linux only) — fuhglcore.pro standalone lib + fuhglcore.pri as consumer dependency
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update && sudo apt-get install -y qt6-qmake qt6-base-dev
+          sudo apt-get update
+          sudo apt-get install -y qt6-base-dev
+          # package name differs across Ubuntu releases: qmake6 (newer) or qt6-qmake (older)
+          sudo apt-get install -y qmake6 || sudo apt-get install -y qt6-qmake
+          qmake6 --version
           mkdir -p build-qmake && cd build-qmake
           qmake6 ../fuhglcore.pro
           make -j"$(nproc)"
