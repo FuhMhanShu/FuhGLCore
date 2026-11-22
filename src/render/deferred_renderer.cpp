@@ -214,27 +214,27 @@ uniform float uMaxDist;
 constexpr const char* kVolFogFragTail = R"GLSL(
 float hgPhase(float cosT, float g) {
     float g2 = g * g;
-    float d = 1.0 + g2 - 2.0 * g * cosT;
+    float d = max(1.0 + g2 - 2.0 * g * cosT, 1e-4); // clamp: keeps sqrt() defined for |cosT| > 1
     return (1.0 - g2) / (4.0 * 3.14159265 * d * sqrt(d));
 }
 void main() {
     vec4 gp = texture(uPosition, vUV);
-    vec3 farPos;
-    float maxDist;
+    vec3 toFar;
+    float dist;
     if (gp.a > 0.5) { // geometry: march only up to the surface
-        farPos = gp.rgb;
-        maxDist = length(farPos - uCamPos);
+        toFar = gp.rgb - uCamPos;
+        dist = length(toFar);
     } else { // sky: march to the far plane
         vec4 wp = uInvViewProj * vec4(vUV * 2.0 - 1.0, 1.0, 1.0);
-        farPos = wp.xyz / wp.w;
-        maxDist = length(farPos - uCamPos);
+        toFar = wp.xyz / wp.w - uCamPos;
+        dist = length(toFar);
     }
-    maxDist = min(maxDist, uMaxDist);
     vec3 src = texture(uSrc, vUV).rgb;
-    if (maxDist < 1e-3) { FragColor = vec4(src, 1.0); return; }
-    vec3 dir = (farPos - uCamPos) / maxDist;
+    if (dist < 1e-3) { FragColor = vec4(src, 1.0); return; }
+    vec3 dir = toFar / dist; // unit length: cosT below stays in [-1, 1] even when clamped
+    float maxDist = min(dist, uMaxDist);
     float stepLen = maxDist / float(uSteps);
-    float phase = hgPhase(dot(dir, uSunDir), uAnisotropy);
+    float phase = hgPhase(clamp(dot(dir, uSunDir), -1.0, 1.0), uAnisotropy);
     float T = 1.0;
     vec3 insc = vec3(0.0);
     for (int i = 0; i < 64; ++i) {

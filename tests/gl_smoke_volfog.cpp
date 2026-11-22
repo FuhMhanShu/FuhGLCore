@@ -1,6 +1,6 @@
 // Headless smoke test for F37 volumetric fog in DeferredRenderer: with volFogEnabled a far
 // floor window must change noticeably (extinction + in-scattering) while a near window
-// barely changes; with volFogShadows + CSM the floor inside a caster's shadow gets less
+// changes much less; with volFogShadows + CSM the fog over the caster's shadow gets less
 // in-scattered sun light (darker) than without. Measured on the HDR "volfog" graph
 // resource. Skips without GL >= 3.3.
 
@@ -49,6 +49,21 @@ double meanLum(const std::vector<float>& img, int W, int H, int cx, int cy, int 
     return n > 0 ? s / n : 0.0;
 }
 
+double globalLum(const std::vector<float>& img, int W, int H) {
+    double s = 0.0;
+    const size_t n = static_cast<size_t>(W) * H;
+    for (size_t i = 0; i < n; ++i)
+        s += 0.2126 * img[i * 4] + 0.7152 * img[i * 4 + 1] + 0.0722 * img[i * 4 + 2];
+    return s / static_cast<double>(n);
+}
+
+int nanCount(const std::vector<float>& img) {
+    int n = 0;
+    for (size_t i = 0; i < img.size(); i += 4)
+        if (!std::isfinite(img[i]) || !std::isfinite(img[i + 1]) || !std::isfinite(img[i + 2])) ++n;
+    return n;
+}
+
 } // namespace
 
 int main() {
@@ -76,7 +91,7 @@ int main() {
     }
     r.enableCsmShadows(1024, 4); // F30 — needed for volFogShadows
     r.setShadowZRange(0.5f, 60.f);
-    r.setShadowSceneBounds({0.f, 1.f, -6.f}, 14.f);
+    r.setShadowSceneBounds({0.f, 2.f, 0.f}, 12.f);
     r.setShadowStrength(1.f);
     r.ssaoEnabled = false;
     r.godRaysEnabled = false;
@@ -85,7 +100,9 @@ int main() {
 
     fuhgl::render::Mesh floorMesh, casterMesh;
     fuhgl::render::shapes::box(floorMesh, {20.f, 0.25f, 20.f}, {0.5f, 0.5f, 0.52f});
-    fuhgl::render::shapes::box(casterMesh, {0.75f, 2.f, 0.2f}, {0.6f, 0.6f, 0.62f}); // tall slab at y in [0,4]
+    // tall slab between camera and scene center: with the sun behind-above the camera
+    // it throws a shadow onto the floor right in front of the camera
+    fuhgl::render::shapes::box(casterMesh, {0.4f, 3.f, 0.2f}, {0.6f, 0.6f, 0.62f});
 
     fuhgl::FirstPersonCamera cam;
     cam.position = {0.f, 1.2f, 6.f};
@@ -99,9 +116,7 @@ int main() {
     scene.clearColor = {0.05f, 0.06f, 0.09f};
     scene.ambient = {0.15f, 0.15f, 0.17f};
     scene.items.push_back({&floorMesh, nullptr, fuhgl::math::translate({0.f, -0.25f, 0.f})});
-    scene.items.push_back({&casterMesh, nullptr, fuhgl::math::translate({0.f, 2.f, -6.f})});
-    // sun from behind-above the camera, slightly toward -z: the caster throws a shadow
-    // onto the floor between it and the camera
+    scene.items.push_back({&casterMesh, nullptr, fuhgl::math::translate({0.f, 3.f, 2.f})});
     scene.lights.push_back(fuhgl::render::Light::directional({0.f, -1.f, 0.45f}, {1.f, 0.9f, 0.75f}, 2.5f));
 
     // read the HDR "volfog" graph resource
@@ -123,9 +138,9 @@ int main() {
         return std::make_pair(static_cast<int>((c.x / c.w * 0.5f + 0.5f) * W),
                               static_cast<int>((c.y / c.w * 0.5f + 0.5f) * H));
     };
-    const auto [fx, fy] = project({1.5f, 0.f, -18.f});   // far floor, outside the shadow
-    const auto [nx, ny] = project({2.f, 0.f, 4.f});      // near floor
-    const auto [sx, sy] = project({0.f, 0.f, -5.f});     // floor inside the caster's shadow
+    const auto [fx, fy] = project({0.5f, 0.f, -18.f});  // far floor
+    const auto [nx, ny] = project({2.5f, 0.f, 4.5f});   // near floor, right of the caster
+    const auto [sx, sy] = project({0.f, 0.f, 3.0f});    // floor inside the caster's shadow
     std::fprintf(stderr, "gl_smoke_volfog: far (%d,%d) near (%d,%d) shadow (%d,%d)\n", fx, fy, nx, ny, sx, sy);
 
     // 1) fog off
@@ -136,7 +151,7 @@ int main() {
 
     // 2) fog on, no shadow attenuation
     r.volFogEnabled = true;
-    r.volFogDensity = 0.06f;
+    r.volFogDensity = 0.15f;
     r.volFogColor = {0.75f, 0.80f, 0.88f};
     r.volFogAnisotropy = 0.3f;
     r.volFogHeight = 0.f;
@@ -147,23 +162,30 @@ int main() {
     fuhgl::gl::flush();
     const auto imgOn = readVolFog();
 
-    const double farDiff = meanDiff(imgOff, imgOn, W, H, fx, fy, 5);
-    const double nearDiff = meanDiff(imgOff, imgOn, W, H, nx, ny, 5);
-    std::fprintf(stderr, "gl_smoke_volfog: farDiff=%.4f nearDiff=%.4f\n", farDiff, nearDiff);
-    expect(farDiff > 0.02, "fog changes far pixels (extinction + in-scattering)");
-    expect(nearDiff < farDiff * 0.7, "near pixels stay almost unaffected");
-
-    // 3) fog on with CSM shadow attenuation -> less in-scattering inside the shadow
+    // 3) fog on with CSM shadow attenuation -> less in-scattering inside the shadow prism
     r.volFogShadows = true;
     r.render(scene);
     fuhgl::gl::flush();
     const auto imgSh = readVolFog();
 
+    std::fprintf(stderr, "gl_smoke_volfog: NaN off=%d on=%d sh=%d\n", nanCount(imgOff), nanCount(imgOn),
+                 nanCount(imgSh));
+    expect(nanCount(imgOff) == 0 && nanCount(imgOn) == 0 && nanCount(imgSh) == 0, "no NaN in the volfog HDR output");
+
+    const double farDiff = meanDiff(imgOff, imgOn, W, H, fx, fy, 5);
+    const double nearDiff = meanDiff(imgOff, imgOn, W, H, nx, ny, 5);
+    std::fprintf(stderr, "gl_smoke_volfog: farDiff=%.4f nearDiff=%.4f\n", farDiff, nearDiff);
+    expect(farDiff > 0.02, "fog changes far pixels (extinction + in-scattering)");
+    expect(nearDiff < farDiff * 0.7, "near pixels change much less than far pixels");
+
     const double lumNoSh = meanLum(imgOn, W, H, sx, sy, 5);
     const double lumSh = meanLum(imgSh, W, H, sx, sy, 5);
-    std::fprintf(stderr, "gl_smoke_volfog: shadow window lum noShadow=%.4f withShadow=%.4f\n", lumNoSh, lumSh);
+    const double gOn = globalLum(imgOn, W, H), gSh = globalLum(imgSh, W, H);
+    std::fprintf(stderr, "gl_smoke_volfog: shadow window lum noShadow=%.4f withShadow=%.4f | global %.4f -> %.4f\n",
+                 lumNoSh, lumSh, gOn, gSh);
     expect(lumNoSh > 0.01, "shadow window is visible (lit by fog in-scattering)");
-    expect(lumSh < lumNoSh * 0.9, "volFogShadows darkens the shadowed fog (light shaft)");
+    expect(lumSh < lumNoSh * 0.75, "volFogShadows darkens the shadowed fog (light shaft)");
+    expect(gSh < gOn * 0.99, "volFogShadows darkens the frame globally");
     expect(fuhgl::gl::lastError() == fuhgl::gl::Error::NoError, "no GL errors");
 
     if (g_failures) {
