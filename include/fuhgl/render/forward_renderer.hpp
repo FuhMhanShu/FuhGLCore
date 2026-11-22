@@ -9,6 +9,7 @@
 #include "effects.hpp"
 #include "light.hpp"
 #include "forward_pipeline.hpp"
+#include "post_chain.hpp"
 #include "shadow.hpp"
 
 #include "../gl/framebuffer.hpp"
@@ -85,7 +86,9 @@ public:
     /// @brief Enables/disables all renderer-owned effects at once (still capability-gated).
     void setAllEffects(bool on);
     /// @brief True when the current GPU can run this effect at all (pure mapping, F39).
+    /// SSAO/SSR need a G-buffer and are deferred-only — never supported here.
     bool effectSupported(Effect e) const {
+        if (e == Effect::Ssao || e == Effect::Ssr) return false;
         return render::effectSupported(e, glMajor_, glMinor_, hasBindless_, hasCompute_);
     }
 
@@ -94,9 +97,19 @@ public:
     /// @brief LOD level chosen for the last drawn item that had a LodMesh (-1 = none).
     int lastLodLevel() const { return lastLodLevel_; }
 
+    // --- post-processing (F42): optional HDR post chain (bloom, god rays, TAA, DoF, vol fog)
+    /// @brief Enables the post chain: the forward pass renders into an HDR target, then
+    /// PostChain (bloom/god rays/TAA/DoF/vol fog + ACES composite) writes the LDR target().
+    /// Off by default — then the forward pass renders straight into the LDR target as before.
+    void enablePostFX(bool on = true) { postEnabled_ = on; }
+    bool postFxEnabled() const { return postEnabled_; }
+    PostChain& postChain() { return post_; }
+    const PostChain& postChain() const { return post_; }
+
     // --- rendering -------------------------------------------------------------------
     /// @brief Renders one frame: shadow depth pass (when enabled, from the first
-    /// directional/spot light) + forward pass with lights/fog/shadows.
+    /// directional/spot light) + forward pass with lights/fog/shadows; with post FX on,
+    /// the forward pass goes into an HDR target and postChain() composites into target().
     void render(const Camera& camera, const std::vector<DrawItem>& items, int width, int height);
 
     ForwardPipeline& pipeline() { return pipeline_; }
@@ -129,6 +142,13 @@ private:
     float shadowStrength_ = 1.f;
     int width_ = 0, height_ = 0;
 
+    // F42: HDR intermediate target + post chain (used when postEnabled_)
+    bool postEnabled_ = false;
+    PostChain post_;
+    Framebuffer hdrTarget_;
+    Texture hdrTex_{Texture::Target::Tex2D};
+    Texture hdrDepthTex_{Texture::Target::Tex2D}; ///< depth as a texture (sampled by DoF/vol fog)
+
     // F39: capabilities captured at create() time; applyCapabilities() clears unsupported
     void applyCapabilities();
     void gate(Effect e, bool& flag);
@@ -137,6 +157,7 @@ private:
     unsigned warnedMask_ = 0;
     unsigned requestedMask_ = 0;
     int lastLodLevel_ = -1;                 ///< F41
+    unsigned postFrameIndex_ = 0;           ///< F42: TAA frame counter for the forward jitter
 };
 
 } // namespace fuhgl::render

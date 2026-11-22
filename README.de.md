@@ -113,6 +113,9 @@ Rays, Nebel, TAA, SSR; der Nacht-Look ergaenzt ein IBL-Environment und Lampen-Sp
 - **Level of Detail (LOD)** — `render::LodMesh` mit pro-Item entfernungsbasierter
   Stufenwahl in allen Pipelines; Schalter `renderer.lodEnabled` — siehe
   [Tutorial 43](docs/de/tutorials/43-lod.md).
+- **Forward-Renderer Post-FX** — `ForwardRenderer::enablePostFX()` führt einen HDR-Forward-Pass
+  durch `render::PostChain` (Bloom, God Rays, TAA, DoF, volumetrischer Nebel) — siehe
+  [Tutorial 44](docs/de/tutorials/44-forward-postfx.md).
 - **PBR-Materialien** — Metallic-Roughness-Shading (Cook-Torrance GGX) in beiden Pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, im Deferred-Pfad pro Pixel in einem
   5. G-Buffer-Attachment gespeichert — siehe [Tutorial 31](docs/de/tutorials/31-pbr-materials.md).

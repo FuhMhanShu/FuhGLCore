@@ -3,7 +3,8 @@
 // Windowed by default; with --screenshot it renders one deterministic frame headless
 // (surfaceless EGL) and writes a PNG — used by the CI docs job.
 //
-// Usage: forward [--screenshot out.png] [--width W] [--height H] [--no-shadows] [--no-fog]
+// Usage: forward [--screenshot out.png] [--width W] [--height H] [--no-shadows] [--no-fog] [--fx]
+// --fx enables the F42 post chain on the forward renderer (HDR pass + bloom/god rays/TAA/DoF/vol fog).
 // Controls (windowed): Esc quit.
 
 #include <fuhgl/fuhgl.hpp>
@@ -22,7 +23,7 @@ namespace {
 struct Args {
     std::string screenshot;
     int width = 800, height = 600;
-    bool shadows = true, fog = true;
+    bool shadows = true, fog = true, fx = false;
 };
 
 Args parseArgs(int argc, char** argv) {
@@ -33,6 +34,7 @@ Args parseArgs(int argc, char** argv) {
         else if (std::strcmp(argv[i], "--height") == 0 && i + 1 < argc) a.height = std::atoi(argv[++i]);
         else if (std::strcmp(argv[i], "--no-shadows") == 0) a.shadows = false;
         else if (std::strcmp(argv[i], "--no-fog") == 0) a.fog = false;
+        else if (std::strcmp(argv[i], "--fx") == 0) a.fx = true;
     }
     return a;
 }
@@ -65,7 +67,10 @@ int main(int argc, char** argv) {
     cam.pitch = -0.35f;
 
     fuhgl::render::ForwardRenderer renderer;
-    if (!renderer.create(headless ? args.width : 0, headless ? args.height : 0)) {
+    // with --fx (windowed) the renderer needs an own sized target for the HDR post chain
+    const int initW = headless ? args.width : (args.fx ? window.framebufferWidth() : 0);
+    const int initH = headless ? args.height : (args.fx ? window.framebufferHeight() : 0);
+    if (!renderer.create(initW, initH)) {
         std::fprintf(stderr, "forward: renderer create failed\n");
         return 1;
     }
@@ -74,6 +79,18 @@ int main(int argc, char** argv) {
         renderer.setShadowSceneBounds({0.f, 0.5f, 0.f}, 8.f);
     }
     if (args.fog) renderer.setFog({0.55f, 0.65f, 0.8f}, 0.028f);
+    if (args.fx) { // F42: post chain on the forward renderer
+        renderer.enablePostFX(true);
+        renderer.postChain().bloomStrength = 0.55f;
+        renderer.postChain().rayWeight = 0.4f;
+        renderer.postChain().taaEnabled = true;
+        renderer.postChain().dofEnabled = true;
+        renderer.postChain().dofFocusDist = 6.5f;
+        renderer.postChain().dofFocusRange = 4.f;
+        renderer.postChain().dofStrength = 10.f;
+        renderer.postChain().volFogEnabled = true;
+        renderer.postChain().volFogDensity = 0.012f;
+    }
     renderer.setAmbient({0.10f, 0.10f, 0.12f});
     renderer.setClearColor({0.55f, 0.65f, 0.8f});
     renderer.addLight(fuhgl::render::Light::directional({0.55f, -1.f, 0.3f}, {1.f, 0.9f, 0.72f}, 1.7f));
@@ -104,12 +121,15 @@ int main(int argc, char** argv) {
             renderer.render(cam, items, args.width, args.height);
         else {
             const int w = window.framebufferWidth(), h = window.framebufferHeight();
-            if (w > 0 && h > 0) renderer.render(cam, items, w, h);
+            if (w > 0 && h > 0) {
+                renderer.render(cam, items, w, h);
+                if (args.fx) renderer.blitToScreen(); // post chain wrote into target()
+            }
         }
     };
 
     if (headless) {
-        renderOnce();
+        for (int i = 0; i < 8; ++i) renderOnce(); // let TAA history accumulate
         fuhgl::gl::flush();
         renderer.target()->bind();
         std::vector<unsigned char> px(static_cast<size_t>(args.width) * args.height * 4);

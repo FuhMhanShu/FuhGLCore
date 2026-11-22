@@ -139,6 +139,16 @@ All notable changes to FuhGLCore are documented here. The format follows
   `lastLodLevel()`; `terrainLods()` builds a multi-resolution terrain LodMesh from a
   heightmap. Tests: `test_lod.cpp` (unit), `gl_smoke_lod.cpp` (gl_context); screenshot
   `examples/features --scene lod`; tutorial 43 (en + de).
+- F42 — post-processing for the forward renderer: new `render::PostChain`
+  (render/post_chain.hpp) runs a RenderGraph over any HDR input (TAA → DoF → volumetric
+  fog → bloom → god rays → ACES composite into an LDR target); DoF/vol fog reconstruct
+  world positions from the depth texture, so no G-buffer is needed (SSAO/SSR remain
+  deferred-only). `ForwardRenderer::enablePostFX()` switches to an HDR forward pass +
+  post chain (off by default — the old direct-LDR path is unchanged), `postChain()` exposes
+  the config, post effects are part of the F40 `Effect` toggle API and F39-gated.
+  Shared post shaders moved to `src/render/postfx_glsl.hpp` (used by both chains).
+  `examples/forward --fx` renders a post-FX screenshot. Test: `gl_smoke_forward_fx.cpp`
+  (gl_context). Tutorial 44 (en + de).
 
 ### Changed
 - Showcase reworked into an organic landscape: noise heightfield terrain with a clearing

@@ -184,6 +184,11 @@ add_executable(fuhgl_gl_smoke_lod gl_smoke_lod.cpp)
 target_link_libraries(fuhgl_gl_smoke_lod PRIVATE fuhglcore)
 add_test(NAME gl_smoke_lod COMMAND fuhgl_gl_smoke_lod)
 
+# F42 smoke test: ForwardRenderer + PostChain (bloom/rays/TAA/DoF/volfog) HDR->LDR path.
+add_executable(fuhgl_gl_smoke_forward_fx gl_smoke_forward_fx.cpp)
+target_link_libraries(fuhgl_gl_smoke_forward_fx PRIVATE fuhglcore)
+add_test(NAME gl_smoke_forward_fx COMMAND fuhgl_gl_smoke_forward_fx)
+
 # --- test semantics (F26) ---------------------------------------------------------------
 # "unit": pure CPU tests, no GL context required.
 # "gl_context": needs a GL context; the test exits with code 77 ("Skipped" via
@@ -196,4 +201,5 @@ set_tests_properties(
     gl_smoke_shadows gl_smoke_forward gl_smoke_deferred_fx gl_smoke_dsa gl_smoke_text
     gl_smoke_wireframe gl_smoke_p3 gl_smoke_reflection gl_smoke_instancing gl_smoke_pbr gl_smoke_csm gl_smoke_graph gl_smoke_taa gl_smoke_ssr
     gl_smoke_culling gl_smoke_bindless gl_smoke_dof gl_smoke_volfog gl_smoke_terrain gl_smoke_effects gl_smoke_lod
+    gl_smoke_forward_fx
     PROPERTIES LABELS "gl_context" SKIP_RETURN_CODE 77)

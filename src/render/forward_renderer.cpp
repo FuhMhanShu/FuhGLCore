@@ -47,6 +47,30 @@ bool ForwardRenderer::create(int width, int height) {
             return false;
         }
         Framebuffer::unbind();
+        // F42: HDR intermediate target (RGBA16F color + sampleable depth texture) for the post chain
+        hdrTex_.bind();
+        hdrTex_.texStorage2D(1, gl::GL_RGBA16F, width, height);
+        hdrDepthTex_.bind();
+        hdrDepthTex_.texStorage2D(1, gl::GL_DEPTH_COMPONENT24, width, height);
+        hdrDepthTex_.setParameteri(gl::GL_TEXTURE_MIN_FILTER, gl::GL_NEAREST);
+        hdrDepthTex_.setParameteri(gl::GL_TEXTURE_MAG_FILTER, gl::GL_NEAREST);
+        hdrDepthTex_.setParameteri(gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
+        hdrDepthTex_.setParameteri(gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
+        hdrTarget_.create();
+        hdrTarget_.setSize(width, height);
+        hdrTarget_.bind();
+        hdrTarget_.attachTexture2D(0, hdrTex_);
+        hdrTarget_.attachTexture2D(Framebuffer::Attachment::Depth, hdrDepthTex_);
+        if (!hdrTarget_.isComplete()) {
+            std::fprintf(stderr, "ForwardRenderer: HDR target FBO incomplete (0x%x)\n", hdrTarget_.status());
+            Framebuffer::unbind();
+            return false;
+        }
+        Framebuffer::unbind();
+        if (!post_.create(width, height)) {
+            std::fprintf(stderr, "ForwardRenderer: post chain create failed\n");
+            return false;
+        }
         pipeline_.setTarget(&target_);
     } else {
         pipeline_.setTarget(nullptr);
@@ -60,10 +84,14 @@ bool ForwardRenderer::create(int width, int height) {
 
 void ForwardRenderer::resize(int width, int height) {
     if (width == width_ && height == height_) return;
-    // recreate the own target (simplest correct approach)
+    // recreate the own targets (simplest correct approach)
     target_ = Framebuffer();
     targetTex_ = Texture(Texture::Target::Tex2D);
     targetDepth_ = Renderbuffer();
+    hdrTarget_ = Framebuffer();
+    hdrTex_ = Texture(Texture::Target::Tex2D);
+    hdrDepthTex_ = Texture(Texture::Target::Tex2D);
+    post_ = PostChain();
     create(width, height);
 }
 
@@ -108,6 +136,14 @@ void ForwardRenderer::setEffectEnabled(Effect e, bool on) {
         case Effect::Shadows: shadows_ = on; break;
         case Effect::CsmShadows: csmEnabled_ = on; break;
         case Effect::Lod: lodEnabled = on; break;
+        // F42: post-chain effects route into the PostChain (needs enablePostFX() to run)
+        case Effect::Bloom:
+        case Effect::GodRays:
+        case Effect::Taa:
+        case Effect::DoF:
+        case Effect::VolFog:
+            post_.setEffectEnabled(e, on);
+            break;
         default: {
             const unsigned bit = 1u << static_cast<int>(e);
             if (on) requestedMask_ |= bit;
@@ -128,6 +164,12 @@ bool ForwardRenderer::effectEnabled(Effect e) const {
         case Effect::Shadows: return shadows_;
         case Effect::CsmShadows: return csmEnabled_;
         case Effect::Lod: return lodEnabled;
+        case Effect::Bloom:
+        case Effect::GodRays:
+        case Effect::Taa:
+        case Effect::DoF:
+        case Effect::VolFog:
+            return postEnabled_ && post_.effectEnabled(e); // F42: only with the post chain on
         default: return ((requestedMask_ >> static_cast<int>(e)) & 1u) != 0u;
     }
 }
@@ -190,7 +232,25 @@ void ForwardRenderer::render(const Camera& camera, const std::vector<DrawItem>& 
 
     if (width_ > 0 && height_ > 0 && (width != width_ || height != height_)) resize(width, height);
     scene.lodEnabled = lodEnabled; // F41
-    pipeline_.render(scene);
+    // F42: TAA jitter for the forward pass (Halton subpixel, like the deferred renderer)
+    if (postEnabled_ && post_.taaEnabled) {
+        const math::Vec2 hpt = math::halton(postFrameIndex_);
+        scene.jitter = {(hpt.x - 0.5f) * 2.f / static_cast<float>(width),
+                        (hpt.y - 0.5f) * 2.f / static_cast<float>(height)};
+        ++postFrameIndex_;
+    } else {
+        scene.jitter = {0.f, 0.f};
+        postFrameIndex_ = 0;
+    }
+    if (postEnabled_ && width_ > 0) {
+        // forward pass into the HDR target, then the post chain composites into target()
+        pipeline_.setTarget(&hdrTarget_);
+        pipeline_.render(scene);
+        post_.execute(scene, hdrTex_, hdrDepthTex_, target_);
+    } else {
+        pipeline_.setTarget(width_ > 0 ? &target_ : nullptr);
+        pipeline_.render(scene);
+    }
     lastLodLevel_ = scene.lastLodLevel;
     scene.shadowMap = nullptr;
 }

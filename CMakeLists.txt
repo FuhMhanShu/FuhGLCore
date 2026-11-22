@@ -40,6 +40,7 @@ add_library(fuhglcore STATIC
     src/render/procedural.cpp
     src/render/terrain.cpp
     src/render/lod.cpp
+    src/render/post_chain.cpp
     src/render/solid.cpp
     src/render/text.cpp
     src/render/wireframe.cpp

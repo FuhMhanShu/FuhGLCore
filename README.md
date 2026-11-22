@@ -107,6 +107,9 @@ fog, TAA, SSR; the night look adds an IBL environment and lamp reflections) — 
 - **Level of detail (LOD)** — `render::LodMesh` with per-item distance-based level selection
   in all pipelines; toggle with `renderer.lodEnabled` — see
   [tutorial 43](docs/en/tutorials/43-lod.md).
+- **Forward renderer post FX** — `ForwardRenderer::enablePostFX()` runs an HDR forward pass
+  through `render::PostChain` (bloom, god rays, TAA, DoF, volumetric fog) — see
+  [tutorial 44](docs/en/tutorials/44-forward-postfx.md).
 - **PBR materials** — metallic-roughness shading (Cook-Torrance GGX) in both pipelines:
   `materials::pbr(albedo, metallic, roughness, ao)`, stored per pixel in a 5th G-buffer
   attachment in the deferred path — see [tutorial 31](docs/en/tutorials/31-pbr-materials.md).
