@@ -96,7 +96,10 @@ separate engine project.
   namespace `fuhgl` (`fuhgl::math` for math).
 - **N4 Build**: CMake ≥ 3.20, static library `fuhglcore`, `install()` + CMake
   package export (`find_package(FuhGLCore)`), options `FUHGL_BUILD_EXAMPLES`,
-  `FUHGL_BUILD_TESTS`.
+  `FUHGL_BUILD_TESTS`. Additionally qmake project files so FuhGLCore can be used as a
+  dependency from Qt/qmake projects: `fuhglcore.pro` (standalone static lib) and
+  `fuhglcore.pri` (`include($$FUHGLCORE_DIR/fuhglcore.pri)` compiles the sources into
+  the consuming target; `FUHGLCORE_DIR` via qmake variable or environment).
 - **N5 Tests**: unit tests without a GL context (math, cameras, loader name table,
   version parsing) using a minimal built-in test runner — no test framework
   dependency; GL smoke test headless via EGL surfaceless where available;

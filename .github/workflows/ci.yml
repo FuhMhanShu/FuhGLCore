@@ -31,6 +31,34 @@ jobs:
       - name: Build
         run: cmake --build build --config Release -j
 
+      - name: qmake smoke build (Linux only) — fuhglcore.pro standalone lib + fuhglcore.pri as consumer dependency
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update && sudo apt-get install -y qt6-qmake qt6-base-dev
+          mkdir -p build-qmake && cd build-qmake
+          qmake6 ../fuhglcore.pro
+          make -j"$(nproc)"
+          mkdir -p consumer && cd consumer
+          cat > consumer.pro <<'PRO_EOF'
+          TEMPLATE = app
+          CONFIG += console c++17
+          CONFIG -= app_bundle qt gui
+          TARGET = consumer
+          include($$FUHGLCORE_DIR/fuhglcore.pri)
+          SOURCES += main.cpp
+          PRO_EOF
+          cat > main.cpp <<'CPP_EOF'
+          #include <fuhgl/render.hpp>
+          #include <fuhgl/math/vec.hpp>
+          int main() {
+              fuhgl::math::Vec3 v(1.f, 2.f, 3.f);
+              return (v.x == 1.f && v.y == 2.f && v.z == 3.f) ? 0 : 1;
+          }
+          CPP_EOF
+          qmake6 "FUHGLCORE_DIR=$GITHUB_WORKSPACE" consumer.pro
+          make -j"$(nproc)"
+          ./consumer
+
       - name: Unit tests (label "unit" — no GL context required)
         run: ctest --test-dir build -C Release --output-on-failure -L unit
 

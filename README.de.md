@@ -191,6 +191,22 @@ Optionen: `-DFUHGL_BUILD_EXAMPLES=ON` (Standard), `-DFUHGL_BUILD_TESTS=ON` (Stan
 Es werden nur ein C++17-Compiler und CMake ≥ 3.20 benötigt — GL-Funktionen werden zur
 Laufzeit geladen, daher sind zur Build-Zeit keine OpenGL-Entwicklungspakete nötig.
 
+**qmake-Alternative** (Qt-Buildsystem, z. B. für Qt-basierte Werkzeuge/Editoren):
+`qmake6 fuhglcore.pro && make` baut die statische Bibliothek `libfuhglcore.a`. Um FuhGLCore
+als **Abhängigkeit** in einem eigenen qmake-Projekt zu nutzen, `fuhglcore.pri` einbinden —
+die FuhGLCore-Quellen werden direkt in das Ziel kompiliert (weiterhin zero-dependency, keine
+vorgebaute Bibliothek nötig):
+
+```sh
+# yourapp.pro:
+#   include($$FUHGLCORE_DIR/fuhglcore.pri)
+qmake6 "FUHGLCORE_DIR=/pfad/zu/FuhGLCore" yourapp.pro
+make
+```
+
+`FUHGLCORE_DIR` wird aufgelöst über: qmake-Variable > Umgebungsvariable.
+`FUHGL_LINUX_BACKEND=EGL` funktioniert ebenfalls als qmake-Variable (Standard `X11`).
+
 ## Dokumentation
 
 - [Dokumentationsübersicht / language picker](docs/README.md)

@@ -7,6 +7,14 @@ All notable changes to FuhGLCore are documented here. The format follows
 
 ## [Unreleased]
 
+- qmake support so FuhGLCore can be consumed as a dependency from Qt/qmake projects:
+  `fuhglcore.pro` builds the standalone static library (`qmake6 fuhglcore.pro && make`),
+  `fuhglcore.pri` is the include-as-dependency file (`include($$FUHGLCORE_DIR/fuhglcore.pri)`
+  compiles the sources into the consumer; `FUHGLCORE_DIR` via qmake var or environment).
+  Both mirror `CMakeLists.txt` (source lists, platform backends, C++17, `-Wall -Wextra
+  -Wpedantic`, `FUHGL_LINUX_BACKEND=X11|EGL`). CI smoke-builds both on Linux (`qt6-qmake`),
+  including a minimal consumer app. Documented in README.md / README.de.md / DEVELOPMENT.md;
+  REQUIREMENTS.md N4 updated.
 - README reworked: the "lightweight OpenGL wrapper" headline is replaced by a
   description of the current scope (zero-dependency GL core + built-in render
   layer); complete German translation added as `README.de.md` (cross-linked).

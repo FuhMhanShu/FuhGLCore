@@ -85,6 +85,14 @@ each applied only when the toolchain supports it (`check_cxx_compiler_flag` /
 
 Install/export provides `find_package(FuhGLCore)` → target `FuhGLCore::fuhglcore`.
 
+**qmake alternative** (same sources, Qt build system): `fuhglcore.pro` builds the standalone
+static library (`qmake6 fuhglcore.pro && make` → `libfuhglcore.a`), and `fuhglcore.pri` is the
+dependency include for qmake consumers — `include($$FUHGLCORE_DIR/fuhglcore.pri)` compiles the
+FuhGLCore sources directly into the consuming target (`FUHGLCORE_DIR` as qmake variable or
+environment variable; `FUHGL_LINUX_BACKEND=EGL` works as qmake variable, default `X11`).
+Both files mirror `CMakeLists.txt` (same source lists, platform backends, C++17, warnings).
+CI smoke-builds both on Linux (`qt6-qmake`).
+
 ## Tests
 
 - `fuhgl_tests` — headless unit tests (own mini runner, no framework): math, cameras,
