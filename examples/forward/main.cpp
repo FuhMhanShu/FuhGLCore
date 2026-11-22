@@ -81,15 +81,15 @@ int main(int argc, char** argv) {
     if (args.fog) renderer.setFog({0.55f, 0.65f, 0.8f}, 0.028f);
     if (args.fx) { // F42: post chain on the forward renderer
         renderer.enablePostFX(true);
-        renderer.postChain().bloomStrength = 0.55f;
-        renderer.postChain().rayWeight = 0.4f;
+        renderer.postChain().bloomStrength = 0.35f;
+        renderer.postChain().rayWeight = 0.22f;
         renderer.postChain().taaEnabled = true;
         renderer.postChain().dofEnabled = true;
         renderer.postChain().dofFocusDist = 6.5f;
         renderer.postChain().dofFocusRange = 4.f;
-        renderer.postChain().dofStrength = 10.f;
+        renderer.postChain().dofStrength = 7.f;
         renderer.postChain().volFogEnabled = true;
-        renderer.postChain().volFogDensity = 0.012f;
+        renderer.postChain().volFogDensity = 0.007f;
     }
     renderer.setAmbient({0.10f, 0.10f, 0.12f});
     renderer.setClearColor({0.55f, 0.65f, 0.8f});

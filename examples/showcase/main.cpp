@@ -111,11 +111,11 @@ int main(int argc, char** argv) {
     renderer.ssaoEnabled = true;
     renderer.ssaoRadius = 0.8f;
     renderer.ssaoStrength = 1.1f;
-    renderer.bloomStrength = night ? 1.0f : 0.8f;
+    renderer.bloomStrength = night ? 0.8f : 0.55f;
     renderer.bloomThreshold = night ? 0.8f : 1.0f;
     renderer.godRaysEnabled = true;
-    renderer.rayWeight = sunset ? 0.55f : 0.35f;
-    renderer.exposure = 1.05f;
+    renderer.rayWeight = sunset ? 0.35f : 0.22f;
+    renderer.exposure = 1.0f;
     renderer.taaEnabled = true;  // F32
     renderer.ssrEnabled = true;  // F33
     renderer.ssrStrength = 0.55f;
@@ -124,12 +124,12 @@ int main(int argc, char** argv) {
     // F36: depth of field focused on the monolith
     renderer.dofEnabled = true;
     renderer.dofFocusDist = fuhgl::math::length(fuhgl::math::Vec3{-4.5f, terrainH(-4.5f, -6.f) + 2.4f, -6.f} - cam.position);
-    renderer.dofFocusRange = 7.f;
-    renderer.dofStrength = 10.f;
-    renderer.dofTaps = 20;
+    renderer.dofFocusRange = 9.f;
+    renderer.dofStrength = 6.f;
+    renderer.dofTaps = 16;
     // F37: volumetric fog — morning mist (day), warm haze (sunset), thin night fog
     renderer.volFogEnabled = true;
-    renderer.volFogDensity = night ? 0.004f : sunset ? 0.008f : 0.006f;
+    renderer.volFogDensity = night ? 0.003f : sunset ? 0.005f : 0.004f;
     renderer.volFogColor = night ? fuhgl::math::Vec3{0.05f, 0.07f, 0.12f}
                            : sunset ? fuhgl::math::Vec3{0.85f, 0.55f, 0.40f}
                                      : fuhgl::math::Vec3{0.72f, 0.78f, 0.88f};

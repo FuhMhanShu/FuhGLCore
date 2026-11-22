@@ -151,6 +151,9 @@ All notable changes to FuhGLCore are documented here. The format follows
   (gl_context). Tutorial 44 (en + de).
 
 ### Changed
+- All tutorial screenshots re-rendered with restrained, aesthetic effect settings: lower
+  bloom/god-ray weights, subtle DoF (strength 9/6/7 instead of 18/10/10), gentler
+  volumetric fog densities, softer showcase exposure (1.0). Scenes themselves unchanged.
 - Showcase reworked into an organic landscape: noise heightfield terrain with a clearing
   and a pond basin, 40 CSG trees (pine + broadleaf), 22 bushes, 14 rocks, the monolith,
   3000 instanced grass blades (`Mesh::setInstanceData`, F24) and a metallic pond slab

@@ -149,7 +149,7 @@ bool buildDefScene(DefScene& d, int W, int H, bool bricksFloor) {
     if (!d.renderer.create(W, H)) return false;
     d.renderer.ssaoEnabled = false;
     d.renderer.godRaysEnabled = false;
-    d.renderer.bloomStrength = 0.6f;
+    d.renderer.bloomStrength = 0.4f;
     d.cam.position = {0.f, 1.6f, 4.2f};
     d.cam.pitch = -0.30f;
     d.scene.camera = &d.cam;
@@ -262,8 +262,8 @@ bool sceneSsr(const Args& args) {
     d.renderer.ssrMaxSteps = 48;
     d.renderer.ssrThickness = 0.6f;
     // dark scene without bloom washout: the lamp's warm reflection band stands out
-    d.renderer.exposure = 0.7f;
-    d.renderer.bloomStrength = 0.f;
+    d.renderer.exposure = 0.85f;
+    d.renderer.bloomStrength = 0.15f;
     d.scene.ambient = {0.02f, 0.02f, 0.03f};
     d.scene.lights[0] = Light::directional({-0.4f, -1.f, -0.25f}, {1.f, 0.96f, 0.88f}, 0.5f);
     // same framing as the gl_smoke_ssr test (proven to show the reflection band)
@@ -290,8 +290,8 @@ bool sceneDof(const Args& args) {
     d.renderer.dofEnabled = true;
     d.renderer.dofFocusDist = focus;
     d.renderer.dofFocusRange = 2.5f;
-    d.renderer.dofStrength = 18.f;
-    d.renderer.dofTaps = 24;
+    d.renderer.dofStrength = 9.f;
+    d.renderer.dofTaps = 16;
     shapes::box(d.boxA, {0.6f, 0.6f, 0.6f}, {0.85f, 0.35f, 0.25f});
     shapes::box(d.boxB, {0.5f, 0.5f, 0.5f}, {0.3f, 0.5f, 0.85f});
     shapes::box(d.boxC, {0.4f, 0.4f, 0.4f}, {0.35f, 0.75f, 0.4f});
@@ -316,7 +316,7 @@ bool sceneVolFog(const Args& args) {
     // around the tree silhouettes
     d.scene.lights[0] = Light::directional({0.25f, -0.18f, 0.9f}, {1.f, 0.75f, 0.45f}, 3.5f);
     d.renderer.godRaysEnabled = true;
-    d.renderer.rayWeight = 0.5f;
+    d.renderer.rayWeight = 0.25f;
     d.scene.ambient = {0.10f, 0.11f, 0.15f};
     d.scene.clearColor = {0.42f, 0.52f, 0.68f};
     d.renderer.pipeline().skyTop = {0.30f, 0.45f, 0.72f};
@@ -346,11 +346,11 @@ bool sceneVolFog(const Args& args) {
     d.scene.items.push_back({&rockMesh, nullptr, fuhgl::math::translate({1.6f, 0.1f, 3.5f})});
     d.scene.items.push_back({&rockMesh, nullptr, fuhgl::math::translate({-2.2f, 0.05f, 5.f}) * fuhgl::math::scale({0.7f, 0.6f, 0.7f})});
     d.renderer.volFogEnabled = true;
-    d.renderer.volFogDensity = 0.014f;
+    d.renderer.volFogDensity = 0.007f;
     d.renderer.volFogColor = {0.72f, 0.76f, 0.86f};
-    d.renderer.volFogAnisotropy = 0.6f; // strong forward scattering -> shafts around the sun
+    d.renderer.volFogAnisotropy = 0.35f; // mild forward scattering
     d.renderer.volFogHeight = 0.3f;     // ground mist
-    d.renderer.volFogFalloff = 0.22f;
+    d.renderer.volFogFalloff = 0.15f;
     d.renderer.volFogShadows = true;    // CSM-attenuated in-scattering
     d.renderer.volFogSteps = 32;
     d.renderer.volFogMaxDist = 100.f;
@@ -418,7 +418,7 @@ bool sceneHeightmap(const Args& args) {
                                  fuhgl::math::scale({s, s * 0.75f, s})});
     }
     d.renderer.volFogEnabled = true;
-    d.renderer.volFogDensity = 0.008f;
+    d.renderer.volFogDensity = 0.005f;
     d.renderer.volFogColor = {0.74f, 0.78f, 0.87f};
     d.renderer.volFogAnisotropy = 0.4f;
     d.renderer.volFogHeight = 0.5f;

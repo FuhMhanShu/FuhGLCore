@@ -81,8 +81,8 @@ int main(int argc, char** argv) {
         renderer.godRaysEnabled = false;
     }
     renderer.exposure = 1.0f;
-    renderer.bloomStrength = args.fx ? 0.8f : 0.f;
-    renderer.rayWeight = 0.4f;
+    renderer.bloomStrength = args.fx ? 0.5f : 0.f;
+    renderer.rayWeight = 0.28f;
     renderer.pipeline().skyTop = {0.10f, 0.26f, 0.68f};
     renderer.pipeline().skyBottom = {0.5f, 0.6f, 0.82f};
 
