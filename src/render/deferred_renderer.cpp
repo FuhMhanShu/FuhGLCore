@@ -168,22 +168,22 @@ float cocAt(vec2 uv) {
     return abs(t);
 }
 void main() {
-    const float coc = cocAt(vUV);            // 0..1
-    const vec2 radius = uMaxCoc * coc;       // own blur radius in UV
+    float coc = cocAt(vUV);                  // 0..1
+    vec2 radius = uMaxCoc * coc;             // own blur radius in UV
     vec4 acc = texture(uSrc, vUV) * max(0.05, coc * 8.0);
     float wsum = max(0.05, coc * 8.0);
     for (int i = 0; i < 32; ++i) {
         if (i >= uTaps) break;
-        const float fi = float(i) + 0.5;
-        const float r = sqrt(fi / float(uTaps));
-        const float theta = fi * 2.39996323; // golden angle
-        const vec2 uv2 = vUV + vec2(cos(theta), sin(theta)) * r * radius;
-        const float coc2 = cocAt(uv2);
-        const float w2 = max(0.05, max(coc2, coc) * 8.0);
+        float fi = float(i) + 0.5;
+        float r = sqrt(fi / float(uTaps));
+        float theta = fi * 2.39996323;       // golden angle
+        vec2 uv2 = vUV + vec2(cos(theta), sin(theta)) * r * radius;
+        float coc2 = cocAt(uv2);
+        float w2 = max(0.05, max(coc2, coc) * 8.0);
         acc += texture(uSrc, uv2) * w2;
         wsum += w2;
     }
-    FragColor = vec4(acc / wsum, 1.0);
+    FragColor = acc / wsum;
 }
 )GLSL";
 
