@@ -183,6 +183,13 @@ add_executable(fuhgl_gl_smoke_shadow_kit gl_smoke_shadow_kit.cpp)
 target_link_libraries(fuhgl_gl_smoke_shadow_kit PRIVATE fuhglcore)
 add_test(NAME gl_smoke_shadow_kit COMMAND fuhgl_gl_smoke_shadow_kit)
 
+
+# F46 smoke test: DeferredRenderer with the shadow kit — CSM filters (poisson/PCSS/VSM),
+# texel-snapped + blended cascades, point-light cube shadow, contact shadows. Skips without GL >= 3.3.
+add_executable(fuhgl_gl_smoke_deferred_kit gl_smoke_deferred_kit.cpp)
+target_link_libraries(fuhgl_gl_smoke_deferred_kit PRIVATE fuhglcore)
+add_test(NAME gl_smoke_deferred_kit COMMAND fuhgl_gl_smoke_deferred_kit)
+
 # F39/F40 smoke test: effect toggle API + capability gating on both renderers.
 add_executable(fuhgl_gl_smoke_effects gl_smoke_effects.cpp)
 target_link_libraries(fuhgl_gl_smoke_effects PRIVATE fuhglcore)

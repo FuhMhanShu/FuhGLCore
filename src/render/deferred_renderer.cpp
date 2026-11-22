@@ -265,11 +265,32 @@ bool DeferredRenderer::create(int width, int height, int msaaSamples) {
         hasCompute_ = di.features.compute;
     }
     if (!createPost(width, height)) return false;
-    if (shadows_ && !shadowMap_.create(shadowSize_)) {
-        std::fprintf(stderr, "DeferredRenderer: shadow map create failed\n");
-        return false;
-    }
+    syncShadowTargets(); // F46: create the shadow targets matching the current filter/size
     return true;
+}
+
+void DeferredRenderer::syncShadowTargets() {
+    if (!gl::isInitialized()) return;
+    const bool wantMoments = shadowFilter == ShadowFilter::Vsm; // F46: VSM renders moments
+    if (shadows_ && (shadowMap_.size() != shadowSize_ || shadowMap_.moments() != wantMoments)) {
+        if (!shadowMap_.create(shadowSize_, wantMoments)) {
+            std::fprintf(stderr, "DeferredRenderer: shadow map create failed\n");
+            shadows_ = false;
+        }
+    }
+    if (csmEnabled_ && (csm_.cascadeCount() != csmCascades_ || csm_.size() != shadowSize_ ||
+                        csm_.moments() != wantMoments)) {
+        if (!csm_.create(shadowSize_, csmCascades_, wantMoments)) {
+            std::fprintf(stderr, "DeferredRenderer: CSM create failed\n");
+            csmEnabled_ = false;
+        }
+    }
+    if (pointShadows_ && (cubeShadow_.size() != pointShadowSize_ || cubeShadow_.moments() != wantMoments)) {
+        if (!cubeShadow_.create(pointShadowSize_, wantMoments)) {
+            std::fprintf(stderr, "DeferredRenderer: point shadow cube create failed\n");
+            pointShadows_ = false;
+        }
+    }
 }
 
 bool DeferredRenderer::createPost(int w, int h) {
@@ -359,20 +380,22 @@ void DeferredRenderer::resize(int width, int height) {
 
 void DeferredRenderer::enableCsmShadows(int mapSize, int cascades) {
     shadowSize_ = mapSize;
+    csmCascades_ = cascades;
     csmEnabled_ = true;
-    if (gl::isInitialized() && csm_.cascadeCount() <= 0 && !csm_.create(mapSize, cascades)) {
-        std::fprintf(stderr, "DeferredRenderer: CSM create failed\n");
-        csmEnabled_ = false;
-    }
+    syncShadowTargets(); // F46: creates with moments when shadowFilter == Vsm
 }
 
 void DeferredRenderer::enableShadows(int mapSize) {
     shadowSize_ = mapSize;
     shadows_ = true;
-    if (gl::isInitialized() && shadowMap_.size() <= 0 && !shadowMap_.create(mapSize)) {
-        std::fprintf(stderr, "DeferredRenderer: shadow map create failed\n");
-        shadows_ = false;
-    }
+    syncShadowTargets(); // F46: creates with moments when shadowFilter == Vsm
+}
+
+void DeferredRenderer::enablePointShadow(int lightIndex, int mapSize) {
+    pointShadowLightIndex_ = lightIndex;
+    pointShadowSize_ = mapSize;
+    pointShadows_ = lightIndex >= 0;
+    syncShadowTargets(); // F46
 }
 
 const Texture& DeferredRenderer::hdrTexture() const {
@@ -402,6 +425,8 @@ void DeferredRenderer::applyCapabilities() {
     gate(Effect::VolFog, volFogEnabled);
     gate(Effect::Shadows, shadows_);
     gate(Effect::CsmShadows, csmEnabled_);
+    gate(Effect::PointShadows, pointShadows_);   // F46
+    gate(Effect::ContactShadows, contactShadowsEnabled); // F46
     gate(Effect::Lod, lodEnabled); // CPU-side: always supported, gate is a no-op
 }
 
@@ -416,6 +441,8 @@ void DeferredRenderer::setEffectEnabled(Effect e, bool on) {
         case Effect::VolFog: volFogEnabled = on; break;
         case Effect::Shadows: shadows_ = on; break;
         case Effect::CsmShadows: csmEnabled_ = on; break;
+        case Effect::PointShadows: pointShadows_ = on && pointShadowLightIndex_ >= 0; break; // F46
+        case Effect::ContactShadows: contactShadowsEnabled = on; break;                      // F46
         case Effect::Lod: lodEnabled = on; break;
         default: {
             const unsigned bit = 1u << static_cast<int>(e);
@@ -443,6 +470,8 @@ bool DeferredRenderer::effectEnabled(Effect e) const {
         case Effect::VolFog: return volFogEnabled;
         case Effect::Shadows: return shadows_;
         case Effect::CsmShadows: return csmEnabled_;
+        case Effect::PointShadows: return pointShadows_;        // F46
+        case Effect::ContactShadows: return contactShadowsEnabled; // F46
         case Effect::Lod: return lodEnabled;
         default: return ((requestedMask_ >> static_cast<int>(e)) & 1u) != 0u;
     }
@@ -450,7 +479,8 @@ bool DeferredRenderer::effectEnabled(Effect e) const {
 
 void DeferredRenderer::setAllEffects(bool on) {
     ssaoEnabled = bloomEnabled = godRaysEnabled = taaEnabled = ssrEnabled = dofEnabled =
-        volFogEnabled = shadows_ = csmEnabled_ = lodEnabled = on;
+        volFogEnabled = shadows_ = csmEnabled_ = contactShadowsEnabled = lodEnabled = on;
+    pointShadows_ = on && pointShadowLightIndex_ >= 0; // F46
     requestedMask_ = on ? ((1u << kEffectCount) - 1u) : 0u;
     applyCapabilities();
 }
@@ -661,13 +691,22 @@ void DeferredRenderer::render(const SceneView& scene) {
     }
 
     // shadow depth pass: CSM (F30, first directional light) or single map (first directional/spot)
+    syncShadowTargets(); // F46: (re)create targets when size/filter/moments changed
     if (csmEnabled_ && csm_.cascadeCount() > 0) {
+        csm_.snapToTexels = shadowSnapToTexels; // F46: stabilize the cascades on the texel grid
         for (size_t i = 0; i < s.lights.size(); ++i) {
             if (s.lights[i].type == LightType::Directional && s.camera) {
                 csm_.render(s, *s.camera, s.lights[i], shadowCenter_, shadowRadius_, shadowZNear_, shadowZFar_);
                 s.cascades = &csm_;
                 s.shadowLightIndex = static_cast<int>(i);
                 s.shadowStrength = shadowStrength_;
+                // F46: shadow-kit sampling config for the lighting pass
+                s.shadowFilterMode = static_cast<int>(shadowFilter);
+                s.shadowMomentsArrayTex = csm_.momentsTextureId();
+                s.shadowCascadeBlend = shadowCascadeBlend;
+                s.shadowLightSize = shadowLightSize;
+                s.shadowWorldWidth = 2.f * shadowRadius_;
+                s.shadowMinVariance = shadowMinVariance;
                 break;
             }
         }
@@ -675,13 +714,45 @@ void DeferredRenderer::render(const SceneView& scene) {
         for (size_t i = 0; i < s.lights.size(); ++i) {
             if (s.lights[i].type == LightType::Directional || s.lights[i].type == LightType::Spot) {
                 s.lightVP = lightViewProj(s.lights[i], shadowCenter_, shadowRadius_);
+                if (shadowSnapToTexels) // F46: snap the single map to the texel grid too
+                    s.lightVP = snapLightVPToTexels(s.lightVP, shadowSize_, shadowCenter_);
                 shadowMap_.render(s, s.lightVP);
                 s.shadowMap = &shadowMap_;
                 s.shadowLightIndex = static_cast<int>(i);
                 s.shadowStrength = shadowStrength_;
+                s.shadowFilterMode = static_cast<int>(shadowFilter);
+                s.shadowMomentsTex = shadowMap_.momentsTextureId();
+                s.shadowLightSize = shadowLightSize;
+                s.shadowWorldWidth = 2.f * shadowRadius_;
+                s.shadowMinVariance = shadowMinVariance;
                 break;
             }
         }
+    }
+    // F46: cube shadow map for one point light
+    if (pointShadows_ && pointShadowLightIndex_ >= 0 && pointShadowLightIndex_ < static_cast<int>(s.lights.size()) &&
+        s.lights[pointShadowLightIndex_].type == LightType::Point) {
+        cubeShadow_.render(s, s.lights[pointShadowLightIndex_], pointShadowNear_, pointShadowFar_);
+        s.pointShadows = 1;
+        s.pointShadowLightIndex = pointShadowLightIndex_;
+        s.shadowCubeTex = cubeShadow_.textureId();
+        s.shadowCubeMomentsTex = cubeShadow_.momentsTextureId();
+        s.pointLightPos = s.lights[pointShadowLightIndex_].position;
+        s.pointShadowFar = cubeShadow_.farPlane();
+        s.pointShadowStrength = shadowStrength_;
+    } else {
+        s.pointShadows = 0;
+    }
+    // F46: contact shadows need a sampleable G-buffer depth texture (non-MSAA only)
+    if (contactShadowsEnabled && pipeline_.ensureSampleableDepth() && pipeline_.depthTexture()) {
+        s.contactShadows = 1;
+        s.contactShadowStrength = contactShadowStrength;
+        s.contactShadowMaxDist = contactShadowMaxDist;
+        s.contactShadowThickness = contactShadowThickness;
+        s.contactShadowSteps = contactShadowSteps;
+        s.sceneDepthTex = pipeline_.depthTexture()->id();
+    } else {
+        s.contactShadows = 0;
     }
     // sky sun disk + god-ray source from the first directional light
     for (const Light& l : s.lights) {

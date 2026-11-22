@@ -28,10 +28,12 @@ enum class Effect {
     HeightmapTerrain, ///< heightmap terrain mesh (F38, CPU-side)
     GpuCulling,       ///< compute-shader frustum culling (F34, GL >= 4.3)
     BindlessTextures, ///< GL_ARB_bindless_texture (F35)
+    PointShadows,     ///< cube shadow map for one point light (F46)
+    ContactShadows,   ///< screen-space contact shadows in the lighting pass (F46, deferred only)
 };
 
 /// @brief Number of Effect values.
-constexpr int kEffectCount = 14;
+constexpr int kEffectCount = 16;
 
 /// @brief Human-readable name of an Effect (for logs/warnings).
 inline const char* effectName(Effect e) {
@@ -50,6 +52,8 @@ inline const char* effectName(Effect e) {
         case Effect::HeightmapTerrain: return "heightmap terrain";
         case Effect::GpuCulling: return "GPU culling";
         case Effect::BindlessTextures: return "bindless textures";
+        case Effect::PointShadows: return "point shadows";
+        case Effect::ContactShadows: return "contact shadows";
     }
     return "unknown";
 }
@@ -71,6 +75,8 @@ inline bool effectSupported(Effect e, int glMajor, int glMinor, bool hasBindless
         case Effect::Ssr:
         case Effect::DoF:
         case Effect::VolFog:
+        case Effect::PointShadows:
+        case Effect::ContactShadows:
             return glMajor > 3 || (glMajor == 3 && glMinor >= 3);
         case Effect::GpuCulling:
             return hasCompute || glMajor > 4 || (glMajor == 4 && glMinor >= 3);

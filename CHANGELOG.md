@@ -157,6 +157,37 @@ All notable changes to FuhGLCore are documented here. The format follows
   Shared post shaders moved to `src/render/postfx_glsl.hpp` (used by both chains).
   `examples/forward --fx` renders a post-FX screenshot. Test: `gl_smoke_forward_fx.cpp`
   (gl_context). Tutorial 44 (en + de).
+- F45 — shadow kit (building blocks for advanced shadow techniques, NOT wired into the
+  renderers): `render::ShadowTarget` (`render/shadow_kit.hpp`, PIMPL) — generic depth
+  target in 2D / 2D-array / cube geometry with an optional RGBA32F moments attachment
+  for VSM; `render::CubeShadowMap` (6-face cube map for one point light) and
+  `render::ShadowAtlas` (one array layer per shadow-casting light); CPU helpers
+  `pointLightFaceVPs()`, `snapLightVPToTexels()` (cascade stabilization) and the
+  deterministic sample-pattern generators `hemisphereKernel()` / `poissonDisk()`;
+  public composable GLSL in `render/shadow_glsl.hpp` (`kSkDepthVert/kSkDepthFrag/
+  kSkMomentsFrag` depth passes, `kSkUniforms + kSkFuncs`: poisson PCF, PCSS blocker
+  search + penumbra filter, VSM Chebyshev, cube sampling, cascade cross-fade,
+  slope/normal-offset bias, screen-space contact-shadow raymarch). `ShadowMap` and
+  `CascadeShadowMap` are now thin wrappers over `ShadowTarget` (additive
+  `moments` create-flag, `momentsTextureId()`, `CascadeShadowMap::snapToTexels`);
+  public API unchanged otherwise. Tests: `test_shadow_kit.cpp` (unit) +
+  `gl_smoke_shadow_kit.cpp` (gl_context). Tutorial 45 (en + de).
+- F46 — DeferredRenderer on top of the shadow kit: `shadowFilter` (`ShadowFilter`:
+  Pcf3x3 = legacy default, PoissonPcf, Pcss, Vsm — VSM auto-creates the moments
+  attachments via `syncShadowTargets()`), `shadowSnapToTexels`, `shadowCascadeBlend`
+  (cross-fade near cascade splits), `shadowLightSize`/`shadowMinVariance`,
+  `enablePointShadow(lightIndex, size)` (cube shadow for one point light via
+  `CubeShadowMap`), and screen-space `contactShadowsEnabled` (raymarched in the
+  lighting pass against a sampleable G-buffer depth texture —
+  `DeferredPipeline::ensureSampleableDepth()`, non-MSAA only). New `SceneView` fields
+  carry the config; the deferred lighting shader is assembled with
+  `FUHGL_SHADOW_KIT` (`kShadowKitUniforms + kShadowKitFuncs` in `lighting_glsl.hpp`,
+  texture units 11–15), the forward pipeline keeps the legacy path. New
+  `Effect::PointShadows` / `Effect::ContactShadows` (kEffectCount 16) in the F40
+  toggle API; `Camera::zNear()/zFar()` virtuals (defaults 0.1/1000, overridden by the
+  built-in cameras). Test: `gl_smoke_deferred_kit.cpp` (gl_context: every filter still
+  darkens the shadow blob, snap+blend, point shadow, contact shadows, no GL errors).
+  Tutorial 45 (en + de).
 
 ### Changed
 - All tutorial screenshots re-rendered with restrained, aesthetic effect settings: lower

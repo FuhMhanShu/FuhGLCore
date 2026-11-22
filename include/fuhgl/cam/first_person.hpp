@@ -39,6 +39,8 @@ public:
         return math::perspective(fovY, aspect, nearPlane, farPlane);
     }
     math::Vec3 eye() const override { return position; }
+    float zNear() const override { return nearPlane; }
+    float zFar() const override { return farPlane; }
 
     void onMouseMove(double dx, double dy) override {
         yaw += static_cast<float>(dx) * lookSpeed;

@@ -27,6 +27,11 @@ inline constexpr int kTextureUnitIrradiance = 7; ///< IBL irradiance cubemap (F2
 inline constexpr int kTextureUnitPrefilter = 8;  ///< IBL prefiltered env cubemap (F29)
 inline constexpr int kTextureUnitBrdfLut = 9;    ///< IBL BRDF LUT (F29)
 inline constexpr int kTextureUnitShadowMapArray = 10; ///< CSM depth array (F30; dummy array when off)
+inline constexpr int kTextureUnitShadowMoments = 11;      ///< VSM moments 2D, matches the shadow map (F46)
+inline constexpr int kTextureUnitShadowMomentsArray = 12; ///< VSM moments array, matches CSM (F46)
+inline constexpr int kTextureUnitShadowCube = 13;         ///< point-light cube depth map (F46)
+inline constexpr int kTextureUnitShadowCubeMoments = 14;  ///< point-light cube VSM moments (F46)
+inline constexpr int kTextureUnitSceneDepth = 15;         ///< G-buffer depth for contact shadows (F46)
 
 /// @brief Program + texture bindings. bind() makes the program current and binds
 /// all textures to their units. Pipelines set the standard uniforms

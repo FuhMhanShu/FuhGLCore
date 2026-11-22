@@ -15,6 +15,7 @@
 #include "graph.hpp"
 #include "light.hpp"
 #include "shadow.hpp"
+#include "shadow_kit.hpp"
 
 #include "../gl/framebuffer.hpp"
 #include "../gl/texture.hpp"
@@ -128,6 +129,30 @@ public:
     bool csmShadowsEnabled() const { return csmEnabled_; }
     CascadeShadowMap* cascadeShadowMap() { return csmEnabled_ ? &csm_ : nullptr; }
 
+    // --- F46: advanced shadow sampling on top of the shadow kit (render/shadow_kit.hpp) ---
+    /// @brief Sampling filter of the shadow light: poisson PCF / PCSS / VSM (VSM renders
+    /// moments into an extra RGBA32F attachment). Default Pcf3x3 = legacy behavior.
+    ShadowFilter shadowFilter = ShadowFilter::Pcf3x3;
+    void setShadowFilter(ShadowFilter f) { shadowFilter = f; syncShadowTargets(); }
+    bool shadowSnapToTexels = false;  ///< snap light VPs to the shadow-map texel grid (less swimming)
+    float shadowCascadeBlend = 0.f;   ///< CSM cross-fade fraction of a cascade span (0 = hard switch)
+    float shadowLightSize = 1.f;      ///< PCSS: world-space light size (penumbra width)
+    float shadowMinVariance = 5e-4f;  ///< VSM: min-variance clamp against light bleeding
+    /// @brief Cube shadow map for one point light (F46): `lightIndex` into SceneView::lights.
+    void enablePointShadow(int lightIndex, int mapSize = 1024);
+    void disablePointShadow() { pointShadowLightIndex_ = -1; pointShadows_ = false; }
+    bool pointShadowEnabled() const { return pointShadows_; }
+    CubeShadowMap* pointShadowMap() { return pointShadows_ ? &cubeShadow_ : nullptr; }
+    /// @brief Depth range of the point-light cube map.
+    void setPointShadowRange(float zn, float zf) { pointShadowNear_ = zn; pointShadowFar_ = zf; }
+    // --- F46: screen-space contact shadows in the lighting pass (needs sampleable G-buffer
+    // depth; automatically off with MSAA, where depth lives in a renderbuffer) ------------
+    bool contactShadowsEnabled = false;
+    float contactShadowStrength = 1.f;
+    float contactShadowMaxDist = 3.f;    ///< raymarch length in world units
+    float contactShadowThickness = 0.2f; ///< depth thickness treated as occluder
+    int contactShadowSteps = 16;
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
@@ -150,6 +175,8 @@ private:
     RenderGraph post_;
     ShadowMap shadowMap_;
     CascadeShadowMap csm_;
+    CubeShadowMap cubeShadow_; ///< F46: point-light cube shadow map
+    void syncShadowTargets();  ///< F46: (re)create shadow targets when size/filter/moments changed
     int width_ = 0, height_ = 0, msaa_ = 0;
     const SceneView* curScene_ = nullptr;
     unsigned frameIndex_ = 0;
@@ -159,11 +186,16 @@ private:
 
     bool shadows_ = false;
     bool csmEnabled_ = false;
+    int csmCascades_ = 4;
     float shadowZNear_ = 0.5f, shadowZFar_ = 200.f;
     int shadowSize_ = 2048;
     math::Vec3 shadowCenter_{0.f, 0.f, 0.f};
     float shadowRadius_ = 10.f;
     float shadowStrength_ = 1.f;
+    bool pointShadows_ = false;              ///< F46: requested point-light cube shadow
+    int pointShadowLightIndex_ = -1;
+    int pointShadowSize_ = 1024;
+    float pointShadowNear_ = 0.5f, pointShadowFar_ = 100.f;
 
     Material ssaoMat_, blurMat_, brightMat_, raysMat_, compositeMat_, taaMat_, ssrMat_, dofMat_, volfogMat_, copyMat_;
     VertexArray fsVao_;

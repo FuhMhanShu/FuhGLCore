@@ -36,5 +36,9 @@ void runEffectsTests() {
         const char* n = render::effectName(static_cast<Effect>(i));
         CHECK(n != nullptr && n[0] != '\0');
     }
-    CHECK(render::kEffectCount == 14);
+    // F46: point shadows + contact shadows are GLSL 330 features (GL >= 3.3)
+    CHECK(!effectSupported(Effect::PointShadows, 3, 2, false, false));
+    CHECK(effectSupported(Effect::PointShadows, 3, 3, false, false));
+    CHECK(effectSupported(Effect::ContactShadows, 4, 0, false, false));
+    CHECK(render::kEffectCount == 16);
 }

@@ -63,6 +63,12 @@ public:
     Material& lightingMaterial() { return lightingMaterial_; }
     /// @brief Light UBO (debug/introspection).
     const UniformBuffer& lightsUbo() const { return lightsUbo_; }
+    /// @brief F46: when contact shadows need a sampleable G-buffer depth, call this once
+    /// (non-MSAA only) to attach a depth *texture* instead of the renderbuffer.
+    /// @return true when the G-buffer depth is sampleable afterwards.
+    bool ensureSampleableDepth();
+    /// @brief The sampleable depth texture (nullptr until ensureSampleableDepth() succeeded).
+    const Texture* depthTexture() const { return depthTex_.id() ? &depthTex_ : nullptr; }
 
     /// @brief Sky colors used for background pixels (position alpha < 0.5) in the lighting pass.
     math::Vec3 skyTop{0.25f, 0.45f, 0.9f};
@@ -88,6 +94,12 @@ private:
     Texture texOutput_{Texture::Target::Tex2D};
     Texture dummyShadowTex_{Texture::Target::Tex2D}; ///< 1x1 depth bound when no shadow map is set
     Texture dummyShadowArrayTex_{Texture::Target::Tex2DArray}; ///< 1x1x1 depth array bound when CSM is off (F30)
+    Texture depthTex_{Texture::Target::Tex2D}; ///< F46: sampleable depth (ensureSampleableDepth), contact shadows
+    Texture dummyMomentsTex_{Texture::Target::Tex2D};          ///< F46: 1x1 RGBA32F VSM dummy
+    Texture dummyMomentsArrayTex_{Texture::Target::Tex2DArray}; ///< F46: 1x1x1 RGBA32F dummy
+    Texture dummyCubeTex_{Texture::Target::Cube};               ///< F46: 1x1 cube depth dummy
+    Texture dummyCubeMomentsTex_{Texture::Target::Cube};        ///< F46: 1x1 cube moments dummy
+    Texture dummySceneDepthTex_{Texture::Target::Tex2D};        ///< F46: 1x1 scene depth dummy
     Renderbuffer depth_{};
     Renderbuffer depthMsaa_{};
     Material defaultMaterial_; // G-buffer program

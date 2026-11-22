@@ -27,6 +27,10 @@ public:
     math::Mat4 viewProj(float aspect) const { return projection(aspect) * view(); }
     /// @brief World-space eye position (used e.g. by lighting passes).
     virtual math::Vec3 eye() const = 0;
+    /// @brief Near plane of projection() (default 0.1; override when the camera exposes one).
+    virtual float zNear() const { return 0.1f; }
+    /// @brief Far plane of projection() (default 1000; override when the camera exposes one).
+    virtual float zFar() const { return 1000.f; }
     /// @brief Advance the camera by dt seconds using currently pressed keys.
     virtual void update(float dt) = 0;
 

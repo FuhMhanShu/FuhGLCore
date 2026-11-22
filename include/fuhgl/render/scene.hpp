@@ -45,6 +45,27 @@ struct SceneView {
     float shadowStrength = 1.f;            ///< 0 = shadows off, 1 = full darkening
     // --- cascaded shadow maps (F30): optional depth texture array, one layer per cascade ---
     const CascadeShadowMap* cascades = nullptr; ///< when set, takes precedence over shadowMap
+    // --- F46: advanced shadow sampling via the shadow kit (render/shadow_kit.hpp) ------------
+    int shadowFilterMode = 0;             ///< 0 = legacy 3x3 PCF, 1 = poisson PCF, 2 = PCSS, 3 = VSM
+    gl::GLuint shadowMomentsTex = 0;      ///< 2D VSM moments (RGBA32F) matching shadowMap, 0 = none
+    gl::GLuint shadowMomentsArrayTex = 0; ///< array VSM moments matching cascades, 0 = none
+    float shadowLightSize = 1.f;          ///< PCSS: world-space light size (penumbra)
+    float shadowWorldWidth = 20.f;        ///< PCSS: world width covered by one map layer
+    float shadowMinVariance = 5e-4f;      ///< VSM: min-variance clamp against light bleeding
+    float shadowCascadeBlend = 0.f;       ///< CSM cross-fade fraction of a cascade span (0 = hard switch)
+    int pointShadows = 0;                 ///< 1 = also sample the cube map for pointShadowLightIndex
+    int pointShadowLightIndex = -1;       ///< index into lights[] casting via shadowCubeTex
+    gl::GLuint shadowCubeTex = 0;         ///< point-light cube depth map, 0 = none
+    gl::GLuint shadowCubeMomentsTex = 0;  ///< point-light cube VSM moments, 0 = none
+    math::Vec3 pointLightPos{0.f};        ///< position of the cube-shadow light
+    float pointShadowFar = 100.f;         ///< cube far plane (depth normalization in the shader)
+    float pointShadowStrength = 1.f;
+    int contactShadows = 0;               ///< screen-space contact shadows on the shadow light
+    float contactShadowStrength = 1.f;
+    float contactShadowMaxDist = 3.f;     ///< raymarch length in world units
+    float contactShadowThickness = 0.2f;  ///< depth thickness treated as occluder
+    int contactShadowSteps = 16;
+    gl::GLuint sceneDepthTex = 0;         ///< sampleable G-buffer depth for contact shadows, 0 = off
     // --- distance fog (F16) ----------------------------------------------------------
     math::Vec3 fogColor{0.05f, 0.05f, 0.08f};
     float fogDensity = 0.f;                ///< 0 = off; visibility = exp(-density * distance)
