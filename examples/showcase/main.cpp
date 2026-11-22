@@ -83,7 +83,8 @@ int main(int argc, char** argv) {
         const float d = std::sqrt(x * x + z * z);
         float h = 2.6f * fuhgl::math::fbm2(x * 0.045f, z * 0.045f, 4, 7u)
                 + 0.55f * fuhgl::math::fbm2(x * 0.17f, z * 0.17f, 3, 13u);
-        h *= fuhgl::math::smoothstep(2.5f, 10.f, d); // clearing around the scene center
+        const float flat = fuhgl::math::smoothstep(2.5f, 10.f, d);
+        h = h * flat - 0.6f * (1.f - flat); // clearing dips slightly below zero
         const float pdx = x - 4.5f, pdz = z + 5.5f;   // pond basin at (4.5, -5.5)
         const float pd = std::sqrt(pdx * pdx + pdz * pdz);
         const float basin = fuhgl::math::smoothstep(8.f, 3.f, pd);
@@ -94,9 +95,9 @@ int main(int argc, char** argv) {
 
     // --- renderer with the full effect stack -------------------------------------------
     fuhgl::FirstPersonCamera cam;
-    cam.position = {0.f, terrainH(0.f, 17.f) + 3.0f, 17.f};
-    cam.yaw = -0.10f;  // aim between monolith and pond
-    cam.pitch = -0.16f;
+    cam.position = {0.f, terrainH(0.f, 17.f) + 3.4f, 17.f};
+    cam.yaw = -0.08f;  // aim between monolith and pond
+    cam.pitch = -0.17f;
 
     DeferredRenderer renderer;
     if (!renderer.create(args.width, args.height)) {
@@ -292,7 +293,7 @@ int main(int argc, char** argv) {
                             : fuhgl::math::Vec3{0.65f, 0.75f, 0.90f};
     scene.fogDensity = night ? 0.004f : sunset ? 0.005f : 0.003f;
     scene.items.push_back({&terrainMesh, &terrainMat, fuhgl::math::Mat4{}});
-    scene.items.push_back({&waterMesh, &waterMat, fuhgl::math::translate({4.5f, -0.98f, -5.5f})});
+    scene.items.push_back({&waterMesh, &waterMat, fuhgl::math::translate({4.5f, -0.95f, -5.5f})});
     const fuhgl::math::Vec3 monoPos{-4.5f, terrainH(-4.5f, -6.f) + 2.4f, -6.f};
     scene.items.push_back({&monoMesh, &stoneMat, fuhgl::math::translate(monoPos) * fuhgl::math::rotateY(0.5f)});
 
