@@ -310,15 +310,18 @@ bool sceneVolFog(const Args& args) {
     d.renderer.setShadowZRange(0.5f, 80.f);
     d.renderer.setShadowSceneBounds({0.f, 1.f, -8.f}, 16.f);
     d.renderer.setShadowStrength(1.f);
-    // low warm sun into the frame (left, elevation ~20 deg) -> visible sun disk, long
-    // shadows and forward-scattering shafts around the trees
-    d.scene.lights[0] = Light::directional({0.55f, -0.28f, 0.35f}, {1.f, 0.82f, 0.55f}, 3.2f);
+    // low warm sun IN the frame (left-of-center, elevation ~10 deg) -> visible HDR sun
+    // disk + bloom halo, long shadows toward the camera, forward-scattering shafts
+    // around the tree silhouettes
+    d.scene.lights[0] = Light::directional({0.25f, -0.18f, 0.9f}, {1.f, 0.75f, 0.45f}, 3.5f);
+    d.renderer.godRaysEnabled = true;
+    d.renderer.rayWeight = 0.5f;
     d.scene.ambient = {0.10f, 0.11f, 0.15f};
     d.scene.clearColor = {0.42f, 0.52f, 0.68f};
     d.renderer.pipeline().skyTop = {0.30f, 0.45f, 0.72f};
-    d.renderer.pipeline().skyBottom = {0.76f, 0.79f, 0.86f}; // blends into the fog color
+    d.renderer.pipeline().skyBottom = {0.80f, 0.83f, 0.90f}; // slightly brighter than the fog
     d.cam.position = {0.f, 1.6f, 9.f};
-    d.cam.pitch = -0.08f;
+    d.cam.pitch = -0.06f;
     // long grass-ish ground
     shapes::box(d.floorMesh, {40.f, 0.25f, 40.f}, {1.f, 1.f, 1.f});
     d.floorMat = materials::pbr({0.36f, 0.42f, 0.28f}, 0.f, 0.95f);
@@ -342,8 +345,8 @@ bool sceneVolFog(const Args& args) {
     d.scene.items.push_back({&rockMesh, nullptr, fuhgl::math::translate({1.6f, 0.1f, 3.5f})});
     d.scene.items.push_back({&rockMesh, nullptr, fuhgl::math::translate({-2.2f, 0.05f, 5.f}) * fuhgl::math::scale({0.7f, 0.6f, 0.7f})});
     d.renderer.volFogEnabled = true;
-    d.renderer.volFogDensity = 0.011f;
-    d.renderer.volFogColor = {0.78f, 0.81f, 0.89f};
+    d.renderer.volFogDensity = 0.014f;
+    d.renderer.volFogColor = {0.72f, 0.76f, 0.86f};
     d.renderer.volFogAnisotropy = 0.6f; // strong forward scattering -> shafts around the sun
     d.renderer.volFogHeight = 0.3f;     // ground mist
     d.renderer.volFogFalloff = 0.22f;
