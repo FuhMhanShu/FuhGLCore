@@ -42,6 +42,9 @@ jobs:
           mkdir -p build-qmake && cd build-qmake
           qmake6 ../fuhglcore.pro
           make -j"$(nproc)"
+          # guard: the archive must contain all FuhGLCore objects (guards against
+          # silently empty $$files() globs in fuhglcore.pri)
+          test "$(ar t libfuhglcore.a | wc -l)" -ge 30
           mkdir -p consumer && cd consumer
           cat > consumer.pro <<'PRO_EOF'
           TEMPLATE = app

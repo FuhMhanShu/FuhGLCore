@@ -21,11 +21,20 @@ CONFIG += c++17
 
 INCLUDEPATH += $$FUHGLCORE_DIR/include
 
-HEADERS += $$files($$FUHGLCORE_DIR/include/fuhgl/**/*.hpp, true)
+# NOTE: plain per-directory globs (no "**") — $$files(dir/**/..., true) expands
+# to nothing on some Qt6 qmake versions; per-directory globs are deterministic.
+HEADERS += \
+    $$files($$FUHGLCORE_DIR/include/fuhgl/*.hpp) \
+    $$files($$FUHGLCORE_DIR/include/fuhgl/cam/*.hpp) \
+    $$files($$FUHGLCORE_DIR/include/fuhgl/gl/*.hpp) \
+    $$files($$FUHGLCORE_DIR/include/fuhgl/gl/ext/*.hpp) \
+    $$files($$FUHGLCORE_DIR/include/fuhgl/math/*.hpp) \
+    $$files($$FUHGLCORE_DIR/include/fuhgl/render/*.hpp)
 SOURCES += \
     $$FUHGLCORE_DIR/src/skybox.cpp \
-    $$files($$FUHGLCORE_DIR/src/gl/**/*.cpp, true) \
-    $$files($$FUHGLCORE_DIR/src/render/**/*.cpp, true)
+    $$files($$FUHGLCORE_DIR/src/gl/*.cpp) \
+    $$files($$FUHGLCORE_DIR/src/gl/ext/*.cpp) \
+    $$files($$FUHGLCORE_DIR/src/render/*.cpp)
 
 win32 {
     SOURCES += $$FUHGLCORE_DIR/src/platform/window_win32.cpp
